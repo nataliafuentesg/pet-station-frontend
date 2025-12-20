@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@theme {
+  --color-ps-blue: #152c77;
+  --color-ps-red: #de1f27;
+  --color-ps-dark: #0f172a;
+}
