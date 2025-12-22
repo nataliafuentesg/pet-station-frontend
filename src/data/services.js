@@ -1,91 +1,123 @@
 export const services = [
   {
-    slug: 'peluqueria',
-    title: 'Peluquería & Spa',
-    icon: 'bi bi-scissors',
-    forPets: ['perro', 'gato'],
-    desc: 'Estética profesional con productos Hydra y manejo de bajo estrés.',
-    longDesc: 'Nuestro servicio de estética se enfoca en el bienestar integral. Incluye baño, secado, limpieza de oídos, corte de uñas y limpieza dental superficial. Glándulas perianales según evaluación clínica.',
-    features: [
-      'Shampoo Premium Hydra o medicado',
-      'Manejo amigable (Low Stress)',
-      'Limpieza de oídos y corte de uñas',
-      'Limpieza dental superficial'
-    ],
-    // Información exacta de peluqueria.js
-    pricing: {
-      dogs: [
-        { title: 'X-SMALL (Hasta 4 kg)', weight: 'Chihuahua, Yorkie', prices: [{n:'Solo baño', p:127900},{n:'Baño y corte', p:128400}] },
-        { title: 'SMALL (4.1 – 10 kg)', weight: 'French Bulldog, Poodle', prices: [{n:'Solo baño', p:135400},{n:'Baño y corte', p:142500}] },
-        { title: 'MEDIUM (10.1 – 25 kg)', weight: 'Cocker, Beagle, Border Collie', prices: [{n:'Solo baño', p:171900},{n:'Baño y corte', p:178200}] },
-        { title: 'LARGE (25 – 45 kg)', weight: 'Husky, Golden, Pastor Alemán', prices: [{n:'Solo baño', p:185200},{n:'Baño y corte', p:199700}] },
-        { title: 'X-LARGE (45+ kg)', weight: 'Gran Danés, San Bernardo', prices: [{n:'Solo baño', p:200900},{n:'Baño y corte', p:206700}] }
-      ],
-      cats: [
-        { title: 'Pelo largo', prices: [{n:'Solo baño', p:127900}] },
-        { title: 'Pelo corto', prices: [{n:'Solo baño', p:127900}] }
-      ]
-    },
-    ctaType: 'calendly', // Para disparar reserva-modal.js
-    waMsg: 'Hola, quiero cotizar peluquería.'
-  },
-  {
     slug: 'consulta',
     title: 'Consulta Médica',
     icon: 'bi bi-heart-pulse',
-    forPets: ['perro', 'gato'],
-    desc: 'Valoración médica profesional para el bienestar de tu mascota.',
-    longDesc: 'Evaluamos el estado general de salud de tu mascota, identificando síntomas de alerta y estableciendo planes de tratamiento o prevención.',
-    features: [
-      'Examen físico completo',
-      'Triaje de síntomas: Vómito, Diarrea, Tos, Picazón',
-      'Medicina preventiva y plan vacunal'
+    category: 'Salud',
+    intro: 'Evaluación completa, diagnóstico y plan de manejo personalizado.',
+    longDesc: 'De nariz a cola, evaluamos cada sistema. Los costos se confirman tras la valoración clínica.',
+    motivos: [
+      { id: 'vomito', label: 'Vómito' }, { id: 'diarrea', label: 'Diarrea' },
+      { id: 'piel', label: 'Alergia/Piel' }, { id: 'oidos', label: 'Oídos/Olor' },
+      { id: 'dolor', label: 'Cojea/Dolor' }, { id: 'tos', label: 'Tos/Estornudos' },
+      { id: 'apetito', label: 'No come/Bebe mucho' }, { id: 'chequeo', label: 'Chequeo anual' },
+      { id: 'vacunas', label: 'Vacunas/Desparasitación' }
     ],
-    waMsg: 'Hola, necesito consulta para mi mascota. Síntomas: '
+    bloques: [
+      {
+        titulo: 'Lo que ofrecemos',
+        items: [
+          { t: 'Chequeo completo', d: 'Historia clínica, examen físico de nariz a cola y plan de manejo.' },
+          { t: 'Vacunas y desparasitación', d: 'Actualización de esquema para perros y gatos según edad.' },
+          { t: 'Pulgas y garrapatas', d: 'Prevención, pruebas y tratamiento de enfermedades por vectores.' },
+          { t: 'Piel, oídos y ojos', d: 'Dermatología, otitis y oftalmología según valoración.' },
+          { t: 'Interconsultas y cirugía', d: 'Remisión o manejo quirúrgico cuando está indicado.' }
+        ]
+      },
+      {
+        titulo: 'Cómo te atendemos',
+        pasos: [
+          '1. Primer contacto: Orientación por WhatsApp y disponibilidad.',
+          '2. Consulta: Examen físico y si se requiere, laboratorios o imágenes.',
+          '3. Plan de manejo: Tratamiento y acompañamiento en recuperación.'
+        ]
+      }
+    ],
+    queTraer: [
+      'Historial y fórmulas médicas previas.',
+      'Medicamentos actuales (Nombre y dosis).',
+      'Muestras recientes o fotos de síntomas/lesiones.'
+    ],
+    waMsg: 'Hola Pet Station, necesito una consulta médica.'
   },
   {
     slug: 'viajes',
     title: 'Trámites de Viaje',
     icon: 'bi bi-airplane',
-    forPets: ['perro', 'gato'],
-    desc: 'Certificados ICA y trámites internacionales (USA, Europa, Brasil).',
-    longDesc: 'Gestionamos Certificado ICA (CIS), Microchip ISO Universal y pruebas de serología para que tu mascota viaje sin problemas.',
-    features: [
-      'Certificado de salud ICA (CIS)',
-      'Microchip ISO Universal',
-      'Serología de Rabia para Europa',
-      'Asesoría por destino (USA, EU, BR)'
+    category: 'Trámites',
+    intro: 'Certificados, serologías, microchip ISO y gestión ICA (CIS).',
+    longDesc: 'Te asesoramos según destino y aerolínea. Recomendamos iniciar 4-8 semanas antes (o 3 meses para ciertos destinos).',
+    tabs: [
+      {
+        id: 'usa',
+        label: '🇺🇸 EE. UU.',
+        content: 'Requisitos sujetos a CDC/USDA. Importante: Si es la primera antirrábica, hay ventanas de tiempo obligatorias.',
+        guia: [
+          { p: 'Asesoría Inicial', d: 'Día 0: Verificación de ruta y requerimientos vigentes.' },
+          { p: 'Vacunación', d: 'Esquema antirrábico vigente según normas del destino.' },
+          { p: 'Microchip ISO', d: 'Implantación y registro compatible 11784/11785.' },
+          { p: 'Serología (Crítico)', d: 'Toma de muestra para anticuerpos de Rabia si el historial o ruta lo exige.' },
+          { p: 'Certificado Médico', d: 'Examen clínico internacional con soporte documental.' },
+          { p: 'Gestión ICA', d: 'Cargue en SISPAP para obtener el CIS de salida.' }
+        ]
+      },
+      {
+        id: 'europa',
+        label: '🇪🇺 Europa / 🇨🇱 Chile',
+        content: 'Destinos que exigen obligatoriamente la prueba de anticuerpos (Serología).',
+        pasos: [
+          'Microchip ISO (Debe ser implantado ANTES de la vacuna de rabia).',
+          'Vacuna de Rabia vigente.',
+          'Toma de muestra para Serología (Mínimo 30 días después de vacunar).',
+          'Espera de 3 meses tras el resultado para poder viajar (Europa).'
+        ]
+      },
+      {
+        id: 'nacional',
+        label: '🇨🇴 Nacional',
+        content: 'Viajes dentro de Colombia.',
+        items: ['Certificado médico nacional', 'Carné de vacunas al día', 'Desparasitación vigente']
+      }
     ],
-    waMsg: 'Hola, quiero empezar los trámites de viaje para mi mascota.'
+    waMsg: 'Hola Pet Station, asesoría para viajes.'
   },
   {
-    slug: 'cirugias',
-    title: 'Cirugías',
-    icon: 'bi bi-hospital',
-    forPets: ['perro', 'gato'],
-    desc: 'Procedimientos quirúrgicos con monitoreo avanzado.',
-    longDesc: 'Contamos con quirófano equipado y especialistas en tejidos blandos y esterilizaciones.',
-    features: ['Esterilización', 'Cirugía de tejidos blandos', 'Monitoreo anestésico'],
-    waMsg: 'Hola, quiero información sobre cirugías para mi mascota.'
+    slug: 'rx',
+    title: 'Rayos X e Imágenes',
+    icon: 'bi bi-camera',
+    category: 'Diagnóstico',
+    intro: 'Ayudas diagnósticas para evaluar estructuras óseas y órganos internos.',
+    longDesc: 'Servicio bajo remisión médica o valoración interna para diagnósticos precisos.',
+    especificaciones: [
+      { t: 'Rayos X', d: 'Evaluación de fracturas, tórax, abdomen y displasias.' },
+      { t: 'Ecografía', d: 'Valoración abdominal detallada y tejidos blandos (Previa cita).' },
+      { t: 'Odontología', d: 'Profilaxis dental y extracciones con soporte de imagen.' }
+    ],
+    preparacion: [
+      'Ayuno de 8 horas si se requiere sedación para la toma.',
+      'Traer orden médica si viene remitido de otra clínica.',
+      'Cita previa requerida para ecografía especializada.'
+    ],
+    waMsg: 'Hola Pet Station, necesito un servicio de Rayos X / Imágenes.'
   },
   {
     slug: 'laboratorio',
     title: 'Laboratorio Clínico',
     icon: 'bi bi-microscope',
-    forPets: ['perro', 'gato'],
-    desc: 'Exámenes diagnósticos rápidos y precisos.',
-    longDesc: 'Realizamos hemogramas, bioquímicas y pruebas diagnósticas integrales.',
-    features: ['Hemogramas', 'Bioquímicas sanguíneas', 'Pruebas diagnósticas'],
-    waMsg: 'Hola, quisiera información sobre exámenes de laboratorio.'
-  },
-  {
-    slug: 'guarderia',
-    title: 'Guardería',
-    icon: 'bi bi-tree',
-    forPets: ['perro'],
-    desc: 'Espacio de socialización y recreación campestre.',
-    longDesc: 'Servicio de guardería para caninos con amplias zonas verdes en Chía.',
-    features: ['Zonas verdes', 'Socialización supervisada', 'Sede Chía'],
-    waMsg: 'Hola, quisiera información de guardería.'
+    category: 'Salud',
+    intro: 'Exámenes precisos para un diagnóstico oportuno.',
+    longDesc: 'Tiempos de entrega: Mismo día o 24-48h. Cotización según número de pruebas.',
+    pruebas: [
+      { cat: 'Hemograma', d: 'Biometría completa, frotis y recuentos.' },
+      { cat: 'Bioquímica', d: 'Renal, Hepático, Electrolitos, Glicemia, Proteínas.' },
+      { cat: 'Hormonales', d: 'T4 total/libre, TSH, Cortisol.' },
+      { cat: 'Citologías', d: 'Muestras de masas, oídos y piel.' }
+    ],
+    instrucciones: [
+      { m: 'Sangre', i: 'Ayuno 8–12 h (Solo agua). Evitar ejercicio 24h.' },
+      { m: 'Orina', i: 'Muestra fresca (<2h) de la mañana. Frasco estéril.' },
+      { m: 'Fecal', i: 'Reciente, de varios puntos. Sin arena ni contaminantes.' }
+    ],
+    waMsg: 'Hola Pet Station, cotizo exámenes de laboratorio.'
   }
 ];
