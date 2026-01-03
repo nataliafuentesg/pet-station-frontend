@@ -1,66 +1,80 @@
 <template>
-  <div class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0f172a] text-white">
+  <div class="flex flex-col items-center justify-start w-full px-4 pt-32 md:pt-48 pb-20 min-h-screen overflow-y-auto">
     
-    <h1 class="text-3xl md:text-5xl font-bold mb-12 animate-fade-in">
-      ¿Para quién compramos hoy?
-    </h1>
+    <div class="text-center mb-16 animate-in fade-in slide-in-from-top-4 duration-700">
+      <h2 class="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white">
+        ¿Quién viene <span class="text-[#DE1F27]">hoy?</span>
+      </h2>
+      <p class="text-white/40 text-[10px] font-black uppercase tracking-[0.3em] mt-4">Selecciona un perfil para continuar</p>
+    </div>
 
-    <div class="flex flex-wrap justify-center gap-10">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-10 md:gap-16 max-w-6xl w-full justify-items-center">
       
-      <div 
-        @click="select('dog')" 
-        class="group flex flex-col items-center cursor-pointer"
-      >
-        <div class="w-36 h-36 md:w-48 md:h-48 rounded-xl bg-[#152c77] flex items-center justify-center border-4 border-transparent group-hover:border-[#de1f27] group-hover:scale-105 transition-all duration-300 shadow-2xl">
-          <span class="text-6xl md:text-8xl group-hover:animate-bounce">🐶</span>
+      <div v-for="pet in availablePets" :key="pet.id" 
+        @click="$emit('selected', pet)"
+        class="group cursor-pointer flex flex-col items-center gap-5 transition-all hover:scale-110 active:scale-95">
+        
+        <div class="relative">
+          <div class="w-32 h-32 md:w-44 md:h-44 rounded-full border-4 border-white/10 overflow-hidden shadow-2xl group-hover:border-[#152C77] transition-all duration-500">
+            <img v-if="pet.fotoUrl || pet.foto" :src="pet.fotoUrl || pet.foto" class="w-full h-full object-cover" />
+            <div v-else class="w-full h-full bg-[#152C77]/30 flex items-center justify-center text-3xl font-black italic text-white/20">
+              {{ pet.nombre.charAt(0) }}
+            </div>
+          </div>
+          
+          <div class="absolute inset-0 bg-[#152C77]/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+            <span class="text-white font-black text-[10px] uppercase tracking-widest bg-black/40 px-4 py-2 rounded-full border border-white/20">Entrar</span>
+          </div>
         </div>
-        <span class="mt-4 text-xl font-medium text-slate-300 group-hover:text-white">Perros</span>
+        
+        <p class="text-[12px] font-black uppercase tracking-[0.2em] text-white/80 group-hover:text-white transition-colors italic">
+          {{ pet.nombre }}
+        </p>
       </div>
 
-      <div 
-        @click="select('cat')" 
-        class="group flex flex-col items-center cursor-pointer"
-      >
-        <div class="w-36 h-36 md:w-48 md:h-48 rounded-xl bg-[#152c77] flex items-center justify-center border-4 border-transparent group-hover:border-[#de1f27] group-hover:scale-105 transition-all duration-300 shadow-2xl">
-          <span class="text-6xl md:text-8xl group-hover:animate-bounce">🐱</span>
+      <div @click="$emit('createNew')"
+        class="group cursor-pointer flex flex-col items-center gap-5 transition-all hover:scale-105 active:scale-95">
+        
+        <div class="w-32 h-32 md:w-44 md:h-44 rounded-full border-4 border-dashed border-white/10 flex items-center justify-center group-hover:border-[#DE1F27] group-hover:bg-[#DE1F27]/5 transition-all duration-500">
+          <span class="text-5xl text-white/10 group-hover:text-[#DE1F27] font-light transition-colors">+</span>
         </div>
-        <span class="mt-4 text-xl font-medium text-slate-300 group-hover:text-white">Gatos</span>
-      </div>
-
-      <div 
-        @click="select('both')" 
-        class="group flex flex-col items-center cursor-pointer"
-      >
-        <div class="w-36 h-36 md:w-48 md:h-48 rounded-xl bg-slate-800 flex items-center justify-center border-4 border-transparent group-hover:border-white group-hover:scale-105 transition-all duration-300 shadow-2xl">
-          <span class="text-5xl md:text-7xl">🐾</span>
-        </div>
-        <span class="mt-4 text-xl font-medium text-slate-400 group-hover:text-white">Ver Todo</span>
+        
+        <p class="text-[12px] font-black uppercase tracking-[0.2em] text-white/20 group-hover:text-[#DE1F27] transition-colors">
+          Añadir
+        </p>
       </div>
 
     </div>
 
-    <button class="mt-16 text-slate-500 hover:text-[#de1f27] transition-colors font-medium border border-slate-700 px-6 py-2 rounded-full">
-      Administrar perfiles de mascotas
+    <button @click="$emit('logout')" class="mt-24 text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-[#DE1F27] transition-colors border-b border-transparent hover:border-[#DE1F27] pb-1">
+      Cerrar Sesión de Tutor
     </button>
   </div>
 </template>
 
 <script setup>
-// Definimos los eventos que este componente puede enviar al padre (App.vue)
-const emit = defineEmits(['selected']);
-
-const select = (type) => {
-  emit('selected', type);
-};
+defineProps(['availablePets', 'tutorLogueado']);
+defineEmits(['selected', 'createNew', 'openLogin', 'openActivation', 'logout']);
 </script>
 
 <style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.8s ease-out;
+/* Animación suave de entrada para los perfiles */
+.grid > div {
+  animation: profile-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  transform: scale(0.5);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes profile-pop {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
+
+/* Retraso progresivo para cada perfil */
+.grid > div:nth-child(1) { animation-delay: 0.1s; }
+.grid > div:nth-child(2) { animation-delay: 0.2s; }
+.grid > div:nth-child(3) { animation-delay: 0.3s; }
+.grid > div:nth-child(4) { animation-delay: 0.4s; }
 </style>
