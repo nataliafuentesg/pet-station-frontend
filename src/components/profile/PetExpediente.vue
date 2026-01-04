@@ -1,277 +1,279 @@
 <template>
-  <div v-if="pet && tutor" class="max-w-7xl mx-auto px-4 md:px-8 space-y-10 pb-32 pt-32 md:pt-44 text-slate-900">
+  <div class="min-h-screen bg-white dark:bg-[#050505] pt-32 pb-20 px-4 transition-colors duration-500">
     
-    <transition name="fade">
-      <div v-if="mensaje" 
-           :class="mensaje.tipo === 'error' ? 'bg-red-500' : 'bg-[#152C77]'" 
-           class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[500] px-8 py-4 rounded-full text-white font-black uppercase text-[11px] shadow-2xl backdrop-blur-md flex items-center gap-3 border border-white/20">
-        <span class="text-lg">{{ mensaje.tipo === 'error' ? '⚠️' : '✨' }}</span>
-        {{ mensaje.texto }}
-      </div>
-    </transition>
-
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-      <div>
-        <h2 class="text-4xl font-black text-[#152C77] uppercase italic leading-none tracking-tighter">
-          Expediente <span class="text-[#DE1F27]">Digital</span>
-        </h2>
-        <p class="text-slate-400 text-[10px] font-black uppercase mt-2 tracking-[0.2em]">Gestión centralizada de salud y servicios</p>
-      </div>
-
-      <div class="flex p-1 bg-slate-200/60 backdrop-blur-sm rounded-2xl border border-slate-300/50 shadow-inner">
-        <button @click="tab = 'pet'" 
-          :class="tab === 'pet' ? 'bg-white text-[#152C77] shadow-md' : 'text-slate-500 hover:text-slate-800'"
-          class="px-8 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all">
-          Mascota
-        </button>
-        <button @click="tab = 'tutor'" 
-          :class="tab === 'tutor' ? 'bg-white text-[#152C77] shadow-lg' : 'text-slate-500 hover:text-slate-800'"
-          class="px-8 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all">
-          Tutor
-        </button>
-      </div>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-40 gap-4">
+      <div class="w-12 h-12 border-4 border-[#152C77] border-t-[#DE1F27] rounded-full animate-spin"></div>
+      <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Sincronizando...</p>
     </div>
 
-    <div v-if="tab === 'pet'" class="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
-      <form @submit.prevent="updatePet" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div v-else-if="petData" class="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700">
+      
+      <div class="bg-slate-50 dark:bg-white/5 rounded-[3rem] p-10 flex flex-col md:flex-row items-center gap-10 shadow-2xl border border-slate-100 dark:border-white/5">
+        <div class="relative group cursor-pointer" @click="$refs.fileInput.click()">
+          <div :class="['w-44 h-44 rounded-[2.5rem] border-4 overflow-hidden shadow-2xl transform -rotate-3 transition-all duration-500 bg-white flex items-center justify-center', 
+            justSavedPhoto ? 'border-green-500 scale-105 rotate-0' : 'border-[#152C77] dark:border-[#DE1F27]']">
+            <img v-if="form.fotoUrl" :src="form.fotoUrl" class="w-full h-full object-cover" />
+            <div v-else class="w-full h-full bg-[#152C77] flex items-center justify-center text-5xl font-black text-white italic">
+              {{ petData.nombre.charAt(0) }}
+            </div>
+          </div>
+          <div class="absolute inset-0 bg-black/40 rounded-[2.5rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform -rotate-3 group-hover:rotate-0">
+            <div class="flex flex-col items-center gap-2">
+              <div v-if="compressing || savingPhoto" class="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              </svg>
+              <span class="text-white text-[8px] font-black uppercase tracking-widest text-center px-4">Cambiar Foto</span>
+            </div>
+          </div>
+          <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileUpload" />
+        </div>
+
+        <div class="flex-1 text-center md:text-left">
+          <h1 class="text-6xl font-[1000] uppercase italic tracking-tighter text-[#152C77] dark:text-white mb-2">{{ petData.nombre }}</h1>
+          <p class="text-slate-400 dark:text-white/40 font-bold uppercase text-xs tracking-[0.2em]">{{ petData.especie }} • {{ petData.raza }}</p>
+        </div>
+      </div>
+
+      <div class="flex gap-4 mb-4">
+        <button @click="activeTab = 'pet'" :class="['px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all', activeTab === 'pet' ? 'bg-[#152C77] text-white shadow-lg' : 'bg-slate-100 text-slate-400 dark:bg-white/5']">Expediente Médico</button>
+        <button @click="activeTab = 'tutor'" :class="['px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all', activeTab === 'tutor' ? 'bg-[#DE1F27] text-white shadow-lg' : 'bg-slate-100 text-slate-400 dark:bg-white/5']">Mi Perfil (Tutor)</button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <div class="lg:col-span-4 space-y-6">
-          <div class="bg-white p-8 rounded-[3rem] shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden group">
-            <h3 class="text-[#152C77] font-black uppercase text-[11px] tracking-widest italic flex items-center gap-2 mb-8 border-b border-slate-50 pb-4">
-              <span class="bg-[#152C77] text-white p-2 rounded-xl not-italic shadow-lg shadow-[#152C77]/20">🐾</span> Identidad
-            </h3>
-            
-            <div class="space-y-6">
-              <div>
-                <label class="ml-4 text-[9px] font-black text-slate-400 uppercase tracking-tighter">Nombre de la Mascota</label>
-                <input v-model="formPet.nombre" type="text" class="input-field" />
+        <div class="lg:col-span-2 bg-white dark:bg-white/5 rounded-[3rem] p-8 md:p-12 shadow-xl border border-slate-100 dark:border-white/5">
+          
+          <div v-if="activeTab === 'pet'">
+            <h3 class="text-xl font-black uppercase italic text-[#152C77] dark:text-white mb-8 border-b dark:border-white/10 pb-6">Ficha de Salud</h3>
+            <form @submit.prevent="saveProfile" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div v-for="(label, key) in medicalFields" :key="key" :class="key === 'alergiasOpcional' || key === 'observacionesMedicas' ? 'md:col-span-2' : ''" class="flex flex-col gap-2">
+                <label class="text-[9px] font-black uppercase text-slate-400 dark:text-white/30 ml-4 tracking-widest">{{ label }}</label>
+                <textarea v-if="key.includes('alergias') || key.includes('observaciones')" v-model="form[key]" class="w-full bg-slate-50 dark:bg-white/10 p-4 rounded-2xl border-2 border-transparent focus:border-[#152C77] outline-none font-bold dark:text-white text-sm h-24 resize-none"></textarea>
+                <input v-else v-model="form[key]" :type="key.includes('ultima') ? 'date' : 'text'" class="w-full bg-slate-50 dark:bg-white/10 p-4 rounded-2xl border-2 border-transparent focus:border-[#152C77] outline-none font-bold dark:text-white text-sm" />
               </div>
+              <button :disabled="saving" class="md:col-span-2 bg-[#152C77] text-white py-6 rounded-3xl font-black uppercase shadow-xl hover:scale-[1.02] transition-all">
+                {{ saving ? 'Guardando...' : 'Actualizar Expediente' }}
+              </button>
+            </form>
+          </div>
 
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="ml-4 text-[9px] font-black text-slate-400 uppercase tracking-tighter">Especie</label>
-                  <select v-model="formPet.especie" class="input-field cursor-pointer">
-                    <option value="PERRO">Perro</option>
-                    <option value="GATO">Gato</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="ml-4 text-[9px] font-black text-slate-400 uppercase tracking-tighter">Sexo</label>
-                  <select v-model="formPet.sexo" class="input-field cursor-pointer">
-                    <option value="Macho">Macho</option>
-                    <option value="Hembra">Hembra</option>
-                  </select>
-                </div>
+          <div v-else>
+            <h3 class="text-xl font-black uppercase italic text-[#DE1F27] mb-8 border-b dark:border-white/10 pb-6">Información Personal</h3>
+            <form @submit.prevent="saveTutor" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div v-for="(label, key) in tutorFields" :key="key" :class="key === 'direccion' ? 'md:col-span-2' : ''" class="flex flex-col gap-2">
+                <label class="text-[9px] font-black uppercase text-slate-400 dark:text-white/30 ml-4 tracking-widest">{{ label }}</label>
+                
+                <input 
+                  v-model="tutorForm[key]" 
+                  type="text" 
+                  :readonly="key === 'email' || key === 'cedula'"
+                  :class="[
+                    'w-full p-4 rounded-2xl border-2 border-transparent outline-none font-bold text-sm transition-all',
+                    (key === 'email' || key === 'cedula') 
+                      ? 'bg-slate-200 dark:bg-white/5 opacity-50 cursor-not-allowed text-slate-500' 
+                      : 'bg-slate-50 dark:bg-white/10 focus:border-[#DE1F27] dark:text-white'
+                  ]" 
+                />
               </div>
-
-              <div>
-                <label class="ml-4 text-[9px] font-black text-slate-400 uppercase tracking-tighter">Peso Actual (Kg)</label>
-                <input v-model.number="formPet.pesoActual" type="number" step="0.1" class="input-field" />
-              </div>
-            </div>
+              <button :disabled="saving" class="md:col-span-2 bg-[#DE1F27] text-white py-6 rounded-3xl font-black uppercase shadow-xl hover:scale-[1.02] transition-all mt-4">
+                {{ saving ? 'Guardando...' : 'Actualizar mis datos' }}
+              </button>
+            </form>
           </div>
         </div>
 
-        <div class="lg:col-span-8 bg-white p-8 md:p-12 rounded-[3rem] shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden">
-          <h3 class="text-[#152C77] font-black uppercase text-[11px] tracking-widest italic flex items-center gap-2 mb-10 border-b border-slate-50 pb-4">
-            <span class="bg-[#DE1F27] text-white p-2 rounded-xl not-italic shadow-lg shadow-[#DE1F27]/20">🩺</span> Historial Clínico
-          </h3>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div v-for="(label, key) in medicalFields" :key="key" class="space-y-1">
-              <label class="ml-4 text-[9px] font-black text-slate-400 uppercase tracking-tighter">{{ label }}</label>
-              <input v-model="formPet[key]" :type="key.includes('ultima') ? 'date' : 'text'" 
-                class="input-field" />
+        <div class="bg-slate-50 dark:bg-white/5 rounded-[3rem] p-10 border border-slate-100 dark:border-white/5 shadow-xl h-fit">
+          <h3 class="text-xl font-black uppercase italic text-[#DE1F27] mb-8 border-b dark:border-white/10 pb-4">Próximas Visitas</h3>
+          <div class="space-y-4">
+            <div v-if="filteredAppointments.length === 0" class="text-center py-10 opacity-30 font-black uppercase text-[10px] italic dark:text-white">
+              No hay citas pendientes
             </div>
-
-            <div class="md:col-span-2 space-y-1">
-              <label class="ml-4 text-[9px] font-black text-slate-400 uppercase tracking-tighter">Observaciones Médicas</label>
-              <textarea v-model="formPet.observacionesMedicas" 
-                class="w-full bg-slate-50 p-6 rounded-[2rem] border-2 border-transparent focus:border-[#152C77] focus:bg-white text-sm font-bold h-32 resize-none outline-none transition-all shadow-sm"></textarea>
+            <div v-for="cita in filteredAppointments" :key="cita.id" class="p-6 bg-white dark:bg-white/5 rounded-[2rem] border-l-8 border-[#152C77] shadow-sm">
+              <p class="text-[9px] font-black text-slate-400 uppercase mb-1">{{ formatDate(cita.fechaHora) }}</p>
+              <h4 class="font-black text-[#152C77] dark:text-white uppercase text-sm italic">{{ cita.servicioTipo }}</h4>
+              <p class="text-[10px] text-slate-500 mt-2 italic">"{{ cita.motivo }}"</p>
             </div>
           </div>
-
-          <div class="mt-10">
-            <button type="submit" :disabled="loading" 
-              class="w-full bg-[#152C77] text-white font-black py-6 rounded-2xl uppercase text-xs tracking-[0.2em] hover:bg-[#DE1F27] transition-all shadow-xl disabled:opacity-50">
-              {{ loading ? 'Sincronizando...' : 'Actualizar Expediente' }}
-            </button>
-          </div>
-        </div>
-      </form>
-
-      <div class="bg-white p-8 md:p-12 rounded-[3.5rem] shadow-xl border border-slate-100">
-        <h3 class="text-[#152C77] font-black uppercase text-[11px] tracking-widest italic flex items-center gap-2 mb-8">
-          <span class="bg-amber-100 text-amber-600 p-2 rounded-xl not-italic shadow-sm">📅</span> Próximas Citas
-        </h3>
-        <div v-if="citas.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="cita in citas" :key="cita.id" 
-            class="group bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 hover:border-[#152C77]/30 transition-all relative overflow-hidden">
-            <div :class="cita.servicioTipo === 'PELUQUERIA' ? 'bg-[#DE1F27]' : 'bg-[#152C77]'" class="absolute left-0 top-0 bottom-0 w-2"></div>
-            <h4 class="font-black text-slate-800 uppercase text-lg italic">{{ formatFecha(cita.fechaHora) }}</h4>
-            <p class="text-[10px] font-black text-slate-400 mt-2 uppercase">{{ cita.servicioTipo }}</p>
-          </div>
-        </div>
-        <div v-else class="text-center py-20 bg-slate-50/50 rounded-[3rem] border-4 border-dashed border-slate-100">
-          <p class="text-slate-400 text-[11px] font-black uppercase tracking-widest italic">Sin citas programadas</p>
         </div>
       </div>
-    </div>
-
-    <div v-if="tab === 'tutor'" class="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4">
-      <form @submit.prevent="updateTutor" class="bg-white p-12 rounded-[4rem] shadow-2xl border border-slate-100">
-        <h3 class="text-[#152C77] font-black uppercase text-[11px] tracking-widest italic flex items-center gap-2 mb-10 border-b border-slate-50 pb-4">
-          <span class="bg-green-100 text-green-600 p-2 rounded-xl not-italic shadow-sm">👤</span> Perfil Responsable
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div v-for="field in tutorFields" :key="field.id" class="space-y-1">
-            <label class="ml-4 text-[9px] font-black text-slate-400 uppercase tracking-tighter">{{ field.label }}</label>
-            <input v-model="formTutor[field.id]" type="text" class="input-field" />
-          </div>
-        </div>
-        <button type="submit" :disabled="loading" 
-          class="w-full bg-[#DE1F27] text-white font-black py-6 rounded-2xl uppercase text-[11px] tracking-[0.2em] mt-10 hover:bg-[#152C77] transition-all shadow-xl">
-          {{ loading ? 'Sincronizando...' : 'Guardar Información de Contacto' }}
-        </button>
-      </form>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, reactive, onMounted, watch, computed } from 'vue';
 
 const props = defineProps(['pet', 'tutor']);
-const emit = defineEmits(['update-pet', 'update-tutor']);
+const emit = defineEmits(['update-pet', 'update-tutor', 'notify']);
 
-const tab = ref('pet');
-const loading = ref(false);
-const mensaje = ref(null);
-const citas = ref([]);
+const loading = ref(true);
+const saving = ref(false);
+const savingPhoto = ref(false);
+const compressing = ref(false);
+const justSavedPhoto = ref(false);
+const activeTab = ref('pet');
+const petData = ref(null);
+const appointments = ref([]);
 
-const formPet = ref({});
-const formTutor = ref({});
+// Form Mascota
+const form = reactive({
+  fotoUrl: '', pesoActual: '', ultimaVacuna: '', ultimaDesparasitacion: '',
+  marcaComida: '', frecuenciaBano: '', snacksFavoritos: '', alergiasOpcional: '', observacionesMedicas: ''
+});
+
+// Form Tutor
+const tutorForm = reactive({ 
+  nombre: '', 
+  apellido: '', 
+  cedula: '', 
+  telefono: '', 
+  email: '', 
+  direccion: '' 
+});
 
 const medicalFields = {
-  ultimaVacuna: 'Vacunación',
-  ultimaDesparasitacion: 'Desparasitación',
-  marcaComida: 'Alimentación',
-  snacksFavoritos: 'Premios',
-  frecuenciaBano: 'Baño',
-  alergiasOpcional: 'Alergias'
+  pesoActual: 'Peso Actual (kg)', ultimaVacuna: 'Última Vacuna',
+  ultimaDesparasitacion: 'Última Desparasitación', marcaComida: 'Marca de Alimento',
+  frecuenciaBano: 'Frecuencia Baño', snacksFavoritos: 'Snacks Favoritos',
+  alergiasOpcional: 'Alergias o Condiciones', observacionesMedicas: 'Observaciones'
 };
 
-const tutorFields = [
-  { id: 'nombre', label: 'Nombre' },
-  { id: 'apellido', label: 'Apellido' },
-  { id: 'telefono', label: 'Teléfono' },
-  { id: 'direccion', label: 'Dirección' }
-];
-
-const cargarCitas = async () => {
-  if (!props.pet?.id) return;
-  try {
-    const res = await fetch(`http://localhost:8080/api/citas/mascota/${props.pet.id}`);
-    if (res.ok) {
-      citas.value = await res.json();
-    }
-  } catch (e) {
-    console.warn("Error al cargar citas");
-  }
+const tutorFields = { 
+  nombre: 'Nombre', 
+  apellido: 'Apellido', 
+  cedula: 'Cédula (No editable)', 
+  telefono: 'Teléfono', 
+  email: 'Email (No editable)', 
+  direccion: 'Dirección' 
 };
 
-const formatFecha = (fechaStr) => {
-  return new Date(fechaStr).toLocaleString('es-CO', { 
-    day: '2-digit', 
-    month: 'short', 
-    hour: '2-digit', 
-    minute: '2-digit' 
+// Citas futuras
+const filteredAppointments = computed(() => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return appointments.value
+    .filter(cita => new Date(cita.fechaHora) >= today)
+    .sort((a, b) => new Date(a.fechaHora) - new Date(b.fechaHora));
+});
+
+const formatDate = (dateStr) => {
+  return new Date(dateStr).toLocaleString('es-ES', { 
+    weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
   });
 };
 
-const mostrarFeedback = (texto, tipo = 'success') => {
-  mensaje.value = { texto, tipo };
-  setTimeout(() => { mensaje.value = null; }, 3000);
-};
-
-const updatePet = async () => {
+const loadAllData = async () => {
+  if (!props.pet?.id) return;
   loading.value = true;
   try {
-    const res = await fetch(`http://localhost:8080/api/mascotas/${props.pet.id}/completar-perfil`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formPet.value)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      emit('update-pet', data);
-      mostrarFeedback('¡Expediente actualizado!');
+    const [resP, resT, resC] = await Promise.all([
+      fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`),
+      props.tutor?.id ? fetch(`http://localhost:8080/api/tutores/${props.tutor.id}`) : null,
+      fetch(`http://localhost:8080/api/citas/mascota/${props.pet.id}`)
+    ]);
+    
+    if (resP.ok) {
+      const data = await resP.json();
+      petData.value = data;
+      Object.assign(form, data);
     }
-  } catch (e) {
-    mostrarFeedback('Error de conexión', 'error');
-  } finally {
-    loading.value = false;
+    
+    if (resT && resT.ok) {
+      const tData = await resT.json();
+      Object.assign(tutorForm, tData);
+    }
+    
+    if (resC.ok) appointments.value = await resC.json();
+  } catch (error) {
+    emit('notify', 'Error al cargar datos', 'error');
+  } finally { 
+    loading.value = false; 
   }
 };
 
-const updateTutor = async () => {
-  loading.value = true;
+const saveProfile = async () => {
+  saving.value = true;
   try {
-    const res = await fetch(`http://localhost:8080/api/tutores/${props.tutor.id}/actualizar`, {
+    const res = await fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formTutor.value)
+      body: JSON.stringify({ ...petData.value, ...form })
     });
     if (res.ok) {
-      const data = await res.json();
-      emit('update-tutor', data);
-      mostrarFeedback('Tutor actualizado');
+      const updated = await res.json();
+      emit('update-pet', updated);
+      emit('notify', 'Expediente médico actualizado');
+    }
+  } finally { saving.value = false; }
+};
+
+const saveTutor = async () => {
+  saving.value = true;
+  try {
+    const res = await fetch(`http://localhost:8080/api/tutores/${props.tutor.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tutorForm)
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      Object.assign(tutorForm, updated);
+      emit('update-tutor', updated);
+      emit('notify', 'Datos del tutor actualizados');
+    } else {
+      emit('notify', 'Error al guardar (Verifica el Backend)', 'error');
     }
   } catch (e) {
-    mostrarFeedback('Error al actualizar tutor', 'error');
-  } finally {
-    loading.value = false;
+    emit('notify', 'Error de red', 'error');
+  } finally { 
+    saving.value = false; 
   }
 };
 
-onMounted(() => {
-  if (props.pet) {
-    formPet.value = JSON.parse(JSON.stringify(props.pet));
-    cargarCitas();
-  }
-  if (props.tutor) {
-    formTutor.value = JSON.parse(JSON.stringify(props.tutor));
-  }
-});
+const handleFileUpload = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  compressing.value = true;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.src = e.target.result;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } }
+      else { if (h > MAX) { w *= MAX/h; h = MAX; } }
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      form.fotoUrl = canvas.toDataURL('image/jpeg', 0.7);
+      compressing.value = false;
+      autoSavePhoto();
+    };
+  };
+  reader.readAsDataURL(file);
+};
 
-watch(() => props.pet?.id, (newId) => {
-  if (newId) {
-    formPet.value = JSON.parse(JSON.stringify(props.pet));
-    cargarCitas();
-  }
-}, { immediate: true });
+const autoSavePhoto = async () => {
+  savingPhoto.value = true;
+  try {
+    const res = await fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...petData.value, fotoUrl: form.fotoUrl })
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      petData.value = updated;
+      emit('update-pet', updated);
+      justSavedPhoto.value = true;
+      setTimeout(() => justSavedPhoto.value = false, 2000);
+    }
+  } finally { savingPhoto.value = false; }
+};
+
+onMounted(loadAllData);
+watch(() => props.pet?.id, loadAllData);
 </script>
-
-<style scoped>
-.input-field {
-  width: 100%;
-  background-color: #f8fafc; /* slate-50 */
-  padding: 1rem;
-  border-radius: 1rem;
-  border-width: 2px;
-  border-color: transparent;
-  font-size: 0.875rem; /* text-sm */
-  font-weight: 700;
-  outline: none;
-  transition: all 0.3s;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-
-.input-field:focus {
-  border-color: #152C77;
-  background-color: white;
-}
-
-.fade-enter-active, .fade-leave-active { transition: opacity 0.4s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-</style>

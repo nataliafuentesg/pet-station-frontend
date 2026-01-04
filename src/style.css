@@ -1,6 +1,18 @@
 @import "tailwindcss";
+
 @theme {
   --color-ps-blue: #152c77;
   --color-ps-red: #de1f27;
   --color-ps-dark: #0f172a;
+  --color-ps-black: #050505;
+}
+
+/* Configuración de Dark Mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    transition-property: color, background-color;
+    transition-duration: 500ms;
+  }
 }

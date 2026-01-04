@@ -1,257 +1,241 @@
 <template>
-  <div class="max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-500 px-4 md:px-0 pb-20 pt-28 md:pt-40">
-    <div class="bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100">
+  <div class="min-h-screen bg-white dark:bg-[#050505] pt-32 pb-20 px-4 transition-colors duration-500">
+    <div class="max-w-4xl mx-auto">
       
-      <div class="bg-[#152C77] p-6 md:p-10 text-white relative overflow-hidden">
-        <div class="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
-        <h2 class="text-2xl md:text-4xl font-black uppercase italic tracking-tighter relative z-10">
-          Reservar <span class="text-[#DE1F27]">Cupo</span>
-        </h2>
-        <p class="text-[9px] md:text-[11px] font-bold uppercase tracking-widest opacity-80 mt-2 italic relative z-10">
-          {{ tutorLogueado ? `Agendando para la mascota: ${pet?.nombre}` : 'Completa los datos para agendar y crear tu cuenta automáticamente' }}
+      <div class="text-center mb-12">
+        <h1 class="text-5xl md:text-6xl font-[1000] uppercase italic tracking-tighter text-[#152C77] dark:text-white">
+          RESERVAR <span class="text-[#DE1F27]">TURNO</span>
+        </h1>
+        <p class="text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em] mt-4">
+          {{ props.tutor ? `HOLA ${props.tutor.nombre}, SELECCIONA TU MASCOTA` : 'COMPLETA LOS DATOS PARA AGENDAR' }}
         </p>
       </div>
 
-      <form @submit.prevent="handleAgendar" class="p-5 md:p-12 text-left">
-        
-        <div v-if="!tutorLogueado" class="mb-12 space-y-6">
-          <div class="flex items-center gap-4 mb-6">
-            <span class="bg-[#DE1F27] text-white w-8 h-8 rounded-lg flex items-center justify-center font-black italic shadow-lg shadow-[#DE1F27]/20">1</span>
-            <h3 class="text-[#152C77] font-black uppercase text-[12px] tracking-widest italic border-b-2 border-slate-100 pb-1">Datos del Propietario</h3>
-          </div>
+      <div class="bg-slate-50 dark:bg-white/5 rounded-[3rem] p-8 md:p-12 shadow-2xl border border-slate-100 dark:border-white/5">
+        <form @submit.prevent="handleSubmit" class="space-y-10">
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div class="space-y-1">
-              <label class="ml-4 text-[8px] font-black text-slate-400 uppercase">Nombre</label>
-              <input v-model="publicForm.nombreTutor" type="text" placeholder="Ej: Natalia" required 
-                class="input-ps" />
+          <div v-if="props.tutor" class="space-y-6">
+            <h3 class="text-sm font-black uppercase tracking-widest text-[#DE1F27] flex items-center gap-3">
+              <span class="w-8 h-[2px] bg-[#DE1F27]"></span> 1. ¿Para quién es la cita?
+            </h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div v-for="m in props.availablePets" :key="m.id" 
+                @click="seleccionarMascota(m)"
+                :class="[
+                  'cursor-pointer p-5 rounded-[2.5rem] border-2 transition-all flex flex-col items-center gap-3',
+                  form.mascotaId === m.id 
+                    ? 'border-[#152C77] bg-[#152C77] text-white shadow-xl scale-105' 
+                    : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-slate-400'
+                ]">
+                <div class="w-16 h-16 rounded-full overflow-hidden bg-slate-200 border-2 border-white/20">
+                  <img v-if="m.fotoUrl" :src="m.fotoUrl" class="w-full h-full object-cover" />
+                  <div v-else class="w-full h-full flex items-center justify-center font-black text-xl text-[#152C77]">{{ m.nombre[0] }}</div>
+                </div>
+                <span class="text-[11px] font-black uppercase tracking-tighter">{{ m.nombre }}</span>
+              </div>
             </div>
-            <div class="space-y-1">
-              <label class="ml-4 text-[8px] font-black text-slate-400 uppercase">Apellido</label>
-              <input v-model="publicForm.apellidoTutor" type="text" placeholder="Ej: Fuentes" required 
-                class="input-ps" />
-            </div>
-            <div class="space-y-1">
-              <label class="ml-4 text-[8px] font-black text-slate-400 uppercase">Cédula / ID</label>
-              <input v-model="publicForm.cedula" type="text" placeholder="Número de identificación" required 
-                class="input-ps" />
-            </div>
-            <div class="space-y-1">
-              <label class="ml-4 text-[8px] font-black text-slate-400 uppercase">Email de contacto</label>
-              <input v-model="publicForm.emailTutor" type="email" placeholder="correo@ejemplo.com" required 
-                class="input-ps" />
-            </div>
-            <div class="space-y-1 md:col-span-2">
-              <label class="ml-4 text-[8px] font-black text-slate-400 uppercase">Teléfono Móvil</label>
-              <input v-model="publicForm.telefonoTutor" type="tel" placeholder="3xx xxxxxxx" required 
-                class="input-ps" />
-            </div>
+          </div>
 
-            <div class="h-px bg-slate-100 md:col-span-2 my-4"></div>
-            <div class="space-y-1">
-              <label class="ml-4 text-[8px] font-black text-slate-400 uppercase">Nombre Mascota</label>
-              <input v-model="publicForm.nombreMascota" type="text" placeholder="Ej: Quione" required 
-                class="input-ps" />
-            </div>
-            <div class="space-y-1">
-              <label class="ml-4 text-[8px] font-black text-slate-400 uppercase">Especie</label>
-              <select v-model="publicForm.especie" required class="input-ps">
-                <option value="" disabled>Seleccionar...</option>
-                <option value="CANINO">Canino (Perro)</option>
-                <option value="FELINO">Felino (Gato)</option>
-                <option value="OTRO">Otro</option>
+          <div v-else class="space-y-6">
+            <h3 class="text-sm font-black uppercase tracking-widest text-[#DE1F27] flex items-center gap-3">
+              <span class="w-8 h-[2px] bg-[#DE1F27]"></span> 1. Información del Paciente
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <input v-model="form.nombreMascota" placeholder="Nombre de la mascota" required class="input-style" />
+              <select v-model="form.especie" class="input-style">
+                <option value="CANINO">Canino</option>
+                <option value="FELINO">Felino</option>
               </select>
+              <input v-model="form.nombreTutor" placeholder="Tu Nombre" required class="input-style" />
+              <input v-model="form.emailTutor" placeholder="Tu Email" required type="email" class="input-style" />
             </div>
           </div>
-        </div>
 
-        <div class="space-y-8">
-          <div class="flex items-center gap-4 mb-2">
-            <span class="bg-[#152C77] text-white w-8 h-8 rounded-lg flex items-center justify-center font-black italic shadow-lg shadow-[#152C77]/20">
-              {{ tutorLogueado ? '1' : '2' }}
-            </span>
-            <h3 class="text-[#152C77] font-black uppercase text-[12px] tracking-widest italic border-b-2 border-slate-100 pb-1">Configuración del Servicio</h3>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="space-y-6">
-              <div class="space-y-2">
-                <label class="ml-4 text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Tipo de Atención</label>
-                <div class="flex gap-2 p-1.5 bg-slate-100 rounded-2xl">
-                  <button type="button" @click="servicioTipo = 'CONSULTA'" 
-                    :class="servicioTipo === 'CONSULTA' ? 'bg-[#152C77] text-white shadow-md' : 'text-slate-500'"
-                    class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all">Médica</button>
-                  <button type="button" @click="servicioTipo = 'PELUQUERIA'" 
-                    :class="servicioTipo === 'PELUQUERIA' ? 'bg-[#DE1F27] text-white shadow-md' : 'text-slate-500'"
-                    class="flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all">Estética</button>
-                </div>
+          <div class="space-y-6">
+            <h3 class="text-sm font-black uppercase tracking-widest text-[#DE1F27] flex items-center gap-3">
+              <span class="w-8 h-[2px] bg-[#DE1F27]"></span> 2. Servicio y Horario
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label class="label-style">Tipo de Servicio</label>
+                <select v-model="form.servicioTipo" class="input-style">
+                  <option value="CONSULTA">CONSULTA MÉDICA</option>
+                  <option value="PELUQUERIA">PELUQUERÍA</option>
+                </select>
               </div>
-
-              <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-2">
-                  <label class="ml-4 text-[9px] font-black text-slate-400 uppercase italic">Fecha</label>
-                  <input v-model="fecha" type="date" :min="minDate" required class="input-ps" />
-                </div>
-                <div class="space-y-2">
-                  <label class="ml-4 text-[9px] font-black text-slate-400 uppercase italic">Hora</label>
-                  <select v-model="hora" required class="input-ps">
-                    <option value="" disabled>--:--</option>
-                    <option v-for="h in ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00']" :key="h" :value="h">{{ h }}</option>
-                  </select>
-                </div>
+              <div>
+                <label class="label-style">Fecha (Anticipación 24h)</label>
+                <input v-model="tempDate" type="date" :min="minDate" required class="input-style" />
+              </div>
+              <div>
+                <label class="label-style">Turnos Disponibles</label>
+                <select v-model="tempTime" :disabled="!tempDate || filteredHours.length === 0" class="input-style">
+                  <option v-for="h in filteredHours" :key="h" :value="h">
+                    {{ formatHora(h) }}
+                  </option>
+                </select>
+                <p v-if="esDomingo" class="text-[9px] text-red-500 font-bold mt-2 uppercase">No abrimos los domingos</p>
               </div>
             </div>
-
-            <div class="space-y-2">
-              <label class="ml-4 text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Notas Adicionales / Motivo</label>
-              <textarea v-model="motivo" placeholder="Cuéntanos un poco sobre lo que necesita tu mascota..." required
-                class="w-full bg-slate-100 p-5 rounded-3xl border-2 border-transparent font-bold text-slate-900 text-sm h-full min-h-[150px] md:min-h-[180px] resize-none outline-none focus:border-[#152C77] focus:bg-white transition-all shadow-sm"></textarea>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-12">
-          <div v-if="error" class="mb-4 p-4 bg-red-50 text-[#DE1F27] text-[11px] font-black uppercase rounded-2xl border border-red-100 text-center italic">
-            {{ error }}
           </div>
 
-          <div v-if="exito" class="mb-4 p-8 bg-green-50 rounded-[2.5rem] border border-green-100 text-center animate-in zoom-in">
-            <div class="w-14 h-14 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-lg">✓</div>
-            <p class="text-green-800 text-sm font-black uppercase mb-2 tracking-tighter">¡Reserva Exitosa!</p>
-            <p class="text-slate-500 text-[11px] font-bold uppercase italic mb-8">Si eres nuevo, revisa tu email para activar tu cuenta.</p>
-            <div class="flex flex-col md:flex-row gap-4 justify-center">
-               <a :href="googleCalendarLink" target="_blank" class="bg-slate-900 text-white px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#152C77] transition-all">Añadir a Calendario</a>
-               <button @click="resetForm" type="button" class="text-slate-400 font-black text-[10px] uppercase py-5 hover:text-slate-600">Agendar otra cita</button>
-            </div>
+          <div class="space-y-2">
+            <label class="label-style">Motivo de la cita</label>
+            <textarea v-model="form.motivo" placeholder="Describe brevemente el motivo..." required class="input-style h-28 resize-none p-6"></textarea>
           </div>
 
-          <button v-if="!exito" type="submit" :disabled="loading"
-            class="w-full bg-slate-900 text-white font-black py-7 rounded-2xl uppercase tracking-[0.2em] text-[12px] hover:bg-[#152C77] transition-all shadow-xl disabled:opacity-30 active:scale-95">
-            {{ loading ? 'Conectando con Recepción...' : 'Confirmar Reserva Premium' }}
+          <button 
+            type="submit"
+            :disabled="loading || (props.tutor && !form.mascotaId)" 
+            class="w-full bg-[#DE1F27] text-white py-8 rounded-[2.5rem] font-[1000] uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            {{ loading ? 'Sincronizando con Google Calendar...' : 'Confirmar Cita' }}
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 
-const props = defineProps(['pet', 'tutor', 'tutorLogueado']);
-const emit = defineEmits(['cita-agendada']);
-
+const props = defineProps(['tutor', 'pet', 'availablePets']);
+const emit = defineEmits(['notify']);
+const router = useRouter();
 const loading = ref(false);
-const error = ref('');
-const exito = ref(false);
-const googleCalendarLink = ref('');
 
-const fecha = ref('');
-const hora = ref('');
-const servicioTipo = ref('PELUQUERIA');
-const motivo = ref('');
+const tempDate = ref('');
+const tempTime = ref('08:00');
 
-const publicForm = reactive({
+const TURNOS_PERMITIDOS = ['08:00', '10:00', '12:00', '14:00'];
+
+const form = reactive({
+  mascotaId: null,
   nombreTutor: '',
   apellidoTutor: '',
   cedula: '',
   emailTutor: '',
   telefonoTutor: '',
   nombreMascota: '',
-  especie: ''
+  especie: 'CANINO',
+  servicioTipo: 'CONSULTA',
+  fechaHora: '',
+  motivo: ''
 });
 
-const minDate = new Date().toISOString().split('T')[0];
+const minDate = computed(() => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.toISOString().split('T')[0];
+});
 
-const handleAgendar = async () => {
-  loading.value = true;
-  error.value = '';
-  
-  const fechaHoraStr = `${fecha.value}T${hora.value}:00`;
-  let requestBody = {};
+const esDomingo = computed(() => {
+  if (!tempDate.value) return false;
+  const date = new Date(tempDate.value + 'T00:00:00');
+  return date.getDay() === 0;
+});
 
-  if (props.tutorLogueado) {
-    requestBody = {
+const filteredHours = computed(() => {
+  return esDomingo.value ? [] : TURNOS_PERMITIDOS;
+});
+
+const formatHora = (h) => {
+  const [hora] = h.split(':');
+  const hInt = parseInt(hora);
+  const suffix = hInt >= 12 ? 'PM' : 'AM';
+  const displayHora = hInt > 12 ? hInt - 12 : hInt;
+  return `${displayHora}:00 ${suffix}`;
+};
+
+const seleccionarMascota = (m) => {
+  form.mascotaId = m.id;
+  form.nombreMascota = m.nombre;
+  form.especie = m.especie;
+};
+
+onMounted(() => {
+  if (props.tutor) {
+    Object.assign(form, {
       nombreTutor: props.tutor.nombre,
       apellidoTutor: props.tutor.apellido,
       cedula: props.tutor.cedula,
       emailTutor: props.tutor.email,
-      telefonoTutor: props.tutor.telefono,
-      nombreMascota: props.pet.nombre,
-      especie: props.pet.especie,
-      servicioTipo: servicioTipo.value,
-      fechaHora: fechaHoraStr,
-      motivo: motivo.value
-    };
-  } else {
-    requestBody = {
-      ...publicForm,
-      servicioTipo: servicioTipo.value,
-      fechaHora: fechaHoraStr,
-      motivo: motivo.value
-    };
+      telefonoTutor: props.tutor.telefono
+    });
+    if (props.pet) seleccionarMascota(props.pet);
   }
+});
+
+const handleSubmit = async () => {
+  loading.value = true;
+  form.fechaHora = `${tempDate.value}T${tempTime.value}:00`;
 
   try {
     const res = await fetch('http://localhost:8080/api/citas/agendar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(form)
     });
 
     const data = await res.json();
     if (res.ok) {
-      exito.value = true;
-      googleCalendarLink.value = data.googleCalendarLink;
-      emit('cita-agendada', data);
+      emit('notify', '¡Cita agendada correctamente!');
+      
+      // Abrir calendar si existe
+      if (data.googleCalendarLink) {
+        window.open(data.googleCalendarLink, '_blank');
+      }
+
+      // CAMBIO CLAVE: Lógica de redirección inteligente
+      if (props.tutor) {
+        router.push('/expediente');
+      } else {
+        router.push('/'); // Si es invitado, vuelve al Home
+      }
+
     } else {
-      error.value = data.message || "Lo sentimos, este horario ya está ocupado.";
+      emit('notify', data.message || 'Error al agendar', 'error');
     }
   } catch (e) {
-    error.value = "Error de conexión. El servidor no responde.";
+    emit('notify', 'Error de conexión con el servidor', 'error');
   } finally {
     loading.value = false;
   }
 };
-
-const resetForm = () => {
-  exito.value = false;
-  fecha.value = '';
-  hora.value = '';
-  motivo.value = '';
-  Object.keys(publicForm).forEach(k => publicForm[k] = '');
-};
 </script>
 
 <style scoped>
-/* Estilo unificado para los inputs sin @apply para evitar errores */
-.input-ps {
+/* Estilos manuales para evitar errores de @apply con Tailwind v4 */
+.input-style {
   width: 100%;
-  background-color: #f1f5f9; /* slate-100 */
-  padding: 1rem;
+  background-color: white;
+  padding: 1.25rem;
   border-radius: 1rem;
-  border-width: 2px;
-  border-color: transparent;
-  font-weight: 700;
-  color: #0f172a; /* slate-900 */
+  border: 2px solid transparent;
   outline: none;
-  transition: all 0.2s;
-  font-size: 0.875rem; /* text-sm */
+  font-weight: 700;
+  transition: all 0.3s;
 }
 
-.input-ps:focus {
+.dark .input-style {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.input-style:focus {
   border-color: #152C77;
-  background-color: #ffffff;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  filter: invert(0.2);
-}
-
-@media screen and (max-width: 768px) {
-  input, select, textarea {
-    font-size: 16px !important;
-  }
+.label-style {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-left: 1rem;
+  margin-bottom: 0.5rem;
+  display: block;
 }
 </style>
