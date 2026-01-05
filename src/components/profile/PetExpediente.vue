@@ -2,18 +2,18 @@
   <div class="min-h-screen bg-white dark:bg-[#050505] pt-32 pb-20 px-4 transition-colors duration-500">
     
     <div v-if="loading" class="flex flex-col items-center justify-center py-40 gap-4">
-      <div class="w-12 h-12 border-4 border-[#152C77] border-t-[#DE1F27] rounded-full animate-spin"></div>
-      <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Sincronizando...</p>
+      <div class="w-12 h-12 border-4 border-ps-blue border-t-ps-red rounded-full animate-spin"></div>
+      <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Sincronizando con la nube...</p>
     </div>
 
     <div v-else-if="petData" class="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700">
       
-      <div class="bg-slate-50 dark:bg-white/5 rounded-[3rem] p-10 flex flex-col md:flex-row items-center gap-10 shadow-2xl border border-slate-100 dark:border-white/5">
+      <div class="bg-slate-50 dark:bg-white/5 rounded-[3.5rem] p-10 flex flex-col md:flex-row items-center gap-10 shadow-2xl border border-slate-100 dark:border-white/5">
         <div class="relative group cursor-pointer" @click="$refs.fileInput.click()">
           <div :class="['w-44 h-44 rounded-[2.5rem] border-4 overflow-hidden shadow-2xl transform -rotate-3 transition-all duration-500 bg-white flex items-center justify-center', 
-            justSavedPhoto ? 'border-green-500 scale-105 rotate-0' : 'border-[#152C77] dark:border-[#DE1F27]']">
+            justSavedPhoto ? 'border-green-500 scale-105 rotate-0' : 'border-ps-blue dark:border-ps-red']">
             <img v-if="form.fotoUrl" :src="form.fotoUrl" class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full bg-[#152C77] flex items-center justify-center text-5xl font-black text-white italic">
+            <div v-else class="w-full h-full bg-ps-blue flex items-center justify-center text-5xl font-black text-white italic">
               {{ petData.nombre.charAt(0) }}
             </div>
           </div>
@@ -30,40 +30,40 @@
         </div>
 
         <div class="flex-1 text-center md:text-left">
-          <h1 class="text-6xl font-[1000] uppercase italic tracking-tighter text-[#152C77] dark:text-white mb-2">{{ petData.nombre }}</h1>
-          <p class="text-slate-400 dark:text-white/40 font-bold uppercase text-xs tracking-[0.2em]">{{ petData.especie }} • {{ petData.raza }}</p>
+          <span class="bg-ps-red/10 text-ps-red px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-4 inline-block italic">Expediente Oficial</span>
+          <h1 class="text-6xl md:text-7xl font-black uppercase italic tracking-tighter text-ps-blue dark:text-white leading-none mb-4">{{ petData.nombre }}</h1>
+          <p class="text-slate-400 dark:text-white/40 font-black uppercase text-[10px] tracking-[0.4em]">{{ petData.especie }} • {{ petData.raza }}</p>
         </div>
       </div>
 
-      <div class="flex gap-4 mb-4">
-        <button @click="activeTab = 'pet'" :class="['px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all', activeTab === 'pet' ? 'bg-[#152C77] text-white shadow-lg' : 'bg-slate-100 text-slate-400 dark:bg-white/5']">Expediente Médico</button>
-        <button @click="activeTab = 'tutor'" :class="['px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all', activeTab === 'tutor' ? 'bg-[#DE1F27] text-white shadow-lg' : 'bg-slate-100 text-slate-400 dark:bg-white/5']">Mi Perfil (Tutor)</button>
+      <div class="flex gap-2 p-1 bg-slate-100 dark:bg-white/5 w-fit rounded-2xl">
+        <button @click="activeTab = 'pet'" :class="['px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all', activeTab === 'pet' ? 'bg-ps-blue text-white shadow-xl scale-105' : 'text-slate-400 hover:text-ps-blue']">Mascota</button>
+        <button @click="activeTab = 'tutor'" :class="['px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all', activeTab === 'tutor' ? 'bg-ps-red text-white shadow-xl scale-105' : 'text-slate-400 hover:text-ps-red']">Tutor</button>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <div class="lg:col-span-2 bg-white dark:bg-white/5 rounded-[3rem] p-8 md:p-12 shadow-xl border border-slate-100 dark:border-white/5">
+        <div class="lg:col-span-2 bg-slate-50 dark:bg-white/5 rounded-[3rem] p-8 md:p-12 shadow-xl border border-slate-100 dark:border-white/5">
           
-          <div v-if="activeTab === 'pet'">
-            <h3 class="text-xl font-black uppercase italic text-[#152C77] dark:text-white mb-8 border-b dark:border-white/10 pb-6">Ficha de Salud</h3>
+          <div v-if="activeTab === 'pet'" class="animate-in slide-in-from-left duration-500">
+            <h3 class="text-2xl font-black uppercase italic text-ps-blue dark:text-white mb-10 border-b dark:border-white/10 pb-6">Ficha Médica</h3>
             <form @submit.prevent="saveProfile" class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div v-for="(label, key) in medicalFields" :key="key" :class="key === 'alergiasOpcional' || key === 'observacionesMedicas' ? 'md:col-span-2' : ''" class="flex flex-col gap-2">
                 <label class="text-[9px] font-black uppercase text-slate-400 dark:text-white/30 ml-4 tracking-widest">{{ label }}</label>
-                <textarea v-if="key.includes('alergias') || key.includes('observaciones')" v-model="form[key]" class="w-full bg-slate-50 dark:bg-white/10 p-4 rounded-2xl border-2 border-transparent focus:border-[#152C77] outline-none font-bold dark:text-white text-sm h-24 resize-none"></textarea>
-                <input v-else v-model="form[key]" :type="key.includes('ultima') ? 'date' : 'text'" class="w-full bg-slate-50 dark:bg-white/10 p-4 rounded-2xl border-2 border-transparent focus:border-[#152C77] outline-none font-bold dark:text-white text-sm" />
+                <textarea v-if="key.includes('alergias') || key.includes('observaciones')" v-model="form[key]" class="input-dark-expediente h-24 resize-none"></textarea>
+                <input v-else v-model="form[key]" :type="key.includes('ultima') ? 'date' : 'text'" class="input-dark-expediente" />
               </div>
-              <button :disabled="saving" class="md:col-span-2 bg-[#152C77] text-white py-6 rounded-3xl font-black uppercase shadow-xl hover:scale-[1.02] transition-all">
-                {{ saving ? 'Guardando...' : 'Actualizar Expediente' }}
+              <button :disabled="saving" class="md:col-span-2 bg-ps-blue text-white py-6 rounded-3xl font-black uppercase tracking-widest shadow-2xl hover:brightness-110 active:scale-95 transition-all mt-6">
+                {{ saving ? 'Sincronizando...' : 'Actualizar Expediente' }}
               </button>
             </form>
           </div>
 
-          <div v-else>
-            <h3 class="text-xl font-black uppercase italic text-[#DE1F27] mb-8 border-b dark:border-white/10 pb-6">Información Personal</h3>
+          <div v-else class="animate-in slide-in-from-right duration-500">
+            <h3 class="text-2xl font-black uppercase italic text-ps-red mb-10 border-b dark:border-white/10 pb-6">Datos Personales</h3>
             <form @submit.prevent="saveTutor" class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div v-for="(label, key) in tutorFields" :key="key" :class="key === 'direccion' ? 'md:col-span-2' : ''" class="flex flex-col gap-2">
                 <label class="text-[9px] font-black uppercase text-slate-400 dark:text-white/30 ml-4 tracking-widest">{{ label }}</label>
-                
                 <input 
                   v-model="tutorForm[key]" 
                   type="text" 
@@ -72,27 +72,31 @@
                     'w-full p-4 rounded-2xl border-2 border-transparent outline-none font-bold text-sm transition-all',
                     (key === 'email' || key === 'cedula') 
                       ? 'bg-slate-200 dark:bg-white/5 opacity-50 cursor-not-allowed text-slate-500' 
-                      : 'bg-slate-50 dark:bg-white/10 focus:border-[#DE1F27] dark:text-white'
+                      : 'bg-white dark:bg-white/10 dark:text-white focus:border-ps-red'
                   ]" 
                 />
               </div>
-              <button :disabled="saving" class="md:col-span-2 bg-[#DE1F27] text-white py-6 rounded-3xl font-black uppercase shadow-xl hover:scale-[1.02] transition-all mt-4">
-                {{ saving ? 'Guardando...' : 'Actualizar mis datos' }}
+              <button :disabled="saving" class="md:col-span-2 bg-ps-red text-white py-6 rounded-3xl font-black uppercase tracking-widest shadow-2xl hover:brightness-110 active:scale-95 transition-all mt-6">
+                {{ saving ? 'Sincronizando...' : 'Guardar Información' }}
               </button>
             </form>
           </div>
         </div>
 
-        <div class="bg-slate-50 dark:bg-white/5 rounded-[3rem] p-10 border border-slate-100 dark:border-white/5 shadow-xl h-fit">
-          <h3 class="text-xl font-black uppercase italic text-[#DE1F27] mb-8 border-b dark:border-white/10 pb-4">Próximas Visitas</h3>
+        <div class="bg-slate-50 dark:bg-white/5 rounded-[3rem] p-8 border border-slate-100 dark:border-white/5 shadow-xl h-fit">
+          <div class="flex items-center justify-between mb-8 border-b dark:border-white/10 pb-4">
+            <h3 class="text-xl font-black uppercase italic text-ps-red leading-none">Citas</h3>
+            <span class="text-[9px] font-black bg-ps-red/20 text-ps-red px-3 py-1 rounded-full">{{ filteredAppointments.length }} Pendientes</span>
+          </div>
           <div class="space-y-4">
-            <div v-if="filteredAppointments.length === 0" class="text-center py-10 opacity-30 font-black uppercase text-[10px] italic dark:text-white">
-              No hay citas pendientes
+            <div v-if="filteredAppointments.length === 0" class="text-center py-20">
+              <p class="opacity-30 font-black uppercase text-[10px] italic dark:text-white mb-4">Sin actividades</p>
+              <router-link to="/agendar" class="text-[9px] font-black text-ps-blue uppercase border-b-2 border-ps-blue/20">Agendar servicio</router-link>
             </div>
-            <div v-for="cita in filteredAppointments" :key="cita.id" class="p-6 bg-white dark:bg-white/5 rounded-[2rem] border-l-8 border-[#152C77] shadow-sm">
-              <p class="text-[9px] font-black text-slate-400 uppercase mb-1">{{ formatDate(cita.fechaHora) }}</p>
-              <h4 class="font-black text-[#152C77] dark:text-white uppercase text-sm italic">{{ cita.servicioTipo }}</h4>
-              <p class="text-[10px] text-slate-500 mt-2 italic">"{{ cita.motivo }}"</p>
+            <div v-for="cita in filteredAppointments" :key="cita.id" class="p-6 bg-white dark:bg-white/10 rounded-[2rem] border-l-4 border-ps-blue shadow-sm hover:scale-[1.02] transition-transform">
+              <p class="text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">{{ formatDate(cita.fechaHora) }}</p>
+              <h4 class="font-black text-ps-blue dark:text-white uppercase text-xs italic">{{ cita.servicioTipo }}</h4>
+              <p class="text-[10px] text-slate-500 mt-2 italic leading-relaxed">"{{ cita.motivo }}"</p>
             </div>
           </div>
         </div>
@@ -105,7 +109,7 @@
 import { ref, reactive, onMounted, watch, computed } from 'vue';
 
 const props = defineProps(['pet', 'tutor']);
-const emit = defineEmits(['update-pet', 'update-tutor', 'notify']);
+const emit = defineEmits(['update-pet', 'update-tutor', 'notify', 'login-success']);
 
 const loading = ref(true);
 const saving = ref(false);
@@ -116,20 +120,22 @@ const activeTab = ref('pet');
 const petData = ref(null);
 const appointments = ref([]);
 
-// Form Mascota
+// Headers centralizados con el Token de localStorage
+const getHeaders = () => {
+  const token = localStorage.getItem('ps_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  };
+};
+
 const form = reactive({
   fotoUrl: '', pesoActual: '', ultimaVacuna: '', ultimaDesparasitacion: '',
   marcaComida: '', frecuenciaBano: '', snacksFavoritos: '', alergiasOpcional: '', observacionesMedicas: ''
 });
 
-// Form Tutor
 const tutorForm = reactive({ 
-  nombre: '', 
-  apellido: '', 
-  cedula: '', 
-  telefono: '', 
-  email: '', 
-  direccion: '' 
+  nombre: '', apellido: '', cedula: '', telefono: '', email: '', direccion: '' 
 });
 
 const medicalFields = {
@@ -140,15 +146,10 @@ const medicalFields = {
 };
 
 const tutorFields = { 
-  nombre: 'Nombre', 
-  apellido: 'Apellido', 
-  cedula: 'Cédula (No editable)', 
-  telefono: 'Teléfono', 
-  email: 'Email (No editable)', 
-  direccion: 'Dirección' 
+  nombre: 'Nombre', apellido: 'Apellido', cedula: 'Cédula', 
+  telefono: 'Teléfono', email: 'Email', direccion: 'Dirección' 
 };
 
-// Citas futuras
 const filteredAppointments = computed(() => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -167,29 +168,30 @@ const loadAllData = async () => {
   if (!props.pet?.id) return;
   loading.value = true;
   try {
+    const headers = getHeaders();
+    // Peticiones paralelas con headers de seguridad
     const [resP, resT, resC] = await Promise.all([
-      fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`),
-      props.tutor?.id ? fetch(`http://localhost:8080/api/tutores/${props.tutor.id}`) : null,
-      fetch(`http://localhost:8080/api/citas/mascota/${props.pet.id}`)
+      fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`, { headers }),
+      props.tutor?.id ? fetch(`http://localhost:8080/api/tutores/${props.tutor.id}`, { headers }) : null,
+      fetch(`http://localhost:8080/api/citas/mascota/${props.pet.id}`, { headers })
     ]);
     
+    if (resP.status === 403 || resT?.status === 403) {
+       emit('notify', { message: 'Sesión expirada', type: 'error' });
+       return;
+    }
+
     if (resP.ok) {
       const data = await resP.json();
       petData.value = data;
       Object.assign(form, data);
     }
-    
-    if (resT && resT.ok) {
-      const tData = await resT.json();
-      Object.assign(tutorForm, tData);
-    }
-    
+    if (resT && resT.ok) Object.assign(tutorForm, await resT.json());
     if (resC.ok) appointments.value = await resC.json();
+    
   } catch (error) {
-    emit('notify', 'Error al cargar datos', 'error');
-  } finally { 
-    loading.value = false; 
-  }
+    emit('notify', { message: 'Error de conexión', type: 'error' });
+  } finally { loading.value = false; }
 };
 
 const saveProfile = async () => {
@@ -197,37 +199,46 @@ const saveProfile = async () => {
   try {
     const res = await fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ ...petData.value, ...form })
     });
     if (res.ok) {
       const updated = await res.json();
       emit('update-pet', updated);
-      emit('notify', 'Expediente médico actualizado');
+      emit('notify', { message: 'Expediente actualizado' });
     }
+  } catch (e) {
+    emit('notify', { message: 'Error al guardar', type: 'error' });
   } finally { saving.value = false; }
 };
 
 const saveTutor = async () => {
+  if (!props.tutor?.id) return;
   saving.value = true;
+  
   try {
+    const { mascotas, ...datosLimpios } = tutorForm; 
+    
     const res = await fetch(`http://localhost:8080/api/tutores/${props.tutor.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(tutorForm)
+      headers: getHeaders(),
+      body: JSON.stringify(datosLimpios)
     });
+
     if (res.ok) {
       const updated = await res.json();
+      // Sincronizamos los datos locales
       Object.assign(tutorForm, updated);
       emit('update-tutor', updated);
-      emit('notify', 'Datos del tutor actualizados');
+      emit('notify', { message: '¡Datos de tutor actualizados!', type: 'success' });
     } else {
-      emit('notify', 'Error al guardar (Verifica el Backend)', 'error');
+      const errorData = await res.json();
+      emit('notify', { message: errorData.message || 'Error al actualizar', type: 'error' });
     }
   } catch (e) {
-    emit('notify', 'Error de red', 'error');
-  } finally { 
-    saving.value = false; 
+    emit('notify', { message: 'Error de conexión con el servidor', type: 'error' });
+  } finally {
+    saving.value = false;
   }
 };
 
@@ -246,8 +257,7 @@ const handleFileUpload = (event) => {
       if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } }
       else { if (h > MAX) { w *= MAX/h; h = MAX; } }
       canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
+      const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
       form.fotoUrl = canvas.toDataURL('image/jpeg', 0.7);
       compressing.value = false;
       autoSavePhoto();
@@ -261,12 +271,11 @@ const autoSavePhoto = async () => {
   try {
     const res = await fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ ...petData.value, fotoUrl: form.fotoUrl })
     });
     if (res.ok) {
       const updated = await res.json();
-      petData.value = updated;
       emit('update-pet', updated);
       justSavedPhoto.value = true;
       setTimeout(() => justSavedPhoto.value = false, 2000);
@@ -277,3 +286,13 @@ const autoSavePhoto = async () => {
 onMounted(loadAllData);
 watch(() => props.pet?.id, loadAllData);
 </script>
+
+<style scoped>
+@reference "../../style.css";
+
+.input-dark-expediente {
+  @apply w-full bg-white dark:bg-white/10 p-4 rounded-2xl border-2 border-transparent focus:border-ps-blue outline-none font-bold dark:text-white text-sm transition-all;
+}
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #DE1F27; border-radius: 10px; }
+</style>

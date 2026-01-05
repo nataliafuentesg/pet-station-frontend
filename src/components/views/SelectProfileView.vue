@@ -32,7 +32,6 @@ const router = useRouter();
 
 const onPetSelected = (pet) => {
   emit('selected', pet);
-  // Al seleccionar, lo llevamos al Panel General (Dashboard)
   router.push('/panel'); 
 };
 </script>
