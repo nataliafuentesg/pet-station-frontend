@@ -100,8 +100,8 @@ const handleSubmit = async () => {
   try {
     const esMascotaNueva = props.tutorExistente?.id;
     const url = esMascotaNueva 
-      ? `http://localhost:8080/api/mascotas/tutor/${props.tutorExistente.id}` 
-      : 'http://localhost:8080/api/registro/completo';
+      ? `https://api.petstationvet.com/api/mascotas/tutor/${props.tutorExistente.id}` 
+      : 'https://api.petstationvet.com/api/registro/completo';
 
     const res = await fetch(url, {
       method: 'POST',

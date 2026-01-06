@@ -174,7 +174,7 @@ const handleSubmit = async () => {
   form.fechaHora = `${tempDate.value}T${tempTime.value}:00`;
 
   try {
-    const res = await fetch('http://localhost:8080/api/citas/agendar', {
+    const res = await fetch('https://api.petstationvet.com//api/citas/agendar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form)

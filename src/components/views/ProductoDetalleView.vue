@@ -189,7 +189,7 @@ const whatsappUrl = computed(() => {
 
 const fetchData = async (productId) => {
   try {
-    const res = await fetch(`http://localhost:8080/api/tienda/productos/${productId}`);
+    const res = await fetch(`https://api.petstationvet.com/api/tienda/productos/${productId}`);
     if (res.ok) {
       const data = await res.json();
       product.value = data;

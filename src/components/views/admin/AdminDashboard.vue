@@ -416,7 +416,7 @@ const fotosPreview = computed(() => {
 // --- FETCHERS ---
 const fetchStats = async () => {
     try {
-        const res = await fetch('http://localhost:8080/api/admin/stats', {
+        const res = await fetch('https://api.petstationvet.com/api/admin/stats', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('ps_token')}` }
         });
         stats.value = await res.json();
@@ -426,7 +426,7 @@ const fetchStats = async () => {
 
 const fetchMascotas = async () => {
     try {
-        const res = await fetch('http://localhost:8080/api/admin/dashboard/completo', {
+        const res = await fetch('https://api.petstationvet.com/api/admin/dashboard/completo', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('ps_token')}` }
         });
         const data = await res.json();
@@ -436,7 +436,7 @@ const fetchMascotas = async () => {
 
 const fetchCitas = async () => {
     try {
-        const res = await fetch('http://localhost:8080/api/admin/citas/todas', {
+        const res = await fetch('https://api.petstationvet.com/api/admin/citas/todas', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('ps_token')}` }
         });
         citas.value = await res.json();
@@ -445,7 +445,7 @@ const fetchCitas = async () => {
 
 const fetchProductos = async () => {
     try {
-        const res = await fetch('http://localhost:8080/api/admin/productos', {
+        const res = await fetch('https://api.petstationvet.com/api/admin/productos', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('ps_token')}` }
         });
         productos.value = await res.json();
@@ -454,7 +454,7 @@ const fetchProductos = async () => {
 
 const fetchTutores = async () => {
     try {
-        const res = await fetch('http://localhost:8080/api/admin/dashboard/completo', {
+        const res = await fetch('https://api.petstationvet.com/api/admin/dashboard/completo', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('ps_token')}` }
         });
         tutores.value = await res.json();
@@ -483,7 +483,7 @@ const abrirModalProducto = (prod = null) => {
 
 const guardarProducto = async () => {
     formProd.value.fotosUrls = fotosPreview.value;
-    const url = `http://localhost:8080/api/admin/productos${editMode.value ? '/' + formProd.value.id : ''}`;
+    const url = `https://api.petstationvet.com/api/admin/productos${editMode.value ? '/' + formProd.value.id : ''}`;
     const res = await fetch(url, {
         method: editMode.value ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('ps_token')}` },
@@ -497,7 +497,7 @@ const guardarProducto = async () => {
 
 const eliminarProducto = async (id) => {
     if (!confirm("¿Deseas eliminar permanentemente este producto?")) return;
-    await fetch(`http://localhost:8080/api/admin/productos/${id}`, {
+    await fetch(`https://api.petstationvet.com/api/admin/productos/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('ps_token')}` }
     });

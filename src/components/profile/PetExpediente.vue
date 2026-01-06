@@ -207,9 +207,9 @@ const loadAllData = async () => {
   try {
     const headers = getHeaders();
     const [resP, resT, resC] = await Promise.all([
-      fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`, { headers }),
-      props.tutor?.id ? fetch(`http://localhost:8080/api/tutores/${props.tutor.id}`, { headers }) : null,
-      fetch(`http://localhost:8080/api/citas/mascota/${props.pet.id}`, { headers })
+      fetch(`https://api.petstationvet.com/api/mascotas/${props.pet.id}`, { headers }),
+      props.tutor?.id ? fetch(`https://api.petstationvet.com/api/tutores/${props.tutor.id}`, { headers }) : null,
+      fetch(`https://api.petstationvet.com/api/citas/mascota/${props.pet.id}`, { headers })
     ]);
     
     if (resP.ok) {
@@ -228,7 +228,7 @@ const loadAllData = async () => {
 const saveProfile = async () => {
   saving.value = true;
   try {
-    const res = await fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`, {
+    const res = await fetch(`https://api.petstationvet.com/api/mascotas/${props.pet.id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(form)
@@ -249,7 +249,7 @@ const saveTutor = async () => {
   saving.value = true;
   try {
     const { mascotas, ...datosLimpios } = tutorForm; 
-    const res = await fetch(`http://localhost:8080/api/tutores/${props.tutor.id}`, {
+    const res = await fetch(`https://api.petstationvet.com/api/tutores/${props.tutor.id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(datosLimpios)
@@ -292,7 +292,7 @@ const handleFileUpload = (event) => {
 const autoSavePhoto = async () => {
   savingPhoto.value = true;
   try {
-    const res = await fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`, {
+    const res = await fetch(`https://api.petstationvet.com/api/mascotas/${props.pet.id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify({ ...petData.value, fotoUrl: form.fotoUrl })

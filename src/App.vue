@@ -216,7 +216,7 @@ const handlePetUpdate = (updatedPet) => {
 const handleDeletePet = async (petId) => {
   const token = localStorage.getItem('ps_token');
   try {
-    const res = await fetch(`http://localhost:8080/api/mascotas/${petId}`, {
+    const res = await fetch(`https://api.petstationvet.com/api/mascotas/${petId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
