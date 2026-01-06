@@ -21,47 +21,61 @@
         : 'bg-transparent py-5'
     ]">
       <div class="max-w-[1800px] mx-auto flex items-center justify-between">
-        
+
         <router-link to="/" class="text-xl md:text-3xl font-[1000] italic uppercase tracking-tighter shrink-0">
-          <span class="text-ps-red">PET</span><span class="dark:text-white text-ps-blue">STATION</span>
+          <span class="text-ps-red">PET</span><span class="dark:text-white text-ps-blue"> STATION</span>
         </router-link>
 
         <div class="flex items-center gap-2 md:gap-5">
-          <button @click="toggleTheme" class="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 hover:scale-110 transition-all cursor-pointer">
+          <button @click="toggleTheme"
+            class="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 hover:scale-110 transition-all cursor-pointer">
             <span class="text-lg">{{ darkMode ? '☀️' : '🌙' }}</span>
           </button>
 
           <button @click="isCartOpen = true" class="relative p-2 hover:scale-110 transition-transform">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-ps-blue dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-ps-blue dark:text-white" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
-            <span v-if="cartStore.count > 0" class="absolute -top-1 -right-1 bg-ps-red text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-black">
-              {{ cartStore.count }}
+
+            <span v-if="cartStore.cartCount > 0"
+              class="absolute -top-1 -right-1 bg-ps-red text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-black animate-in zoom-in duration-300">
+              {{ cartStore.cartCount }}
             </span>
           </button>
 
           <template v-if="!tutorData">
-            <button @click="isLoginOpen = true" class="p-2 bg-ps-red/10 dark:bg-ps-red/20 text-ps-red rounded-xl hover:bg-ps-red hover:text-white transition-all group">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <button @click="isLoginOpen = true"
+              class="p-2 bg-ps-red/10 dark:bg-ps-red/20 text-ps-red rounded-xl hover:bg-ps-red hover:text-white transition-all group">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </button>
           </template>
 
           <template v-else>
-            <div class="flex items-center gap-2 bg-slate-100 dark:bg-white/10 p-1 md:pr-4 rounded-full border border-slate-200 dark:border-white/10">
+            <div
+              class="flex items-center gap-2 bg-slate-100 dark:bg-white/10 p-1 md:pr-4 rounded-full border border-slate-200 dark:border-white/10">
               <router-link to="/seleccionar-perfil" class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded-full border-2 border-ps-red overflow-hidden bg-white shrink-0">
                   <img v-if="activePet?.fotoUrl" :src="activePet.fotoUrl" class="w-full h-full object-cover" />
-                  <div v-else class="w-full h-full flex items-center justify-center bg-ps-blue text-white text-[10px] font-black uppercase">
+                  <div v-else
+                    class="w-full h-full flex items-center justify-center bg-ps-blue text-white text-[10px] font-black uppercase">
                     {{ activePet ? activePet.nombre.charAt(0) : '?' }}
                   </div>
                 </div>
-                <span class="hidden sm:block text-[10px] font-black uppercase italic">{{ activePet?.nombre || 'Elegir' }}</span>
+                <span class="hidden sm:block text-[10px] font-black uppercase italic">{{ activePet?.nombre || 'Elegir'
+                  }}</span>
               </router-link>
-              <button @click="handleLogout" class="p-1.5 text-slate-400 hover:text-ps-red transition-all cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+              <button @click="handleLogout"
+                class="p-1.5 text-slate-400 hover:text-ps-red transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7" />
                 </svg>
               </button>
             </div>
@@ -70,33 +84,45 @@
       </div>
     </nav>
 
-    <div class="lg:hidden fixed bottom-0 w-full bg-white/95 dark:bg-[#050505]/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 z-[1000] px-2 pb-8 pt-3 flex items-end shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+    <div
+      class="lg:hidden fixed bottom-0 w-full bg-white/95 dark:bg-[#050505]/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 z-[1000] px-2 pb-8 pt-3 flex items-end shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
       <router-link to="/" class="flex-1 flex flex-col items-center gap-1 text-slate-400 dark:text-white/40">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3" stroke-width="2"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3" stroke-width="2" />
+        </svg>
         <span class="text-[8px] font-black uppercase tracking-widest">Inicio</span>
       </router-link>
       <router-link to="/tienda" class="flex-1 flex flex-col items-center gap-1 text-slate-400 dark:text-white/40">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-width="2"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-width="2" />
+        </svg>
         <span class="text-[8px] font-black uppercase tracking-widest">Tienda</span>
       </router-link>
       <div class="flex-1 flex justify-center">
-        <button @click="handleAgendarClick" class="relative -top-6 bg-ps-red text-white p-4 rounded-2xl shadow-xl active:scale-90 transition-transform">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 4v16m8-8H4" stroke-width="3"/></svg>
+        <button @click="handleAgendarClick"
+          class="relative -top-6 bg-ps-red text-white p-4 rounded-2xl shadow-xl active:scale-90 transition-transform">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M12 4v16m8-8H4" stroke-width="3" />
+          </svg>
         </button>
       </div>
       <router-link to="/servicios" class="flex-1 flex flex-col items-center gap-1 text-slate-400 dark:text-white/40">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7" stroke-width="2"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7" stroke-width="2" />
+        </svg>
         <span class="text-[8px] font-black uppercase tracking-widest">Servicios</span>
       </router-link>
-      <router-link :to="tutorData ? '/expediente' : '/login'" class="flex-1 flex flex-col items-center gap-1 text-slate-400 dark:text-white/40">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-width="2"/></svg>
+      <router-link :to="tutorData ? '/expediente' : '/login'"
+        class="flex-1 flex flex-col items-center gap-1 text-slate-400 dark:text-white/40">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-width="2" />
+        </svg>
         <span class="text-[8px] font-black uppercase tracking-widest">Cuenta</span>
       </router-link>
     </div>
 
     <main class="w-full pt-24 md:pt-0 pb-24 md:pb-0">
-      <router-view v-if="!loadingSession" 
-        :tutor="tutorData" :pet="activePet" :availablePets="availablePets"
+      <router-view v-if="!loadingSession" :tutor="tutorData" :pet="activePet" :availablePets="availablePets"
         @selected="handlePetSelection" @notify="addNotify" @create-new="isOnboardingOpen = true"
         @login-success="handleLoginSuccess" @update-pet="handlePetUpdate" @delete-pet="handleDeletePet" />
     </main>
@@ -105,9 +131,12 @@
     <CartDrawer :is-open="isCartOpen" @close="isCartOpen = false" />
 
     <Transition name="fade">
-      <div v-if="isLoginOpen || isOnboardingOpen" class="fixed inset-0 z-[4000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-        <LoginModal v-if="isLoginOpen" @success="handleLoginSuccess" @goRegister="isLoginOpen = false; isOnboardingOpen = true" @close="isLoginOpen = false" @notify="addNotify" />
-        <PetOnboarding v-if="isOnboardingOpen" :tutorExistente="tutorData" @finalizado="handleOnboardingFinish" @close="isOnboardingOpen = false" @notify="addNotify" />
+      <div v-if="isLoginOpen || isOnboardingOpen"
+        class="fixed inset-0 z-[4000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <LoginModal v-if="isLoginOpen" @success="handleLoginSuccess"
+          @goRegister="isLoginOpen = false; isOnboardingOpen = true" @close="isLoginOpen = false" @notify="addNotify" />
+        <PetOnboarding v-if="isOnboardingOpen" :tutorExistente="tutorData" @finalizado="handleOnboardingFinish"
+          @close="isOnboardingOpen = false" @notify="addNotify" />
       </div>
     </Transition>
   </div>
@@ -149,8 +178,14 @@ const handleLoginSuccess = async (tutor) => {
   availablePets.value = tutor.mascotas || [];
   isLoginOpen.value = false;
   saveSession();
-  if (availablePets.value.length > 0) router.push('/seleccionar-perfil');
-  else isOnboardingOpen.value = true;
+
+  if (tutor.rol === 'ROLE_ADMIN' || tutor.role === 'ROLE_ADMIN') {
+    console.log("Acceso de administrador detectado");
+    router.push('/admin/dashboard');
+  } else {
+    if (availablePets.value.length > 0) router.push('/seleccionar-perfil');
+    else isOnboardingOpen.value = true;
+  }
 };
 
 const handleOnboardingFinish = (data) => {
@@ -240,8 +275,22 @@ onMounted(() => {
 
 <style scoped>
 @reference "./style.css";
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-.router-link-active svg { @apply text-ps-red; }
-.router-link-active span { @apply text-ps-red; }
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.router-link-active svg {
+  @apply text-ps-red;
+}
+
+.router-link-active span {
+  @apply text-ps-red;
+}
 </style>

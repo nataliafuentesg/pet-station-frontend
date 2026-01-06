@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
-// Importamos tus componentes tal cual están en tus carpetas
 import HomeView from '../components/views/HomeView.vue'
 import Servicios from '../components/views/ServiciosView.vue'
 import PetExpediente from '../components/profile/PetExpediente.vue'
 import AgendarCita from '../components/appointments/AgendarCita.vue'
 import ProfileSelector from '../components/home/ProfileSelector.vue'
 import TiendaView from '../components/views/TiendaView.vue'
+import AdminDashboard from '../components/views/admin/AdminDashboard.vue';
 
 const routes = [
-  { path: '/', component: HomeView },
+  { path: '/', name: 'Home', component: HomeView },
   { path: '/servicios', component: Servicios },
   { path: '/servicios/peluqueria', component: () => import('../components/views/PeluqueriaView.vue') },
   { path: '/servicios/medicina', component: () => import('../components/views/MedicinaView.vue') },
@@ -25,23 +25,48 @@ const routes = [
     props: true
   },
   {
-  path: '/checkout',
-  name: 'Checkout',
-  component: () => import('../components/views/CheckoutView.vue')
-}
+    path: '/checkout',
+    name: 'Checkout',
+    component: () => import('../components/views/CheckoutView.vue')
+  },
+  {
+    path: '/admin/dashboard',
+    name: 'AdminDashboard',
+    component: AdminDashboard,
+    meta: { requiresAdmin: true } // Importante
+  }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  // ESTA ES LA PIEZA CLAVE:
   scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition;
+    return savedPosition || { top: 0, behavior: 'smooth' };
+  }
+});
+
+// GUARDIA DE NAVEGACIÓN MEJORADO
+router.beforeEach((to, from, next) => {
+  // 1. Extraemos la sesión
+  const sessionStr = localStorage.getItem('ps_session');
+  
+  if (!sessionStr && to.meta.requiresAdmin) {
+    return next('/'); // No hay sesión y quiere ir a admin -> A casa
+  }
+
+  const session = JSON.parse(sessionStr || '{}');
+  
+  const userRole = session.tutor?.rol || session.tutor?.role || session.role;
+
+  if (to.matched.some(record => record.meta.requiresAdmin)) {
+    if (userRole === 'ROLE_ADMIN' || userRole === 'ADMIN') {
+      next(); // Es admin, pasa
     } else {
-      // Siempre vuelve arriba al cambiar de ruta
-      return { top: 0, behavior: 'smooth' };
+      console.error("ACCESO PROHIBIDO: Intento de entrada a Admin sin permisos.");
+      next('/'); // No es admin, fuera de aquí
     }
+  } else {
+    next(); // Ruta pública, pasa
   }
 });
 

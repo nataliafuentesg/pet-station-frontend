@@ -5,9 +5,9 @@
     <div class="p-10 md:p-12 overflow-y-auto custom-scrollbar">
       <div class="text-center mb-10">
         <h2 class="text-4xl font-black uppercase italic tracking-tighter text-white leading-none">
-          CREAR <span class="text-ps-red">CUENTA.</span>
+          {{ tutorExistente ? 'NUEVA' : 'CREAR' }} <span class="text-ps-red">MASCOTA.</span>
         </h2>
-        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-3 italic">Registro de Tutor y Mascota</p>
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-3 italic">Registro de Salud e Información</p>
       </div>
 
       <form @submit.prevent="handleSubmit" class="space-y-6">
@@ -22,15 +22,45 @@
         <div class="h-px bg-white/5 w-full my-6"></div>
 
         <div class="space-y-4">
-          <p class="text-[10px] font-black text-ps-red uppercase tracking-widest text-center italic">Datos de la mascota</p>
+          <p class="text-[10px] font-black text-ps-red uppercase tracking-widest text-center italic">Datos del Paciente</p>
           <input v-model="form.nombreMascota" placeholder="Nombre de la mascota" class="input-dark" required />
-          <div class="grid grid-cols-2 gap-4">
-            <select v-model="form.especie" class="input-dark appearance-none">
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <select v-model="form.especie" class="input-dark">
               <option value="PERRO">Perro 🐶</option>
               <option value="GATO">Gato 🐱</option>
             </select>
             <input v-model="form.raza" placeholder="Raza" class="input-dark" />
+            <div class="relative">
+              <label class="absolute -top-2 left-3 bg-ps-black px-2 text-[8px] text-ps-red font-black uppercase">Nacimiento</label>
+              <input v-model="form.fechaNacimiento" type="date" class="input-dark" required />
+            </div>
           </div>
+        </div>
+
+        <div class="bg-white/5 p-6 rounded-[2rem] space-y-4 border border-white/5">
+           <p class="text-[9px] font-black text-ps-blue uppercase tracking-widest italic mb-2">Historial Preventivo</p>
+           
+           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div>
+               <label class="label-min">Última Vacuna</label>
+               <input v-model="form.ultimaVacuna" type="date" class="input-dark mt-1" />
+             </div>
+             <div>
+               <label class="label-min">Última Desparasitación</label>
+               <input v-model="form.ultimaDesparasitacion" type="date" class="input-dark mt-1" />
+             </div>
+           </div>
+
+           <div>
+             <label class="label-min">Alimento / Marca Actual</label>
+             <input v-model="form.marcaComida" placeholder="Ej: Royal Canin Adulto" class="input-dark mt-1" />
+           </div>
+
+           <div>
+             <label class="label-min">Observaciones Médicas / Alergias</label>
+             <textarea v-model="form.observacionesMedicas" placeholder="Alergias, cirugías previas o temperamento..." class="input-dark mt-1 h-20 text-xs"></textarea>
+           </div>
         </div>
 
         <button :disabled="loading" type="submit" class="w-full bg-white text-ps-black py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-ps-red hover:text-white active:scale-95 transition-all italic shadow-xl">
@@ -55,7 +85,12 @@ const form = ref({
   password: '',
   nombreMascota: '',
   especie: 'PERRO',
-  raza: ''
+  raza: '',
+  fechaNacimiento: '', // Agregado
+  ultimaVacuna: null,
+  ultimaDesparasitacion: null,
+  marcaComida: '',
+  observacionesMedicas: ''
 });
 
 const handleSubmit = async () => {
@@ -63,10 +98,7 @@ const handleSubmit = async () => {
   const token = localStorage.getItem('ps_token');
 
   try {
-    // Definimos si es un registro de CERO o una mascota ADICIONAL
     const esMascotaNueva = props.tutorExistente?.id;
-    
-    // Si el tutor existe, usamos la ruta de "añadir", si no, la de "registro completo"
     const url = esMascotaNueva 
       ? `http://localhost:8080/api/mascotas/tutor/${props.tutorExistente.id}` 
       : 'http://localhost:8080/api/registro/completo';
@@ -75,26 +107,27 @@ const handleSubmit = async () => {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` // VITAL para que no de 403
+        'Authorization': `Bearer ${token}` 
       },
       body: JSON.stringify({
-        // Si es mascota nueva para un tutor existente, enviamos solo los datos de la mascota
         nombre: form.value.nombreMascota,
         especie: form.value.especie,
         raza: form.value.raza,
-        // Si es registro completo, mandamos todo el objeto form.value
+        fechaNacimiento: form.value.fechaNacimiento, // Enviado al back
+        ultimaVacuna: form.value.ultimaVacuna,
+        ultimaDesparasitacion: form.value.ultimaDesparasitacion,
+        marcaComida: form.value.marcaComida,
+        observacionesMedicas: form.value.observacionesMedicas,
         ...(!esMascotaNueva && form.value)
       })
     });
 
     const data = await res.json();
-
     if (res.ok) {
-      emit('notify', { msg: "¡Nueva mascota vinculada!", type: 'success' });
-      // IMPORTANTE: data debe ser el objeto Tutor actualizado con su nueva lista de mascotas
+      emit('notify', { msg: "¡Expediente creado!", type: 'success' });
       emit('finalizado', data); 
     } else {
-      emit('notify', { msg: data.message || "Error al crear mascota", type: 'error' });
+      emit('notify', { msg: data.message || "Error al registrar", type: 'error' });
     }
   } catch (e) {
     emit('notify', { msg: "Error de conexión", type: 'error' });
@@ -107,6 +140,7 @@ const handleSubmit = async () => {
 <style scoped>
 @reference "../../style.css";
 .input-dark { @apply w-full bg-white/5 p-4 rounded-2xl border-2 border-transparent focus:border-ps-red outline-none font-bold text-white text-sm transition-all; }
+.label-min { @apply text-[8px] font-bold text-slate-400 uppercase ml-2 tracking-widest; }
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #de1f27; border-radius: 10px; }
 </style>

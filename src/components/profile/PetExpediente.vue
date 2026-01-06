@@ -14,7 +14,7 @@
             justSavedPhoto ? 'border-green-500 scale-105 rotate-0' : 'border-ps-blue dark:border-ps-red']">
             <img v-if="form.fotoUrl" :src="form.fotoUrl" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full bg-ps-blue flex items-center justify-center text-5xl font-black text-white italic">
-              {{ petData.nombre.charAt(0) }}
+              {{ form.nombre ? form.nombre.charAt(0) : '?' }}
             </div>
           </div>
           <div class="absolute inset-0 bg-black/40 rounded-[2.5rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform -rotate-3 group-hover:rotate-0">
@@ -31,8 +31,8 @@
 
         <div class="flex-1 text-center md:text-left">
           <span class="bg-ps-red/10 text-ps-red px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-4 inline-block italic">Expediente Oficial</span>
-          <h1 class="text-6xl md:text-7xl font-black uppercase italic tracking-tighter text-ps-blue dark:text-white leading-none mb-4">{{ petData.nombre }}</h1>
-          <p class="text-slate-400 dark:text-white/40 font-black uppercase text-[10px] tracking-[0.4em]">{{ petData.especie }} • {{ petData.raza }}</p>
+          <h1 class="text-6xl md:text-7xl font-black uppercase italic tracking-tighter text-ps-blue dark:text-white leading-none mb-4">{{ form.nombre }}</h1>
+          <p class="text-slate-400 dark:text-white/40 font-black uppercase text-[10px] tracking-[0.4em]">{{ form.especie }} • {{ form.raza }}</p>
         </div>
       </div>
 
@@ -46,13 +46,41 @@
         <div class="lg:col-span-2 bg-slate-50 dark:bg-white/5 rounded-[3rem] p-8 md:p-12 shadow-xl border border-slate-100 dark:border-white/5">
           
           <div v-if="activeTab === 'pet'" class="animate-in slide-in-from-left duration-500">
-            <h3 class="text-2xl font-black uppercase italic text-ps-blue dark:text-white mb-10 border-b dark:border-white/10 pb-6">Ficha Médica</h3>
+            <h3 class="text-2xl font-black uppercase italic text-ps-blue dark:text-white mb-10 border-b dark:border-white/10 pb-6">Ficha del Paciente</h3>
+            
             <form @submit.prevent="saveProfile" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div v-for="(label, key) in medicalFields" :key="key" :class="key === 'alergiasOpcional' || key === 'observacionesMedicas' ? 'md:col-span-2' : ''" class="flex flex-col gap-2">
-                <label class="text-[9px] font-black uppercase text-slate-400 dark:text-white/30 ml-4 tracking-widest">{{ label }}</label>
-                <textarea v-if="key.includes('alergias') || key.includes('observaciones')" v-model="form[key]" class="input-dark-expediente h-24 resize-none"></textarea>
-                <input v-else v-model="form[key]" :type="key.includes('ultima') ? 'date' : 'text'" class="input-dark-expediente" />
+              
+              <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-ps-blue/5 p-6 rounded-3xl mb-4 border border-ps-blue/10">
+                <div class="flex flex-col gap-2">
+                  <label class="label-exp">Nombre de Mascota</label>
+                  <input v-model="form.nombre" class="input-dark-expediente" required />
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label class="label-exp">Especie</label>
+                  <select v-model="form.especie" class="input-dark-expediente">
+                    <option value="PERRO">Perro 🐶</option>
+                    <option value="GATO">Gato 🐱</option>
+                  </select>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <label class="label-exp">Fecha Nacimiento</label>
+                  <input v-model="form.fechaNacimiento" type="date" class="input-dark-expediente" />
+                </div>
               </div>
+
+              <div v-for="(label, key) in medicalFields" :key="key" 
+                :class="['flex flex-col gap-2', (key === 'alergiasOpcional' || key === 'observacionesMedicas') ? 'md:col-span-2' : '']">
+                <label class="label-exp">{{ label }}</label>
+                
+                <textarea v-if="key.includes('alergias') || key.includes('observaciones')" 
+                  v-model="form[key]" class="input-dark-expediente h-24 resize-none"></textarea>
+                
+                <input v-else v-model="form[key]" 
+                  :type="key.includes('ultima') ? 'date' : (key === 'pesoActual' ? 'number' : 'text')" 
+                  step="0.1"
+                  class="input-dark-expediente" />
+              </div>
+
               <button :disabled="saving" class="md:col-span-2 bg-ps-blue text-white py-6 rounded-3xl font-black uppercase tracking-widest shadow-2xl hover:brightness-110 active:scale-95 transition-all mt-6">
                 {{ saving ? 'Sincronizando...' : 'Actualizar Expediente' }}
               </button>
@@ -63,7 +91,7 @@
             <h3 class="text-2xl font-black uppercase italic text-ps-red mb-10 border-b dark:border-white/10 pb-6">Datos Personales</h3>
             <form @submit.prevent="saveTutor" class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div v-for="(label, key) in tutorFields" :key="key" :class="key === 'direccion' ? 'md:col-span-2' : ''" class="flex flex-col gap-2">
-                <label class="text-[9px] font-black uppercase text-slate-400 dark:text-white/30 ml-4 tracking-widest">{{ label }}</label>
+                <label class="label-exp">{{ label }}</label>
                 <input 
                   v-model="tutorForm[key]" 
                   type="text" 
@@ -100,6 +128,7 @@
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -109,7 +138,7 @@
 import { ref, reactive, onMounted, watch, computed } from 'vue';
 
 const props = defineProps(['pet', 'tutor']);
-const emit = defineEmits(['update-pet', 'update-tutor', 'notify', 'login-success']);
+const emit = defineEmits(['update-pet', 'update-tutor', 'notify']);
 
 const loading = ref(true);
 const saving = ref(false);
@@ -120,7 +149,7 @@ const activeTab = ref('pet');
 const petData = ref(null);
 const appointments = ref([]);
 
-// Headers centralizados con el Token de localStorage
+// Headers centralizados
 const getHeaders = () => {
   const token = localStorage.getItem('ps_token');
   return {
@@ -129,9 +158,12 @@ const getHeaders = () => {
   };
 };
 
+// Formulario reactivo completo (Sincronizado con Entidad Mascota Java)
 const form = reactive({
+  nombre: '', especie: '', raza: '', fechaNacimiento: '', 
   fotoUrl: '', pesoActual: '', ultimaVacuna: '', ultimaDesparasitacion: '',
-  marcaComida: '', frecuenciaBano: '', snacksFavoritos: '', alergiasOpcional: '', observacionesMedicas: ''
+  marcaComida: '', frecuenciaBano: '', snacksFavoritos: '', 
+  alergiasOpcional: '', observacionesMedicas: ''
 });
 
 const tutorForm = reactive({ 
@@ -139,10 +171,15 @@ const tutorForm = reactive({
 });
 
 const medicalFields = {
-  pesoActual: 'Peso Actual (kg)', ultimaVacuna: 'Última Vacuna',
-  ultimaDesparasitacion: 'Última Desparasitación', marcaComida: 'Marca de Alimento',
-  frecuenciaBano: 'Frecuencia Baño', snacksFavoritos: 'Snacks Favoritos',
-  alergiasOpcional: 'Alergias o Condiciones', observacionesMedicas: 'Observaciones'
+  raza: 'Raza / Cruce',
+  pesoActual: 'Peso Actual (kg)', 
+  ultimaVacuna: 'Última Vacuna',
+  ultimaDesparasitacion: 'Última Desparasitación', 
+  marcaComida: 'Marca de Alimento',
+  frecuenciaBano: 'Frecuencia de Baño', 
+  snacksFavoritos: 'Snacks Favoritos',
+  alergiasOpcional: 'Alergias o Condiciones', 
+  observacionesMedicas: 'Observaciones Médicas'
 };
 
 const tutorFields = { 
@@ -169,18 +206,12 @@ const loadAllData = async () => {
   loading.value = true;
   try {
     const headers = getHeaders();
-    // Peticiones paralelas con headers de seguridad
     const [resP, resT, resC] = await Promise.all([
       fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`, { headers }),
       props.tutor?.id ? fetch(`http://localhost:8080/api/tutores/${props.tutor.id}`, { headers }) : null,
       fetch(`http://localhost:8080/api/citas/mascota/${props.pet.id}`, { headers })
     ]);
     
-    if (resP.status === 403 || resT?.status === 403) {
-       emit('notify', { message: 'Sesión expirada', type: 'error' });
-       return;
-    }
-
     if (resP.ok) {
       const data = await resP.json();
       petData.value = data;
@@ -190,7 +221,7 @@ const loadAllData = async () => {
     if (resC.ok) appointments.value = await resC.json();
     
   } catch (error) {
-    emit('notify', { message: 'Error de conexión', type: 'error' });
+    emit('notify', { msg: 'Error al cargar datos', type: 'error' });
   } finally { loading.value = false; }
 };
 
@@ -200,46 +231,38 @@ const saveProfile = async () => {
     const res = await fetch(`http://localhost:8080/api/mascotas/${props.pet.id}`, {
       method: 'PUT',
       headers: getHeaders(),
-      body: JSON.stringify({ ...petData.value, ...form })
+      body: JSON.stringify(form)
     });
     if (res.ok) {
       const updated = await res.json();
+      petData.value = updated;
       emit('update-pet', updated);
-      emit('notify', { message: 'Expediente actualizado' });
+      emit('notify', { msg: 'Expediente actualizado con éxito', type: 'success' });
     }
   } catch (e) {
-    emit('notify', { message: 'Error al guardar', type: 'error' });
+    emit('notify', { msg: 'Error al sincronizar', type: 'error' });
   } finally { saving.value = false; }
 };
 
 const saveTutor = async () => {
   if (!props.tutor?.id) return;
   saving.value = true;
-  
   try {
     const { mascotas, ...datosLimpios } = tutorForm; 
-    
     const res = await fetch(`http://localhost:8080/api/tutores/${props.tutor.id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(datosLimpios)
     });
-
     if (res.ok) {
       const updated = await res.json();
-      // Sincronizamos los datos locales
       Object.assign(tutorForm, updated);
       emit('update-tutor', updated);
-      emit('notify', { message: '¡Datos de tutor actualizados!', type: 'success' });
-    } else {
-      const errorData = await res.json();
-      emit('notify', { message: errorData.message || 'Error al actualizar', type: 'error' });
+      emit('notify', { msg: 'Datos de tutor actualizados', type: 'success' });
     }
   } catch (e) {
-    emit('notify', { message: 'Error de conexión con el servidor', type: 'error' });
-  } finally {
-    saving.value = false;
-  }
+    emit('notify', { msg: 'Error de red', type: 'error' });
+  } finally { saving.value = false; }
 };
 
 const handleFileUpload = (event) => {
@@ -290,9 +313,14 @@ watch(() => props.pet?.id, loadAllData);
 <style scoped>
 @reference "../../style.css";
 
+.label-exp {
+  @apply text-[9px] font-black uppercase text-slate-400 dark:text-white/30 ml-4 tracking-widest;
+}
+
 .input-dark-expediente {
   @apply w-full bg-white dark:bg-white/10 p-4 rounded-2xl border-2 border-transparent focus:border-ps-blue outline-none font-bold dark:text-white text-sm transition-all;
 }
+
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #DE1F27; border-radius: 10px; }
 </style>
