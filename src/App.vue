@@ -198,27 +198,21 @@ const handleLoginSuccess = async (tutor) => {
   }
 };
 
-const handleOnboardingFinish = (data) => {
-  const nuevaMascota = data.nuevaMascota || (data.id ? data : null);
-
-  if (nuevaMascota) {
-    availablePets.value = [...availablePets.value, nuevaMascota];
-    
+const handleOnboardingFinish = (data) => {  
+  if (data.status === "success") {
+    addNotify("Cuenta creada. Por favor, inicia sesión.");
+    isLoginOpen.value = true;
+    isOnboardingOpen.value = false;
+    return;
+  }
+  const nuevaMascota = data.nuevaMascota || data; 
+  if (nuevaMascota.id) {
+    availablePets.value.push(nuevaMascota);
     activePet.value = nuevaMascota;
-    localStorage.setItem('ps_active_pet', JSON.stringify(nuevaMascota));
-
-    if (tutorData.value) {
-      tutorData.value = {
-        ...tutorData.value,
-        mascotas: [...(tutorData.value.mascotas || []), nuevaMascota]
-      };
-    }
-        saveSession();
+    saveSession();
     router.push('/expediente');
   }
-
   isOnboardingOpen.value = false;
-  addNotify("¡Expediente creado con éxito!");
 };
 
 const handlePetSelection = (pet) => {

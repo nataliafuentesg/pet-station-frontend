@@ -110,37 +110,36 @@ const handleSubmit = async () => {
       ? `https://api.petstationvet.com/api/mascotas/tutor/${props.tutorExistente.id}`
       : 'https://api.petstationvet.com/api/registro/completo';
 
+    // Construimos el objeto exacto que el DTO espera
+    const payload = {
+      nombreTutor: form.value.nombreTutor,
+      apellidoTutor: form.value.apellidoTutor,
+      email: form.value.email,
+      cedula: form.value.cedula,
+      password: form.value.password,
+      nombreMascota: form.value.nombreMascota, // ¡ESTE ES EL NOMBRE DEL PERRO!
+      especie: form.value.especie,
+      raza: form.value.raza,
+      fechaNacimiento: form.value.fechaNacimiento
+    };
+
     const res = await fetch(url, {
       method: 'POST',
-      headers: {
+      headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}` 
       },
-      body: JSON.stringify({
-        nombreTutor: form.value.nombreTutor,
-        apellidoTutor: form.value.apellidoTutor,
-        email: form.value.email,
-        cedula: form.value.cedula,
-        password: form.value.password,
-
-        nombreMascota: form.value.nombreMascota, // ¡Aquí es donde antes decía solo 'nombre'!
-        especie: form.value.especie,
-        raza: form.value.raza,
-        fechaNacimiento: form.value.fechaNacimiento
-      })
+      body: JSON.stringify(payload)
     });
 
     const data = await res.json();
 
     if (res.ok) {
       emit('notify', { msg: "¡Expediente creado!", type: 'success' });
-      if (esMascotaNueva) {
-        emit('finalizado', { nuevaMascota: data });
-      } else {
-        emit('finalizado', data); // Si es registro completo, suele venir el tutor
-      }
+      // IMPORTANTE: data debe ser el objeto que viene del backend
+      emit('finalizado', data); 
     } else {
-      emit('notify', { msg: data.message || "Error al registrar", type: 'error' });
+      emit('notify', { msg: data.error || "Error al registrar", type: 'error' });
     }
   } catch (e) {
     emit('notify', { msg: "Error de conexión", type: 'error' });
