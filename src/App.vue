@@ -122,9 +122,19 @@
     </div>
 
     <main class="w-full pt-24 md:pt-0 pb-24 md:pb-0">
-      <router-view v-if="!loadingSession" :tutor="tutorData" :pet="activePet" :availablePets="availablePets"
-        @selected="handlePetSelection" @notify="addNotify" @create-new="isOnboardingOpen = true"
-        @login-success="handleLoginSuccess" @update-pet="handlePetUpdate" @delete-pet="handleDeletePet" />
+      <router-view 
+  :key="availablePets.length" 
+  v-if="!loadingSession" 
+  :tutor="tutorData" 
+  :pet="activePet" 
+  :availablePets="availablePets"
+  @selected="handlePetSelection" 
+  @notify="addNotify" 
+  @create-new="isOnboardingOpen = true"
+  @login-success="handleLoginSuccess" 
+  @update-pet="handlePetUpdate" 
+  @delete-pet="handleDeletePet" 
+/>
     </main>
 
     <TheFooter />
@@ -189,21 +199,23 @@ const handleLoginSuccess = async (tutor) => {
 };
 
 const handleOnboardingFinish = (data) => {
-  if (data.nuevaMascota) {
-    availablePets.value.push(data.nuevaMascota);
-  } else {
-    const tutorActualizado = data.tutor || data;
-    if (tutorActualizado && tutorActualizado.mascotas) {
-      tutorData.value = { ...tutorActualizado };
-      availablePets.value = [...tutorActualizado.mascotas];
+  const nuevaMascota = data.nuevaMascota || (data.id ? data : null);
+
+  if (nuevaMascota) {
+    availablePets.value = [...availablePets.value, nuevaMascota];
+    
+    if (tutorData.value) {
+      tutorData.value = {
+        ...tutorData.value,
+        mascotas: [...(tutorData.value.mascotas || []), nuevaMascota]
+      };
     }
+    
+    saveSession();
   }
-  
-  saveSession();
+
   isOnboardingOpen.value = false;
-    if (availablePets.value.length === 1) {
-    handlePetSelection(availablePets.value[0]);
-  }
+  addNotify("Mascota añadida correctamente");
 };
 
 const handlePetSelection = (pet) => {
@@ -227,13 +239,19 @@ const handleDeletePet = async (petId) => {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
+    
     if (res.ok) {
       availablePets.value = availablePets.value.filter(p => p.id !== petId);
-      if (activePet.value?.id === petId) activePet.value = null;
-      saveSession();
+            if (activePet.value?.id === petId) {
+        activePet.value = null;
+      }
+      
+      saveSession(); // Guardamos el cambio en el navegador
       addNotify("Mascota eliminada");
     }
-  } catch (e) { addNotify({ msg: "Error", type: "error" }); }
+  } catch (e) { 
+    addNotify({ msg: "Error al conectar con el servidor", type: "error" }); 
+  }
 };
 
 const handleLogout = () => {
