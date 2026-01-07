@@ -114,20 +114,20 @@ const handleSubmit = async () => {
     const payload = {
       nombreTutor: form.value.nombreTutor,
       apellidoTutor: form.value.apellidoTutor,
-      email: form.value.email,
       cedula: form.value.cedula,
+      email: form.value.email,
+      telefono: form.value.telefono || '',
       password: form.value.password,
-      nombreMascota: form.value.nombreMascota, // ¡ESTE ES EL NOMBRE DEL PERRO!
+      nombreMascota: form.value.nombreMascota, // Debe decir nombreMascota igual que el DTO
       especie: form.value.especie,
-      raza: form.value.raza,
-      fechaNacimiento: form.value.fechaNacimiento
+      raza: form.value.raza
     };
 
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(payload)
     });
@@ -137,7 +137,7 @@ const handleSubmit = async () => {
     if (res.ok) {
       emit('notify', { msg: "¡Expediente creado!", type: 'success' });
       // IMPORTANTE: data debe ser el objeto que viene del backend
-      emit('finalizado', data); 
+      emit('finalizado', data);
     } else {
       emit('notify', { msg: data.error || "Error al registrar", type: 'error' });
     }
