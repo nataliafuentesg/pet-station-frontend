@@ -189,22 +189,18 @@ const handleLoginSuccess = async (tutor) => {
 };
 
 const handleOnboardingFinish = (data) => {
-  // 1. Si la data trae un tutor completo (con su lista de mascotas)
-  if (data.tutor && data.tutor.mascotas) {
-    tutorData.value = { ...data.tutor };
-    availablePets.value = [...data.tutor.mascotas];
-  } 
-  else if (data.id && data.nombre) {
-    availablePets.value.push(data);
-    if (tutorData.value) {
-      if (!tutorData.value.mascotas) tutorData.value.mascotas = [];
-      tutorData.value.mascotas.push(data);
+  if (data.nuevaMascota) {
+    availablePets.value.push(data.nuevaMascota);
+  } else {
+    const tutorActualizado = data.tutor || data;
+    if (tutorActualizado && tutorActualizado.mascotas) {
+      tutorData.value = { ...tutorActualizado };
+      availablePets.value = [...tutorActualizado.mascotas];
     }
   }
-
-  saveSession(); 
+  
+  saveSession();
   isOnboardingOpen.value = false;
-  addNotify("¡Mascota guardada con éxito!");
     if (availablePets.value.length === 1) {
     handlePetSelection(availablePets.value[0]);
   }

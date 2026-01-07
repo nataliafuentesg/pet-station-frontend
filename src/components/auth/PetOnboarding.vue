@@ -113,19 +113,31 @@ const handleSubmit = async () => {
         nombre: form.value.nombreMascota,
         especie: form.value.especie,
         raza: form.value.raza,
-        fechaNacimiento: form.value.fechaNacimiento, // Enviado al back
+        fechaNacimiento: form.value.fechaNacimiento,
         ultimaVacuna: form.value.ultimaVacuna,
         ultimaDesparasitacion: form.value.ultimaDesparasitacion,
         marcaComida: form.value.marcaComida,
         observacionesMedicas: form.value.observacionesMedicas,
-        ...(!esMascotaNueva && form.value)
+        ...(esMascotaNueva ? {} : {
+          // Si es registro completo, enviamos los datos del tutor
+          nombre: form.value.nombreTutor,
+          apellido: form.value.apellidoTutor,
+          email: form.value.email,
+          cedula: form.value.cedula,
+          password: form.value.password
+        })
       })
     });
 
     const data = await res.json();
+    
     if (res.ok) {
       emit('notify', { msg: "¡Expediente creado!", type: 'success' });
-      emit('finalizado', data); 
+            if (esMascotaNueva) {
+          emit('finalizado', { nuevaMascota: data }); 
+      } else {
+          emit('finalizado', data); // Si es registro completo, suele venir el tutor
+      }
     } else {
       emit('notify', { msg: data.message || "Error al registrar", type: 'error' });
     }
