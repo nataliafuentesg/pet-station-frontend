@@ -117,22 +117,16 @@ const handleSubmit = async () => {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        nombre: form.value.nombreMascota,
+        nombreTutor: form.value.nombreTutor,
+        apellidoTutor: form.value.apellidoTutor,
+        email: form.value.email,
+        cedula: form.value.cedula,
+        password: form.value.password,
+
+        nombreMascota: form.value.nombreMascota, // ¡Aquí es donde antes decía solo 'nombre'!
         especie: form.value.especie,
         raza: form.value.raza,
-        fechaNacimiento: form.value.fechaNacimiento,
-        ultimaVacuna: form.value.ultimaVacuna,
-        ultimaDesparasitacion: form.value.ultimaDesparasitacion,
-        marcaComida: form.value.marcaComida,
-        observacionesMedicas: form.value.observacionesMedicas,
-
-        ...(esMascotaNueva ? {} : {
-          tutorNombre: form.value.nombreTutor, 
-          tutorApellido: form.value.apellidoTutor,
-          email: form.value.email,
-          cedula: form.value.cedula,
-          password: form.value.password
-        })
+        fechaNacimiento: form.value.fechaNacimiento
       })
     });
 
