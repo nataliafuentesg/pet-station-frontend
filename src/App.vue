@@ -199,29 +199,18 @@ const handleLoginSuccess = async (tutor) => {
 };
 
 const handleOnboardingFinish = (data) => {
-  console.log("Datos recibidos del servidor:", data);
-
-  // Si es un registro nuevo (viene del endpoint /completo)
-  if (data.status === "success") {
-    isOnboardingOpen.value = false;
-    isLoginOpen.value = true;
-    addNotify("Cuenta creada. ¡Inicia sesión con tu nueva mascota!");
-    return;
-  }
-  const mascotaRecienCreada = data.nuevaMascota || data;
-
-  if (mascotaRecienCreada && mascotaRecienCreada.id) {
-    availablePets.value.push(mascotaRecienCreada);
-    
-    activePet.value = mascotaRecienCreada;
-    localStorage.setItem('ps_active_pet', JSON.stringify(mascotaRecienCreada));
+  if (data && data.id) {
+    availablePets.value.push(data);
+        activePet.value = data;
+    localStorage.setItem('ps_active_pet', JSON.stringify(data));
     
     saveSession();
     isOnboardingOpen.value = false;
 
     router.push('/expediente');
+    addNotify("¡Mascota registrada con éxito!");
   } else {
-    addNotify({ msg: "Error: No se recibió el ID de la mascota", type: "error" });
+    addNotify({ msg: "Error al sincronizar datos de la mascota", type: "error" });
   }
 };
 
