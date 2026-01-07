@@ -199,18 +199,37 @@ const handleLoginSuccess = async (tutor) => {
 };
 
 const handleOnboardingFinish = (data) => {
-  if (data && data.id) {
-    availablePets.value.push(data);
-        activePet.value = data;
-    localStorage.setItem('ps_active_pet', JSON.stringify(data));
+  console.log("Datos recibidos en el Onboarding:", data);
+
+  let mascotaParaActivar = null;
+
+  // CASO A: El backend devolvió un Tutor (porque tiene lista de mascotas)
+  if (data.mascotas && Array.isArray(data.mascotas)) {
+    // Tomamos la última mascota de la lista (la que se acaba de crear)
+    mascotaParaActivar = data.mascotas[data.mascotas.length - 1];
+    availablePets.value = data.mascotas;
+    tutorData.value = data; // Actualizamos los datos del humano también
+  } 
+  // CASO B: El backend devolvió directamente la Mascota
+  else if (data.id && (data.nombre || data.nombreMascota)) {
+    mascotaParaActivar = data;
+    // Si ya teníamos mascotas, la añadimos, si no, creamos la lista
+    availablePets.value = [...(availablePets.value || []), data];
+  }
+
+  if (mascotaParaActivar && mascotaParaActivar.id) {
+    // ¡AQUÍ ESTÁ LA MAGIA!: Usamos el ID de la mascota, no el del tutor
+    activePet.value = mascotaParaActivar;
+    localStorage.setItem('ps_active_pet', JSON.stringify(mascotaParaActivar));
     
     saveSession();
     isOnboardingOpen.value = false;
 
+    // Ahora sí, redirigimos al expediente. 
+    // El componente Expediente.vue leerá props.pet.id y será el correcto.
     router.push('/expediente');
-    addNotify("¡Mascota registrada con éxito!");
   } else {
-    addNotify({ msg: "Error al sincronizar datos de la mascota", type: "error" });
+    addNotify({ msg: "Se creó el registro pero no pudimos identificar la mascota activa", type: "error" });
   }
 };
 
