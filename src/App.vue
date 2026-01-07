@@ -198,21 +198,31 @@ const handleLoginSuccess = async (tutor) => {
   }
 };
 
-const handleOnboardingFinish = (data) => {  
+const handleOnboardingFinish = (data) => {
+  console.log("Datos recibidos del servidor:", data);
+
+  // Si es un registro nuevo (viene del endpoint /completo)
   if (data.status === "success") {
-    addNotify("Cuenta creada. Por favor, inicia sesión.");
-    isLoginOpen.value = true;
     isOnboardingOpen.value = false;
+    isLoginOpen.value = true;
+    addNotify("Cuenta creada. ¡Inicia sesión con tu nueva mascota!");
     return;
   }
-  const nuevaMascota = data.nuevaMascota || data; 
-  if (nuevaMascota.id) {
-    availablePets.value.push(nuevaMascota);
-    activePet.value = nuevaMascota;
+  const mascotaRecienCreada = data.nuevaMascota || data;
+
+  if (mascotaRecienCreada && mascotaRecienCreada.id) {
+    availablePets.value.push(mascotaRecienCreada);
+    
+    activePet.value = mascotaRecienCreada;
+    localStorage.setItem('ps_active_pet', JSON.stringify(mascotaRecienCreada));
+    
     saveSession();
+    isOnboardingOpen.value = false;
+
     router.push('/expediente');
+  } else {
+    addNotify({ msg: "Error: No se recibió el ID de la mascota", type: "error" });
   }
-  isOnboardingOpen.value = false;
 };
 
 const handlePetSelection = (pet) => {
