@@ -204,18 +204,21 @@ const handleOnboardingFinish = (data) => {
   if (nuevaMascota) {
     availablePets.value = [...availablePets.value, nuevaMascota];
     
+    activePet.value = nuevaMascota;
+    localStorage.setItem('ps_active_pet', JSON.stringify(nuevaMascota));
+
     if (tutorData.value) {
       tutorData.value = {
         ...tutorData.value,
         mascotas: [...(tutorData.value.mascotas || []), nuevaMascota]
       };
     }
-    
-    saveSession();
+        saveSession();
+    router.push('/expediente');
   }
 
   isOnboardingOpen.value = false;
-  addNotify("Mascota añadida correctamente");
+  addNotify("¡Expediente creado con éxito!");
 };
 
 const handlePetSelection = (pet) => {
