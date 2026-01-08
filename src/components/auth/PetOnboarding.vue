@@ -118,8 +118,8 @@ const handleSubmit = async () => {
       email: form.value.email,
       telefono: form.value.telefono || '',
       password: form.value.password,
-      nombreMascota: form.value.nombreMascota, // Debe decir nombreMascota igual que el DTO
-      especie: form.value.especie,
+      nombreMascota: form.value.nombreMascota, // Para el DTO (Registro completo)
+      nombre: form.value.nombreMascota, especie: form.value.especie,
       raza: form.value.raza
     };
 

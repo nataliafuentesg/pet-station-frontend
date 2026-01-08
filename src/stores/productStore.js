@@ -14,8 +14,8 @@ export const useProductStore = defineStore('products', {
       try {
         // Pedimos productos y filtros en paralelo para mayor velocidad
         const [resProd, resFiltros] = await Promise.all([
-          fetch('http://localhost:8080/api/tienda/productos'),
-          fetch('http://localhost:8080/api/tienda/filtros')
+          fetch('https://api.petstationvet.com/api/tienda/productos'),
+          fetch('https://api.petstationvet.com/api/tienda/filtros')
         ]);
 
         if (!resProd.ok || !resFiltros.ok) throw new Error('Error al conectar con el servidor');
