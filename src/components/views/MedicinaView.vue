@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-[#050505] pt-24 md:pt-32 pb-20 transition-colors duration-500">
+  <div class="min-h-screen bg-white dark:bg-[#050505] pt-5 md:pt-32 pb-20 transition-colors duration-500">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       
       <div class="max-w-4xl mb-12 md:mb-20 space-y-4 md:space-y-6 text-center md:text-left">

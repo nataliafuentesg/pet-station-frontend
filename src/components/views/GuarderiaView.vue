@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen bg-green-50 dark:bg-[#050505] pt-24 md:pt-32 transition-colors duration-500">
+  <div class="min-h-screen bg-green-50 dark:bg-[#050505] pt-5 md:pt-32 transition-colors duration-500">
     <div class="max-w-7xl mx-auto px-4 md:px-6 pb-20">
       
       <router-link to="/servicios" class="text-green-600 font-black uppercase text-[10px] tracking-widest mb-8 inline-flex items-center gap-2 hover:gap-4 transition-all">
-        ← Volver al catálogo
+        ← Volver a Servicios
       </router-link>
 
       <div class="grid lg:grid-cols-3 gap-8">

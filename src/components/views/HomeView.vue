@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-[#050505] transition-colors duration-500">
     
-    <section class="relative min-h-[90vh] flex items-center pt-20 overflow-hidden px-4 md:px-6">
+    <section class="relative min-h-[60vh] flex items-center pt-18 overflow-hidden px-4 md:px-6">
       <div class="absolute top-0 right-0 w-full md:w-1/2 h-full bg-[#152C77]/5 dark:bg-[#DE1F27]/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4"></div>
 
       <div class="max-w-[1400px] mx-auto w-full relative z-10 grid lg:grid-cols-2 gap-12 items-center">

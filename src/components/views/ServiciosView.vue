@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50 dark:bg-[#050505] pt-24 md:pt-32 pb-20 px-4 md:px-6 transition-colors duration-500">
+  <div class="min-h-screen bg-slate-50 dark:bg-[#050505] pt-2 md:pt-32 pb-20 px-4 md:px-6 transition-colors duration-500">
     
     <div class="max-w-7xl mx-auto mb-12 md:mb-20">
       <span class="text-[#DE1F27] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[9px] md:text-[10px]">Pet Station Portafolio</span>
