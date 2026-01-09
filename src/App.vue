@@ -68,7 +68,7 @@
                   </div>
                 </div>
                 <span class="hidden sm:block text-[10px] font-black uppercase italic">{{ activePet?.nombre || 'Elegir'
-                  }}</span>
+                }}</span>
               </router-link>
               <button @click="handleLogout"
                 class="p-1.5 text-slate-400 hover:text-ps-red transition-all cursor-pointer">
@@ -122,24 +122,14 @@
     </div>
 
     <main class="w-full pt-24 md:pt-0 pb-24 md:pb-0">
-      <router-view 
-  :key="availablePets.length" 
-  v-if="!loadingSession" 
-  :tutor="tutorData" 
-  :pet="activePet" 
-  :availablePets="availablePets"
-  @selected="handlePetSelection" 
-  @notify="addNotify" 
-  @create-new="isOnboardingOpen = true"
-  @login-success="handleLoginSuccess" 
-  @update-pet="handlePetUpdate" 
-  @delete-pet="handleDeletePet" 
-/>
+      <router-view :key="availablePets.length" v-if="!loadingSession" :tutor="tutorData" :pet="activePet"
+        :availablePets="availablePets" @selected="handlePetSelection" @notify="addNotify"
+        @create-new="isOnboardingOpen = true" @login-success="handleLoginSuccess" @update-pet="handlePetUpdate"
+        @delete-pet="handleDeletePet" />
     </main>
 
     <TheFooter />
-    <CartDrawer :is-open="isCartOpen" @close="isCartOpen = false" />
-
+    <CartDrawer :is-open="isCartOpen" :tutor="tutorData" @close="isCartOpen = false" />
     <Transition name="fade">
       <div v-if="isLoginOpen || isOnboardingOpen"
         class="fixed inset-0 z-[4000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -209,7 +199,7 @@ const handleOnboardingFinish = (data) => {
     mascotaParaActivar = data.mascotas[data.mascotas.length - 1];
     availablePets.value = data.mascotas;
     tutorData.value = data; // Actualizamos los datos del humano también
-  } 
+  }
   // CASO B: El backend devolvió directamente la Mascota
   else if (data.id && (data.nombre || data.nombreMascota)) {
     mascotaParaActivar = data;
@@ -221,7 +211,7 @@ const handleOnboardingFinish = (data) => {
     // ¡AQUÍ ESTÁ LA MAGIA!: Usamos el ID de la mascota, no el del tutor
     activePet.value = mascotaParaActivar;
     localStorage.setItem('ps_active_pet', JSON.stringify(mascotaParaActivar));
-    
+
     saveSession();
     isOnboardingOpen.value = false;
 
@@ -254,18 +244,18 @@ const handleDeletePet = async (petId) => {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    
+
     if (res.ok) {
       availablePets.value = availablePets.value.filter(p => p.id !== petId);
-            if (activePet.value?.id === petId) {
+      if (activePet.value?.id === petId) {
         activePet.value = null;
       }
-      
+
       saveSession(); // Guardamos el cambio en el navegador
       addNotify("Mascota eliminada");
     }
-  } catch (e) { 
-    addNotify({ msg: "Error al conectar con el servidor", type: "error" }); 
+  } catch (e) {
+    addNotify({ msg: "Error al conectar con el servidor", type: "error" });
   }
 };
 

@@ -10,6 +10,8 @@
             <nav class="flex flex-col gap-2">
                 <button @click="currentTab = 'stats'; fetchStats()" :class="tabClass(currentTab === 'stats')">📊
                     Resumen</button>
+                <button @click="currentTab = 'pedidos'; fetchPedidosAdmin()"
+                    :class="tabClass(currentTab === 'pedidos')">🛍️ Ventas</button>
                 <button @click="currentTab = 'mascotas'; fetchMascotas()"
                     :class="tabClass(currentTab === 'mascotas')">🐾 Pacientes</button>
                 <button @click="currentTab = 'citas'; fetchCitas()" :class="tabClass(currentTab === 'citas')">📅
@@ -102,6 +104,31 @@
                                 class="text-center py-10 opacity-30 text-[10px] font-black uppercase italic text-green-500">
                                 Todo el plantel al día</div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section v-if="currentTab === 'pedidos'" class="space-y-4 animate-in slide-in-from-bottom duration-300">
+                <div v-for="order in itemsFiltrados" :key="order.id"
+                    class="admin-card flex justify-between items-center border-l-8"
+                    :class="order.estado === 'PENDIENTE' ? 'border-amber-400' : 'border-green-500'">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="font-[1000] uppercase italic text-lg leading-none">{{ order.nombreCliente }}</h3>
+                            <span class="text-[10px] font-black px-2 py-0.5 bg-slate-100 dark:bg-white/10 rounded">#{{ order.id }}</span>
+                        </div>
+                        <div class="flex gap-4 text-[10px] font-black uppercase opacity-60">
+                            <span>📍 {{ order.zona || 'Sucursal' }}</span>
+                            <span class="text-ps-red">💰 ${{ order.total }}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            <span v-for="i in order.items" :key="i.id" class="text-[9px] bg-slate-50 dark:bg-white/5 px-2 py-1 rounded border border-slate-100 dark:border-white/5">
+                                {{ i.nombreProducto }} <span class="text-ps-blue font-black">x{{ i.cantidad }}</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <button @click="abrirModalPedido(order)" class="bg-black text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase italic shadow-xl hover:bg-ps-blue transition-all">Editar Orden</button>
                     </div>
                 </div>
             </section>
@@ -227,6 +254,59 @@
                 </div>
             </section>
 
+            <div v-if="showModalPedido" class="fixed inset-0 z-[6000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
+                <div class="bg-white dark:bg-[#0f0f0f] w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl max-h-[90vh] flex flex-col border border-white/5">
+                    <div class="flex justify-between items-center mb-8 shrink-0">
+                        <h2 class="text-3xl font-[1000] uppercase italic leading-none">Orden <span class="text-ps-red">#{{ formPedido.id }}</span></h2>
+                        <button @click="showModalPedido = false" class="text-2xl opacity-50">✕</button>
+                    </div>
+
+                    <div class="mb-6 relative shrink-0">
+                        <label class="label">Añadir Producto a la Venta</label>
+                        <input v-model="searchProdPedido" placeholder="Escribe para buscar productos..." class="admin-input border-ps-blue/20" />
+                        <div v-if="searchProdPedido && prodsResultados.length" class="absolute z-50 w-full bg-white dark:bg-[#1a1a1a] border border-white/10 rounded-2xl mt-2 shadow-2xl overflow-hidden">
+                            <div v-for="p in prodsResultados" :key="p.id" @click="addProductoAPedido(p)" class="p-4 hover:bg-ps-blue/10 cursor-pointer flex justify-between items-center border-b border-white/5">
+                                <span class="text-[10px] font-[1000] uppercase italic">{{ p.nombre }}</span>
+                                <span class="text-ps-red font-black text-[10px]">${{ p.precio }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
+                        <div v-for="(item, idx) in formPedido.items" :key="idx" class="flex items-center gap-4 bg-slate-50 dark:bg-white/5 p-5 rounded-[2rem] border border-slate-100 dark:border-white/5">
+                            <div class="flex-1">
+                                <p class="text-[10px] font-[1000] uppercase italic leading-none mb-1">{{ item.nombreProducto }}</p>
+                                <p class="text-[8px] font-black opacity-40 uppercase italic">Precio: ${{ item.precioUnitario }}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button @click="item.cantidad > 1 ? item.cantidad-- : null" class="w-8 h-8 bg-white dark:bg-black rounded-xl border border-white/10 font-black">-</button>
+                                <span class="text-xs font-[1000] w-4 text-center italic">{{ item.cantidad }}</span>
+                                <button @click="item.cantidad++" class="w-8 h-8 bg-white dark:bg-black rounded-xl border border-white/10 font-black">+</button>
+                            </div>
+                            <button @click="formPedido.items.splice(idx, 1)" class="text-ps-red p-2 hover:bg-ps-red/10 rounded-xl transition-all">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t border-slate-100 dark:border-white/5 shrink-0">
+                        <div class="flex justify-between items-end mb-8">
+                            <div class="w-1/2">
+                                <label class="label">Estado de la Venta</label>
+                                <select v-model="formPedido.estado" class="admin-input">
+                                    <option value="PENDIENTE">PENDIENTE</option>
+                                    <option value="PAGADO">PAGADO</option>
+                                    <option value="CANCELADO">CANCELADO</option>
+                                </select>
+                            </div>
+                            <div class="text-right">
+                                <p class="label">Total a Cobrar</p>
+                                <p class="text-4xl font-[1000] italic text-ps-red leading-none">${{ formPedido.total }}</p>
+                            </div>
+                        </div>
+                        <button @click="guardarCambiosPedido" class="w-full bg-ps-red text-white py-6 rounded-[2rem] font-[1000] uppercase text-[10px] tracking-widest italic shadow-xl shadow-ps-red/20">Actualizar Pedido</button>
+                    </div>
+                </div>
+            </div>
+
             <div v-if="showModal"
                 class="fixed inset-0 z-[5000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
                 <div
@@ -350,50 +430,84 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 
 const currentTab = ref('stats');
 const showModal = ref(false);
+const showModalPedido = ref(false); // NUEVO
 const editMode = ref(false);
 const searchQuery = ref('');
+const searchProdPedido = ref(''); // NUEVO
 const fotosTextoTemporal = ref('');
 
 const tutores = ref([]);
 const productos = ref([]);
 const citas = ref([]);
 const todasLasMascotas = ref([]);
+const pedidos = ref([]); // NUEVO
 const stats = ref({ totalCitas: 0, totalMascotas: 0, totalClientes: 0 });
 
 const formProd = ref({
-    id: null, 
-    nombre: '', 
-    presentacion: '', 
-    descripcion: '', 
-    precio: 0, 
-    stock: 0,
-    marca: '', 
-    sku: '', 
-    especie: 'TODOS', 
-    categoria: 'NUTRICION',
-    subcategoria: '',
-    etapaVida: 'TODOS', 
-    rangoPeso: 'TODOS', 
-    fotosUrls: [], 
-    requiereReceta: false 
+    id: null, nombre: '', presentacion: '', descripcion: '', precio: 0, stock: 0,
+    marca: '', sku: '', especie: 'TODOS', categoria: 'NUTRICION', subcategoria: '',
+    etapaVida: 'TODOS', rangoPeso: 'TODOS', fotosUrls: [], requiereReceta: false 
 });
 
+const formPedido = ref({ id: null, total: 0, estado: 'PENDIENTE', items: [] }); // NUEVO
+
 const tabTitle = computed(() => {
-    const t = { stats: 'Resumen', mascotas: 'Expedientes Pacientes', citas: 'Agenda Veterinaria', usuarios: 'Base de Clientes', inventario: 'Control de Inventario' };
+    const t = { stats: 'Resumen', pedidos: 'Ventas PetStation', mascotas: 'Expedientes Pacientes', citas: 'Agenda Veterinaria', usuarios: 'Base de Clientes', inventario: 'Control de Inventario' };
     return t[currentTab.value];
 });
+
+const prodsResultados = computed(() => {
+    if (!searchProdPedido.value) return [];
+    return productos.value.filter(p => p.nombre.toLowerCase().includes(searchProdPedido.value.toLowerCase())).slice(0, 5);
+});
+
+watch(() => formPedido.value.items, (newItems) => {
+    if (!newItems) return;
+    const calculado = newItems.reduce((acc, i) => {
+        return acc + (Number(i.precioUnitario) * Number(i.cantidad));
+    }, 0);
+    formPedido.value.total = calculado;
+}, { deep: true });
+
+const abrirModalPedido = (order) => {
+    const clone = JSON.parse(JSON.stringify(order));
+    
+    clone.items = clone.items.map(item => ({
+        ...item,
+        precioUnitario: Number(item.precioSnapshot) || 0,
+        cantidad: Number(item.cantidad) || 1
+    }));
+    
+    formPedido.value = clone;
+    formPedido.value.total = clone.items.reduce((acc, i) => acc + (i.precioUnitario * i.cantidad), 0);
+    
+    showModalPedido.value = true;
+};
+
+const addProductoAPedido = (p) => {
+    formPedido.value.items.push({ 
+        id: Date.now(), 
+        productoId: p.id, 
+        nombreProducto: p.nombre, 
+        precioUnitario: Number(p.precio) || 0, 
+        cantidad: 1 
+    });
+    searchProdPedido.value = '';
+};
 
 const mascotasConAlerta = computed(() => {
     return todasLasMascotas.value.filter(m => !m.ultimaVacuna);
 });
 
-// LÓGICA DE BÚSQUEDA GLOBAL
 const itemsFiltrados = computed(() => {
     const q = searchQuery.value.toLowerCase();
+    if (currentTab.value === 'pedidos') {
+        return pedidos.value.filter(o => o.nombreCliente?.toLowerCase().includes(q) || o.id.toString().includes(q));
+    }
     if (currentTab.value === 'inventario') {
         return productos.value.filter(p => p.nombre.toLowerCase().includes(q) || p.marca.toLowerCase().includes(q));
     }
@@ -422,6 +536,26 @@ const fetchStats = async () => {
         stats.value = await res.json();
         fetchCitas();
     } catch (e) { console.error(e); }
+};
+
+const fetchPedidosAdmin = async () => {
+    try {
+        const res = await fetch('https://api.petstationvet.com/api/pedidos/admin/lista', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('ps_token')}` }
+        });
+        pedidos.value = await res.json();
+    } catch (e) { console.error(e); }
+};
+
+
+const guardarCambiosPedido = async () => {
+    await fetch(`https://api.petstationvet.com/api/pedidos/admin/${formPedido.value.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('ps_token')}` },
+        body: JSON.stringify(formPedido.value)
+    });
+    showModalPedido.value = false;
+    fetchPedidosAdmin();
 };
 
 const fetchMascotas = async () => {
@@ -467,12 +601,9 @@ const abrirModalProducto = (prod = null) => {
         fotosTextoTemporal.value = prod.fotosUrls ? prod.fotosUrls.join('\n') : '';
         editMode.value = true;
     } else {
-        // Asegúrate de que este bloque tenga TODOS los campos vacíos
         formProd.value = { 
-            id: null, nombre: '', presentacion: '', descripcion: '', 
-            precio: 0, stock: 0, marca: '', sku: '',
-            especie: 'TODOS', categoria: 'NUTRICION', subcategoria: '',
-            etapaVida: 'TODOS', rangoPeso: 'TODOS', 
+            id: null, nombre: '', presentacion: '', descripcion: '', precio: 0, stock: 0, marca: '', sku: '',
+            especie: 'TODOS', categoria: 'NUTRICION', subcategoria: '', etapaVida: 'TODOS', rangoPeso: 'TODOS', 
             fotosUrls: [], requiereReceta: false 
         };
         fotosTextoTemporal.value = '';
@@ -517,6 +648,7 @@ const tabClass = (active) => [
 
 onMounted(() => {
     fetchStats();
+    fetchProductos(); // Para el buscador del modal de pedidos
 });
 </script>
 

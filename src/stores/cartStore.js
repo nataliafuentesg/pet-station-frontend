@@ -28,7 +28,9 @@ export const useCartStore = defineStore('cart', {
       }
     },
     clearCart() {
-      this.items = [];
-    }
+    this.items = [];
+    localStorage.removeItem('ps_cart');
+    console.log("Carrito vaciado con éxito");
+  }
   }
 });
