@@ -294,6 +294,8 @@
                                 <select v-model="formPedido.estado" class="admin-input">
                                     <option value="PENDIENTE">PENDIENTE</option>
                                     <option value="PAGADO">PAGADO</option>
+                                    <option value="PAGADO">EN_CAMINO</option>
+                                    <option value="PAGADO">ENTREGADO</option>
                                     <option value="CANCELADO">CANCELADO</option>
                                 </select>
                             </div>
@@ -490,7 +492,7 @@ const abrirModalPedido = (order) => {
 
 const addProductoAPedido = (p) => {
     formPedido.value.items.push({ 
-        id: Date.now(), 
+        id: `new-${Date.now()}`, // Esto activa la lógica de 'isNew' arriba
         productoId: p.id, 
         nombreProducto: p.nombre, 
         precioUnitario: Number(p.precio) || 0, 
@@ -549,13 +551,55 @@ const fetchPedidosAdmin = async () => {
 
 
 const guardarCambiosPedido = async () => {
-    await fetch(`https://api.petstationvet.com/api/pedidos/admin/${formPedido.value.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('ps_token')}` },
-        body: JSON.stringify(formPedido.value)
-    });
-    showModalPedido.value = false;
-    fetchPedidosAdmin();
+    try {
+        const payload = {
+            id: formPedido.value.id,
+            estado: formPedido.value.estado,
+            total: formPedido.value.total,
+            items: formPedido.value.items.map(item => {
+                // Verificamos si es un item nuevo (ID generado por Date.now() en el frontend)
+                const isNew = typeof item.id === 'string' && item.id.startsWith('new-');
+                
+                // Construimos el objeto base
+                const itemParaEnviar = {
+                    productoId: item.productoId,
+                    nombreProducto: item.nombreProducto,
+                    precioSnapshot: Number(item.precioUnitario),
+                    cantidad: Number(item.cantidad)
+                };
+
+                // SOLO agregamos el ID si NO es nuevo
+                if (!isNew) {
+                    itemParaEnviar.id = item.id;
+                }
+
+                return itemParaEnviar;
+            })
+        };
+
+        const url = `https://api.petstationvet.com/api/pedidos/admin/${formPedido.value.id}`;
+        
+        const res = await fetch(url, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${localStorage.getItem('ps_token')}` 
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            showModalPedido.value = false;
+            fetchPedidosAdmin();
+            alert("Venta actualizada exitosamente");
+        } else {
+            const errorData = await res.json();
+            console.error("Respuesta error:", errorData);
+            alert("Error al guardar cambios");
+        }
+    } catch (error) {
+        console.error("Error en la conexión:", error);
+    }
 };
 
 const fetchMascotas = async () => {

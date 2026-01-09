@@ -19,3 +19,15 @@
     @apply transition-colors duration-500;
   }
 }
+
+@layer base {
+  input, select, textarea {
+    @apply text-[16px] md:text-sm; /* 16px en móvil evita el zoom de iOS */
+  }
+}
+
+@media (max-width: 768px) {
+  input, select, textarea, button {
+    font-size: 16px !important;
+  }
+}

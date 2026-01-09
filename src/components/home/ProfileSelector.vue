@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center justify-start w-full px-4 pt-40 pb-20 min-h-screen">
+  <div class="flex flex-col items-center justify-start w-full px-4 pt-17 pb-20 min-h-screen">
 
     <div class="text-center mb-20 animate-in fade-in slide-in-from-bottom-10 duration-1000">
       <h2 class="text-5xl md:text-7xl font-[1000] uppercase italic tracking-[ -0.05em] dark:text-white text-[#152C77]">
