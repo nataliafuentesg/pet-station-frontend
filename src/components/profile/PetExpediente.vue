@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-[#050505] pt-32 pb-20 px-4 transition-colors duration-500">
+  <div class="min-h-screen bg-white dark:bg-[#050505] pt-10 pb-20 px-4 transition-colors duration-500">
 
     <div v-if="loading" class="flex flex-col items-center justify-center py-40 gap-4">
       <div class="w-12 h-12 border-4 border-ps-blue border-t-ps-red rounded-full animate-spin"></div>
