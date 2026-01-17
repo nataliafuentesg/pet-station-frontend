@@ -95,7 +95,7 @@ const preciosPeluqueria = [
   { talla: 'Gigante', icono: '🦁', ejemplo: 'Gran Danés, Bernés', bano: '188.500',  corte: 'N/A' },
 ];
 
-const seleccionada = ref(preciosPeluqueria[1]); // Default Mini
+const seleccionada = ref(preciosPeluqueria[1]); 
 
 const irAAgendar = () => {
   router.push({
@@ -109,7 +109,6 @@ const irAAgendar = () => {
 </script>
 
 <style scoped>
-/* Transición suave para la entrada de información */
 .animate-in {
   animation-duration: 0.6s;
 }
