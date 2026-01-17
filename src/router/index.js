@@ -45,28 +45,24 @@ const router = createRouter({
   }
 });
 
-// GUARDIA DE NAVEGACIÓN MEJORADO
 router.beforeEach((to, from, next) => {
-  // 1. Extraemos la sesión
   const sessionStr = localStorage.getItem('ps_session');
-  
-  if (!sessionStr && to.meta.requiresAdmin) {
-    return next('/'); // No hay sesión y quiere ir a admin -> A casa
+  if (!sessionStr) {
+    return to.meta.requiresAdmin ? next('/') : next();
   }
 
-  const session = JSON.parse(sessionStr || '{}');
-  
-  const userRole = session.tutor?.rol || session.tutor?.role || session.role;
+  const session = JSON.parse(sessionStr);
+  const userRol = session.tutor?.rol || session.rol;
 
-  if (to.matched.some(record => record.meta.requiresAdmin)) {
-    if (userRole === 'ROLE_ADMIN' || userRole === 'ADMIN') {
-      next(); // Es admin, pasa
+  if (to.meta.requiresAdmin) {
+    if (userRol === 'ROLE_ADMIN' || userRol === 'ADMIN') {
+      next();
     } else {
-      console.error("ACCESO PROHIBIDO: Intento de entrada a Admin sin permisos.");
-      next('/'); // No es admin, fuera de aquí
+      console.error("ACCESO PROHIBIDO: Rol insuficiente.");
+      next('/');
     }
   } else {
-    next(); // Ruta pública, pasa
+    next();
   }
 });
 

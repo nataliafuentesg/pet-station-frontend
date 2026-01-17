@@ -19,7 +19,24 @@
           <input v-model="form.apellidoTutor" placeholder="Apellido" class="input-dark" required />
           <input v-model="form.email" type="email" placeholder="Email" class="input-dark md:col-span-2" required />
           <input v-model="form.cedula" placeholder="Cédula" class="input-dark" required />
-          <input v-model="form.password" type="password" placeholder="Contraseña" class="input-dark" required />
+
+          <div class="relative">
+            <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="Contraseña"
+              class="input-dark pr-12" required />
+            <button type="button" @click="showPass = !showPass"
+              class="absolute right-4 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100">
+              {{ showPass ? '👁️‍🗨️' : '👁️' }}
+            </button>
+          </div>
+
+          <div class="relative">
+            <input v-model="form.confirmPassword" :type="showConfirmPass ? 'text' : 'password'" placeholder="Confirmar"
+              class="input-dark pr-12" required />
+            <button type="button" @click="showConfirmPass = !showConfirmPass"
+              class="absolute right-4 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100">
+              {{ showConfirmPass ? '👁️‍🗨️' : '👁️' }}
+            </button>
+          </div>
         </div>
 
         <div class="h-px bg-white/5 w-full my-6"></div>
@@ -79,70 +96,69 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, reactive, computed } from 'vue';
+import api from '@/api/axios'; // Usamos tu cliente configurado
+
 const props = defineProps(['tutorExistente']);
 const emit = defineEmits(['finalizado', 'close', 'notify']);
 const loading = ref(false);
 
-const form = ref({
+// Estados para los "ojitos"
+const showPass = ref(false);
+const showConfirmPass = ref(false);
+
+const form = reactive({
   nombreTutor: props.tutorExistente?.nombre || '',
   apellidoTutor: props.tutorExistente?.apellido || '',
   email: props.tutorExistente?.email || '',
   cedula: props.tutorExistente?.cedula || '',
   password: '',
+  confirmPassword: '', // Nuevo campo local
   nombreMascota: '',
   especie: 'PERRO',
   raza: '',
-  fechaNacimiento: '', // Agregado
+  fechaNacimiento: '',
   ultimaVacuna: null,
   ultimaDesparasitacion: null,
   marcaComida: '',
   observacionesMedicas: ''
 });
 
+// Validación: Solo importa si no hay tutor existente
+const passwordsMatch = computed(() => {
+  if (props.tutorExistente) return true;
+  return form.password === form.confirmPassword;
+});
+
 const handleSubmit = async () => {
+  if (!passwordsMatch.value) {
+    emit('notify', { msg: "Las contraseñas no coinciden", type: 'error' });
+    return;
+  }
+
   loading.value = true;
-  const token = localStorage.getItem('ps_token');
-
   try {
-    const esMascotaNueva = props.tutorExistente?.id;
-    const url = esMascotaNueva
-      ? `https://api.petstationvet.com/api/mascotas/tutor/${props.tutorExistente.id}`
-      : 'https://api.petstationvet.com/api/registro/completo';
+    const esMascotaNuevaParaTutorExistente = props.tutorExistente?.id;
+    const url = esMascotaNuevaParaTutorExistente
+      ? `/mascotas/tutor/${props.tutorExistente.id}`
+      : '/registro/completo';
 
-    // Construimos el objeto exacto que el DTO espera
+    // Payload limpio para el Backend
     const payload = {
-      nombreTutor: form.value.nombreTutor,
-      apellidoTutor: form.value.apellidoTutor,
-      cedula: form.value.cedula,
-      email: form.value.email,
-      telefono: form.value.telefono || '',
-      password: form.value.password,
-      nombreMascota: form.value.nombreMascota, // Para el DTO (Registro completo)
-      nombre: form.value.nombreMascota, especie: form.value.especie,
-      raza: form.value.raza
+      ...form,
+      nombre: form.nombreMascota // Ajuste para el DTO de Mascota
     };
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
+    // Eliminamos el campo de confirmación antes de enviar
+    delete payload.confirmPassword;
 
-    const data = await res.json();
+    const { data } = await api.post(url, payload);
 
-    if (res.ok) {
-      emit('notify', { msg: "¡Expediente creado!", type: 'success' });
-      // IMPORTANTE: data debe ser el objeto que viene del backend
-      emit('finalizado', data);
-    } else {
-      emit('notify', { msg: data.error || "Error al registrar", type: 'error' });
-    }
+    emit('notify', { msg: "¡Expediente creado!", type: 'success' });
+    emit('finalizado', data);
   } catch (e) {
-    emit('notify', { msg: "Error de conexión", type: 'error' });
+    const errorMsg = e.response?.data?.message || "Error al procesar el registro";
+    emit('notify', { msg: errorMsg, type: 'error' });
   } finally {
     loading.value = false;
   }

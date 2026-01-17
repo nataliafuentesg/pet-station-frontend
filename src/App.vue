@@ -178,9 +178,7 @@ const handleLoginSuccess = async (tutor) => {
   availablePets.value = tutor.mascotas || [];
   isLoginOpen.value = false;
   saveSession();
-
-  if (tutor.rol === 'ROLE_ADMIN' || tutor.role === 'ROLE_ADMIN') {
-    console.log("Acceso de administrador detectado");
+  if (tutor.rol === 'ROLE_ADMIN' || tutor.rol === 'ADMIN') {
     router.push('/admin/dashboard');
   } else {
     if (availablePets.value.length > 0) router.push('/seleccionar-perfil');
@@ -193,30 +191,22 @@ const handleOnboardingFinish = (data) => {
 
   let mascotaParaActivar = null;
 
-  // CASO A: El backend devolvió un Tutor (porque tiene lista de mascotas)
   if (data.mascotas && Array.isArray(data.mascotas)) {
-    // Tomamos la última mascota de la lista (la que se acaba de crear)
     mascotaParaActivar = data.mascotas[data.mascotas.length - 1];
     availablePets.value = data.mascotas;
-    tutorData.value = data; // Actualizamos los datos del humano también
+    tutorData.value = data; 
   }
-  // CASO B: El backend devolvió directamente la Mascota
   else if (data.id && (data.nombre || data.nombreMascota)) {
     mascotaParaActivar = data;
-    // Si ya teníamos mascotas, la añadimos, si no, creamos la lista
     availablePets.value = [...(availablePets.value || []), data];
   }
 
   if (mascotaParaActivar && mascotaParaActivar.id) {
-    // ¡AQUÍ ESTÁ LA MAGIA!: Usamos el ID de la mascota, no el del tutor
     activePet.value = mascotaParaActivar;
     localStorage.setItem('ps_active_pet', JSON.stringify(mascotaParaActivar));
 
     saveSession();
     isOnboardingOpen.value = false;
-
-    // Ahora sí, redirigimos al expediente. 
-    // El componente Expediente.vue leerá props.pet.id y será el correcto.
     router.push('/expediente');
   } else {
     addNotify({ msg: "Se creó el registro pero no pudimos identificar la mascota activa", type: "error" });
@@ -251,7 +241,7 @@ const handleDeletePet = async (petId) => {
         activePet.value = null;
       }
 
-      saveSession(); // Guardamos el cambio en el navegador
+      saveSession(); 
       addNotify("Mascota eliminada");
     }
   } catch (e) {

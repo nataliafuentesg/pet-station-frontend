@@ -88,11 +88,11 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const preciosPeluqueria = [
-  { talla: 'Gatos', icono: '🐱', ejemplo: 'Persa, Criollo', bano: '55.000', corte: 'N/A' },
-  { talla: 'Mini', icono: '🐶', ejemplo: 'Yorkie, Maltés', bano: '50.000', corte: '75.000' },
-  { talla: 'Mediano', icono: '🐕', ejemplo: 'Beagle, Cocker', bano: '65.000', corte: '95.000' },
-  { talla: 'Grande', icono: '🐩', ejemplo: 'Golden, Husky', bano: '85.000', corte: '125.000' },
-  { talla: 'Gigante', icono: '🦁', ejemplo: 'Gran Danés, Bernés', bano: '110.000', corte: '160.000' },
+  { talla: 'Gatos', icono: '🐱', ejemplo: 'Persa, Criollo', bano: '90.500', corte: 'N/A' },
+  { talla: 'Mini', icono: '🐶', ejemplo: 'Yorkie, Maltés', bano: '90.500', corte: '147.700' },
+  { talla: 'Mediano', icono: '🐕', ejemplo: 'Beagle, Cocker', bano: '119.700', corte: '147.700' },
+  { talla: 'Grande', icono: '🐩', ejemplo: 'Golden, Husky', bano: '188.500',  corte: 'N/A' },
+  { talla: 'Gigante', icono: '🦁', ejemplo: 'Gran Danés, Bernés', bano: '188.500',  corte: 'N/A' },
 ];
 
 const seleccionada = ref(preciosPeluqueria[1]); // Default Mini

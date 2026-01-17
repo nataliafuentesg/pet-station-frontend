@@ -215,39 +215,48 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch, computed } from 'vue';
+import api from '@/api/axios'; // Cliente Axios centralizado
 
 const props = defineProps(['pet', 'tutor']);
 const emit = defineEmits(['update-pet', 'update-tutor', 'notify']);
 
+// Estados de carga y UI
 const loading = ref(true);
 const saving = ref(false);
 const savingPhoto = ref(false);
 const compressing = ref(false);
 const justSavedPhoto = ref(false);
 const activeTab = ref('pet');
+
+// Datos del expediente
 const petData = ref(null);
 const appointments = ref([]);
 const orders = ref([]);
 
-// Headers centralizados
-const getHeaders = () => {
-  const token = localStorage.getItem('ps_token');
-  return {
-    'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` })
-  };
-};
-
-// Formulario reactivo completo (Sincronizado con Entidad Mascota Java)
+// Formulario reactivo para la Mascota
 const form = reactive({
-  nombre: '', especie: '', raza: '', fechaNacimiento: '',
-  fotoUrl: '', pesoActual: '', ultimaVacuna: '', ultimaDesparasitacion: '',
-  marcaComida: '', frecuenciaBano: '', snacksFavoritos: '',
-  alergiasOpcional: '', observacionesMedicas: ''
+  nombre: '', 
+  especie: '', 
+  raza: '', 
+  fechaNacimiento: '',
+  fotoUrl: '', 
+  pesoActual: '', 
+  ultimaVacuna: '', 
+  ultimaDesparasitacion: '',
+  marcaComida: '', 
+  frecuenciaBano: '', 
+  snacksFavoritos: '',
+  alergiasOpcional: '', 
+  observacionesMedicas: ''
 });
 
 const tutorForm = reactive({
-  nombre: '', apellido: '', cedula: '', telefono: '', email: '', direccion: ''
+  nombre: '', 
+  apellido: '', 
+  cedula: '', 
+  telefono: '', 
+  email: '', 
+  direccion: ''
 });
 
 const medicalFields = {
@@ -263,8 +272,12 @@ const medicalFields = {
 };
 
 const tutorFields = {
-  nombre: 'Nombre', apellido: 'Apellido', cedula: 'Cédula',
-  telefono: 'Teléfono', email: 'Email', direccion: 'Dirección'
+  nombre: 'Nombre', 
+  apellido: 'Apellido', 
+  cedula: 'Cédula',
+  telefono: 'Teléfono', 
+  email: 'Email', 
+  direccion: 'Dirección'
 };
 
 const filteredAppointments = computed(() => {
@@ -276,6 +289,7 @@ const filteredAppointments = computed(() => {
 });
 
 const formatDate = (dateStr) => {
+  if (!dateStr) return '---';
   return new Date(dateStr).toLocaleString('es-ES', {
     weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
   });
@@ -284,53 +298,51 @@ const formatDate = (dateStr) => {
 const loadAllData = async () => {
   if (!props.pet?.id) return;
   loading.value = true;
+  
   try {
-    const headers = getHeaders();
     const [resP, resT, resC, resO] = await Promise.all([
-      fetch(`https://api.petstationvet.com/api/mascotas/${props.pet.id}`, { headers }),
-      props.tutor?.id ? fetch(`https://api.petstationvet.com/api/tutores/${props.tutor.id}`, { headers }) : null,
-      fetch(`https://api.petstationvet.com/api/citas/mascota/${props.pet.id}`, { headers }),
-      // Llamada al nuevo endpoint de pedidos por tutor
-      props.tutor?.id ? fetch(`https://api.petstationvet.com/api/pedidos/tutor/${props.tutor.id}`, { headers }) : null
+      api.get(`/mascotas/${props.pet.id}`), //
+      props.tutor?.id ? api.get(`/tutores/${props.tutor.id}`) : Promise.resolve({ data: null }), //
+      api.get(`/citas/mascota/${props.pet.id}`), //
+      props.tutor?.id ? api.get(`/pedidos/tutor/${props.tutor.id}`) : Promise.resolve({ data: [] }) //
     ]);
 
-    if (resP.ok) {
-      const data = await resP.json();
-      petData.value = data;
-      Object.assign(form, data);
+    if (resP.data) {
+      petData.value = resP.data;
+      Object.assign(form, resP.data);
     }
-    if (resT && resT.ok) Object.assign(tutorForm, await resT.json());
-    if (resC.ok) appointments.value = await resC.json();
 
-    // Asignar órdenes
-    if (resO && resO.ok) {
-      const pedidos = await resO.json();
-      // Ordenamos para que el más nuevo esté arriba
-      orders.value = pedidos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    if (resT.data) {
+      Object.assign(tutorForm, resT.data);
+    }
+
+    appointments.value = resC.data || [];
+
+    if (resO.data) {
+      orders.value = resO.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
   } catch (error) {
-    emit('notify', { msg: 'Error al cargar datos', type: 'error' });
-  } finally { loading.value = false; }
+    console.error("Error al sincronizar expediente:", error);
+    emit('notify', { msg: 'Error al actualizar los datos', type: 'error' });
+  } finally { 
+    loading.value = false; 
+  }
 };
+
 
 const saveProfile = async () => {
   saving.value = true;
   try {
-    const res = await fetch(`https://api.petstationvet.com/api/mascotas/${props.pet.id}`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify(form)
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      petData.value = updated;
-      emit('update-pet', updated);
-      emit('notify', { msg: 'Expediente actualizado con éxito', type: 'success' });
-    }
+    const { data } = await api.put(`/mascotas/${props.pet.id}`, form); //
+    petData.value = data;
+    emit('update-pet', data);
+    emit('notify', { msg: 'Expediente actualizado con éxito', type: 'success' });
   } catch (e) {
-    emit('notify', { msg: 'Error al sincronizar', type: 'error' });
-  } finally { saving.value = false; }
+    emit('notify', { msg: 'No se pudo guardar el expediente', type: 'error' });
+  } finally { 
+    saving.value = false; 
+  }
 };
 
 const saveTutor = async () => {
@@ -338,27 +350,24 @@ const saveTutor = async () => {
   saving.value = true;
   try {
     const { mascotas, ...datosLimpios } = tutorForm;
-    const res = await fetch(`https://api.petstationvet.com/api/tutores/${props.tutor.id}`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify(datosLimpios)
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      Object.assign(tutorForm, updated);
-      emit('update-tutor', updated);
-      emit('notify', { msg: 'Datos de tutor actualizados', type: 'success' });
-    }
+    const { data } = await api.put(`/tutores/${props.tutor.id}`, datosLimpios); //
+    Object.assign(tutorForm, data);
+    emit('update-tutor', data);
+    emit('notify', { msg: 'Datos de contacto guardados', type: 'success' });
   } catch (e) {
-    emit('notify', { msg: 'Error de red', type: 'error' });
-  } finally { saving.value = false; }
+    emit('notify', { msg: 'Error al actualizar el perfil', type: 'error' });
+  } finally { 
+    saving.value = false; 
+  }
 };
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (!file) return;
+  
   compressing.value = true;
   const reader = new FileReader();
+  
   reader.onload = (e) => {
     const img = new Image();
     img.src = e.target.result;
@@ -369,7 +378,9 @@ const handleFileUpload = (event) => {
       if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
       else { if (h > MAX) { w *= MAX / h; h = MAX; } }
       canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
+      const ctx = canvas.getContext('2d'); 
+      ctx.drawImage(img, 0, 0, w, h);
+      
       form.fotoUrl = canvas.toDataURL('image/jpeg', 0.7);
       compressing.value = false;
       autoSavePhoto();
@@ -381,22 +392,29 @@ const handleFileUpload = (event) => {
 const autoSavePhoto = async () => {
   savingPhoto.value = true;
   try {
-    const res = await fetch(`https://api.petstationvet.com/api/mascotas/${props.pet.id}`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify({ ...petData.value, fotoUrl: form.fotoUrl })
+    const { data } = await api.put(`/mascotas/${props.pet.id}`, { 
+      ...petData.value, 
+      fotoUrl: form.fotoUrl 
     });
-    if (res.ok) {
-      const updated = await res.json();
-      emit('update-pet', updated);
-      justSavedPhoto.value = true;
-      setTimeout(() => justSavedPhoto.value = false, 2000);
-    }
-  } finally { savingPhoto.value = false; }
+    emit('update-pet', data);
+    justSavedPhoto.value = true;
+    setTimeout(() => justSavedPhoto.value = false, 2000);
+  } catch (e) {
+    emit('notify', { msg: 'Error al subir la imagen', type: 'error' });
+  } finally { 
+    savingPhoto.value = false; 
+  }
 };
 
 onMounted(loadAllData);
-watch(() => props.pet?.id, loadAllData);
+
+watch(() => props.pet?.id, (newVal) => {
+  if (newVal) loadAllData();
+}, { immediate: true });
+
+watch(() => props.tutor?.id, (newVal) => {
+  if (newVal) loadAllData();
+});
 </script>
 
 <style scoped>

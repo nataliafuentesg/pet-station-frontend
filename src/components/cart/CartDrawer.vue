@@ -129,7 +129,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue';
-import { useCartStore } from '../../stores/cartStore';
+import { useCartStore } from '../../stores/cartStore'; //
 import { usePedidoStore } from '../../stores/usePedidoStore';
 
 const props = defineProps(['isOpen', 'tutor']);
@@ -149,18 +149,21 @@ const form = reactive({
   zona: ''
 });
 
-// Pre-llenado automático si hay un tutor logueado
+// Pre-llenado automático con los datos del tutor (usando 'rol' como estándar)
 const prefillForm = () => {
   if (props.tutor) {
     form.nombre = `${props.tutor.nombre} ${props.tutor.apellido || ''}`.trim();
     form.telefono = props.tutor.telefono || '';
     form.email = props.tutor.email || '';
     form.direccion = props.tutor.direccion || '';
-    form.zona = props.tutor.zona || '';
+    // Si el backend no envía zona, queda vacío para que el usuario elija
+    form.zona = props.tutor.zona || ''; 
   }
 };
 
-const isFormValid = computed(() => form.nombre && form.telefono && form.email && form.direccion && form.zona);
+const isFormValid = computed(() => 
+  form.nombre && form.telefono && form.email && form.direccion && form.zona
+);
 
 const goToStep2 = () => {
   prefillForm();
@@ -177,25 +180,25 @@ const handleFinalizeOrder = async () => {
   loading.value = true;
 
   try {
-    // 1. Guardar en Backend (Hetzner)
+    // 1. Guardar en Backend usando la lógica de Axios en el Store
     const pedidoGuardado = await pedidoStore.crearPedido(
       form,
       cartStore.items,
       props.tutor?.id
     );
 
-    // 2. Notificación visual
-    emit('notify', { msg: "¡Pedido registrado!", type: 'success' });
+    // 2. Notificación visual al usuario
+    emit('notify', { msg: "¡Pedido #"+ pedidoGuardado.id +" registrado!", type: 'success' });
 
-    // 3. Abrir WhatsApp con ID real
+    // 3. Abrir WhatsApp con el ID real retornado por el servidor
     sendWhatsApp(pedidoGuardado.id);
 
-    // 4. Limpiar y cerrar
+    // 4. Limpiar carrito y cerrar drawer
     cartStore.clearCart();
     closeAndReset();
 
   } catch (error) {
-    emit('notify', { msg: error.message || "Error al procesar", type: 'error' });
+    emit('notify', { msg: error.message, type: 'error' });
   } finally {
     loading.value = false;
   }
@@ -203,13 +206,10 @@ const handleFinalizeOrder = async () => {
 
 const sendWhatsApp = (orderId) => {
   const phone = "573124965755";
-
-  // Usamos variables para los iconos para asegurar que se procesen bien
   const iconOrder = "🚀";
   const iconUser = "👤";
   const iconLoc = "📍";
   const iconMoney = "💰";
-  const iconPet = "🐾";
 
   let message = `${iconOrder} *ORDEN #${orderId} - PET STATION*\n`;
   message += `------------------------------------------\n`;
@@ -217,22 +217,16 @@ const sendWhatsApp = (orderId) => {
   message += `${iconLoc} *Entrega:* ${form.direccion} (${form.zona})\n`;
   message += `------------------------------------------\n\n`;
 
-  // Usamos el cartStore para listar los productos
   cartStore.items.forEach(i => {
     message += `• ${i.nombre} (x${i.quantity})\n`;
   });
 
   message += `\n${iconMoney} *TOTAL: $${cartStore.totalPrice.toLocaleString()}*\n`;
   message += `------------------------------------------\n`;
-  message += `${iconPet} _Confirmar pedido generado en web._`;
+  message += `_Confirmar pedido generado en web._`;
 
-  // CODIFICACIÓN MANUAL PARA EVITAR ERRORES DE BUFFER
-  const encodedMsg = encodeURIComponent(message)
-    .replace(/['()!*]/g, escape) // Escapa caracteres que encodeURIComponent a veces ignora
-    .replace(/\*/g, '%2A');      // Asegura que las negritas de WhatsApp se mantengan
-
-  const whatsappUrl = `https://wa.me/${phone}?text=${encodedMsg}`;
-  window.open(whatsappUrl, '_blank');
+  const encodedMsg = encodeURIComponent(message).replace(/\*/g, '%2A');
+  window.open(`https://wa.me/${phone}?text=${encodedMsg}`, '_blank');
 };
 
 watch(() => props.isOpen, (val) => {

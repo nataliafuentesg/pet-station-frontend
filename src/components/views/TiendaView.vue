@@ -193,6 +193,7 @@ const emit = defineEmits(['notify']);
 const productStore = useProductStore();
 const cartStore = useCartStore();
 
+// Estados de filtros
 const activeSpecies = ref('TODOS');
 const activeCategory = ref('TODOS');
 const activeMarca = ref('TODOS');
@@ -200,6 +201,8 @@ const activeEtapa = ref('TODOS');
 const activePeso = ref('TODOS');
 const filterByMascota = ref(false);
 const mascotaActiva = ref(null);
+
+// UI y Paginación
 const showMobileFilters = ref(false);
 const showScrollTop = ref(false);
 const currentPage = ref(1);
@@ -230,11 +233,13 @@ const setFilter = (key, val) => {
 };
 
 const isFilterActive = (key, opt) => {
-  if (key === 'species') return activeSpecies.value === opt;
-  if (key === 'category') return activeCategory.value === opt;
-  if (key === 'etapa') return activeEtapa.value === opt;
-  if (key === 'peso') return activePeso.value === opt;
-  return false;
+  const filters = {
+    species: activeSpecies,
+    category: activeCategory,
+    etapa: activeEtapa,
+    peso: activePeso
+  };
+  return filters[key]?.value === opt;
 };
 
 const uniqueMarcas = computed(() => {
@@ -263,10 +268,26 @@ const dynamicTitle = computed(() => {
   return "Tienda";
 });
 
+const loadActivePet = () => {
+  const saved = localStorage.getItem('ps_active_pet');
+  if (saved) {
+    const pet = JSON.parse(saved);
+    const esp = (pet.especie || '').toUpperCase();
+    mascotaActiva.value = { 
+      ...pet, 
+      especie: (esp === 'PERRO' || esp === 'CANINO') ? 'CANINO' : 'FELINO' 
+    };
+  }
+};
+
 const toggleRecomendaciones = () => {
   filterByMascota.value = !filterByMascota.value;
-  if (filterByMascota.value) aplicarSugerenciasMascota();
-  else resetFiltros();
+  if (filterByMascota.value) {
+    loadActivePet(); // Nos aseguramos de tener la data fresca
+    aplicarSugerenciasMascota();
+  } else {
+    resetFiltros();
+  }
 };
 
 const aplicarSugerenciasMascota = () => {
@@ -286,24 +307,24 @@ const resetFiltros = () => {
   filterByMascota.value = false;
 };
 
-const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-
 const onAddToCart = (p) => {
   cartStore.addToCart(p, 1);
-  emit('notify', { message: `${p.nombre} añadido`, type: 'success' });
+  emit('notify', { msg: `${p.nombre} añadido al carrito`, type: 'success' });
 };
 
 onMounted(async () => {
   window.addEventListener('scroll', () => {
     showScrollTop.value = window.scrollY > 400;
   });
-  if (productStore.allProducts.length === 0) await productStore.fetchTienda();
-  const saved = localStorage.getItem('ps_active_pet');
-  if (saved) {
-    const pet = JSON.parse(saved);
-    const esp = (pet.especie || '').toUpperCase();
-    mascotaActiva.value = { ...pet, especie: (esp === 'PERRO' || esp === 'CANINO') ? 'CANINO' : 'FELINO' };
+  
+  if (productStore.allProducts.length === 0) {
+    await productStore.fetchTienda();
   }
+  loadActivePet();
+});
+watch(() => localStorage.getItem('ps_active_pet'), () => {
+  loadActivePet();
+  if (filterByMascota.value) aplicarSugerenciasMascota();
 });
 </script>
 

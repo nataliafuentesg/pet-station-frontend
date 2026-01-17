@@ -101,6 +101,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import api from '@/api/axios'; 
 
 const props = defineProps(['tutor', 'pet', 'availablePets']);
 const emit = defineEmits(['notify']);
@@ -109,7 +110,6 @@ const loading = ref(false);
 
 const tempDate = ref('');
 const tempTime = ref('08:00');
-
 const TURNOS_PERMITIDOS = ['08:00', '10:00', '12:00', '14:00'];
 
 const form = reactive({
@@ -138,9 +138,7 @@ const esDomingo = computed(() => {
   return date.getDay() === 0;
 });
 
-const filteredHours = computed(() => {
-  return esDomingo.value ? [] : TURNOS_PERMITIDOS;
-});
+const filteredHours = computed(() => esDomingo.value ? [] : TURNOS_PERMITIDOS);
 
 const formatHora = (h) => {
   const [hora] = h.split(':');
@@ -174,33 +172,19 @@ const handleSubmit = async () => {
   form.fechaHora = `${tempDate.value}T${tempTime.value}:00`;
 
   try {
-    const res = await fetch('https://api.petstationvet.com/api/citas/agendar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
-    });
+    const { data } = await api.post('/citas/agendar', form);
 
-    const data = await res.json();
-    if (res.ok) {
-      emit('notify', '¡Cita agendada correctamente!');
-      
-      // Abrir calendar si existe
-      if (data.googleCalendarLink) {
-        window.open(data.googleCalendarLink, '_blank');
-      }
-
-      // CAMBIO CLAVE: Lógica de redirección inteligente
-      if (props.tutor) {
-        router.push('/expediente');
-      } else {
-        router.push('/'); // Si es invitado, vuelve al Home
-      }
-
+    emit('notify', '¡Cita agendada con éxito! Te esperamos.');
+    
+    if (props.tutor) {
+      router.push('/expediente');
     } else {
-      emit('notify', data.message || 'Error al agendar', 'error');
+      router.push('/');
     }
+
   } catch (e) {
-    emit('notify', 'Error de conexión con el servidor', 'error');
+    const errorMsg = e.response?.data?.message || 'Error al agendar la cita';
+    emit('notify', errorMsg, 'error');
   } finally {
     loading.value = false;
   }
@@ -208,7 +192,6 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-/* Estilos manuales para evitar errores de @apply con Tailwind v4 */
 .input-style {
   width: 100%;
   background-color: white;
@@ -219,16 +202,11 @@ const handleSubmit = async () => {
   font-weight: 700;
   transition: all 0.3s;
 }
-
 .dark .input-style {
   background-color: rgba(255, 255, 255, 0.1);
   color: white;
 }
-
-.input-style:focus {
-  border-color: #152C77;
-}
-
+.input-style:focus { border-color: #152C77; }
 .label-style {
   font-size: 9px;
   font-weight: 900;

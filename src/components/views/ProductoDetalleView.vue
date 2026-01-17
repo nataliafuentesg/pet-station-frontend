@@ -166,8 +166,9 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useCartStore } from '../../stores/cartStore';
-import { useProductStore } from '../../stores/productStore';
+import { useCartStore } from '../../stores/cartStore'; //
+import { useProductStore } from '../../stores/productStore'; //
+import api from '@/api/axios'; // Importamos tu cliente centralizado
 
 const route = useRoute();
 const router = useRouter();
@@ -180,44 +181,51 @@ const currentImage = ref(null);
 const suggestedProducts = ref([]);
 const emit = defineEmits(['notify']);
 
-// Computada para WhatsApp (Evita errores de window en el template)
+// --- COMPUTED PROPERTIES ---
+
+// Genera el link de WhatsApp dinámico con la info del producto
 const whatsappUrl = computed(() => {
   if (!product.value) return '#';
-  const message = encodeURIComponent(`¡Hola! Estoy interesado en el producto: ${product.value.nombre}.`);
-  return `https://wa.me/573000000000?text=${message}`; // Cambia el número
+  const phone = "573124965755"; // Número de la clínica
+  const message = encodeURIComponent(`¡Hola! Quisiera más información sobre: *${product.value.nombre}* (${product.value.marca})`);
+  return `https://wa.me/${phone}?text=${message}`;
 });
+
 
 const fetchData = async (productId) => {
   try {
-    const res = await fetch(`https://api.petstationvet.com/api/tienda/productos/${productId}`);
-    if (res.ok) {
-      const data = await res.json();
-      product.value = data;
-      quantity.value = 1;
-      currentImage.value = null;
-      
-      // Cargar sugeridos
-      if (productStore.allProducts.length === 0) {
-        await productStore.fetchTienda();
-      }
-      
-      suggestedProducts.value = productStore.allProducts
-        .filter(p => p.categoria === data.categoria && p.id !== data.id)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 4);
-    } else {
-      console.error("Producto no encontrado");
-      router.push('/tienda');
+    const { data } = await api.get(`/tienda/productos/${productId}`);
+    
+    product.value = data;
+    quantity.value = 1;
+    currentImage.value = null;
+    
+    if (productStore.allProducts.length === 0) {
+      await productStore.fetchTienda();
     }
+    
+    suggestedProducts.value = productStore.allProducts
+      .filter(p => p.categoria === data.categoria && p.id !== data.id)
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 4);
+
   } catch (e) {
     console.error("Error cargando producto:", e);
+    emit('notify', { msg: "Producto no disponible", type: 'error' });
+    router.push('/tienda');
   }
 };
 
+
 const handleAddToCart = () => {
   if (!product.value) return;
+  
   cartStore.addToCart(product.value, quantity.value);
-  emit('notify', `${quantity.value}x ${product.value.nombre} añadido`, 'success');
+  
+  emit('notify', { 
+    msg: `¡Añadido! ${quantity.value}x ${product.value.nombre}`, 
+    type: 'success' 
+  });
 };
 
 const goToSuggested = (id) => {

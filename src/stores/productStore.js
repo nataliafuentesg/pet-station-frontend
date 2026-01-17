@@ -1,4 +1,5 @@
-import { defineStore } from 'pinia'; // <--- ¡Esta es la línea que falta!
+import { defineStore } from 'pinia';
+import api from '@/api/axios'; 
 
 export const useProductStore = defineStore('products', {
   state: () => ({
@@ -12,18 +13,16 @@ export const useProductStore = defineStore('products', {
     async fetchTienda() {
       this.loading = true;
       try {
-        // Pedimos productos y filtros en paralelo para mayor velocidad
         const [resProd, resFiltros] = await Promise.all([
-          fetch('https://api.petstationvet.com/api/tienda/productos'),
-          fetch('https://api.petstationvet.com/api/tienda/filtros')
+          api.get('/tienda/productos'),
+          api.get('/tienda/filtros')
         ]);
 
-        if (!resProd.ok || !resFiltros.ok) throw new Error('Error al conectar con el servidor');
-
-        this.allProducts = await resProd.json();
-        this.filtros = await resFiltros.json();
+        this.allProducts = resProd.data;
+        this.filtros = resFiltros.data;
+        this.error = null;
       } catch (err) {
-        this.error = err.message;
+        this.error = "No se pudieron cargar los productos";
         console.error("Error en productStore:", err);
       } finally {
         this.loading = false;

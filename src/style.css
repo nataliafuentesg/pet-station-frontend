@@ -31,3 +31,9 @@
     font-size: 16px !important;
   }
 }
+
+.admin-card {
+    @apply bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-8 rounded-[2.5rem] transition-all duration-300;
+}
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #DE1F27; border-radius: 10px; }
