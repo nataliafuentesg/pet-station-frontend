@@ -97,13 +97,11 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
-import api from '@/api/axios'; // Usamos tu cliente configurado
+import api from '@/api/axios'; 
 
 const props = defineProps(['tutorExistente']);
 const emit = defineEmits(['finalizado', 'close', 'notify']);
 const loading = ref(false);
-
-// Estados para los "ojitos"
 const showPass = ref(false);
 const showConfirmPass = ref(false);
 
@@ -113,7 +111,7 @@ const form = reactive({
   email: props.tutorExistente?.email || '',
   cedula: props.tutorExistente?.cedula || '',
   password: '',
-  confirmPassword: '', // Nuevo campo local
+  confirmPassword: '', 
   nombreMascota: '',
   especie: 'PERRO',
   raza: '',
@@ -123,39 +121,34 @@ const form = reactive({
   marcaComida: '',
   observacionesMedicas: ''
 });
-
-// Validación: Solo importa si no hay tutor existente
 const passwordsMatch = computed(() => {
   if (props.tutorExistente) return true;
   return form.password === form.confirmPassword;
 });
-
 const handleSubmit = async () => {
-  if (!passwordsMatch.value) {
+  if (!props.tutorExistente && (form.password !== form.confirmPassword)) {
     emit('notify', { msg: "Las contraseñas no coinciden", type: 'error' });
     return;
   }
 
   loading.value = true;
   try {
-    const esMascotaNuevaParaTutorExistente = props.tutorExistente?.id;
-    const url = esMascotaNuevaParaTutorExistente
-      ? `/mascotas/tutor/${props.tutorExistente.id}`
-      : '/registro/completo';
-
-    // Payload limpio para el Backend
+    const idTutor = props.tutorExistente?.id;
+    const url = idTutor ? `/mascotas/tutor/${idTutor}` : '/registro/completo';
     const payload = {
       ...form,
-      nombre: form.nombreMascota // Ajuste para el DTO de Mascota
+      nombre: form.nombreMascota,
+      password: idTutor ? null : form.password 
     };
-
-    // Eliminamos el campo de confirmación antes de enviar
+    
     delete payload.confirmPassword;
+    delete payload.nombreMascota;
 
     const { data } = await api.post(url, payload);
 
     emit('notify', { msg: "¡Expediente creado!", type: 'success' });
-    emit('finalizado', data);
+    emit('finalizado', data); 
+    
   } catch (e) {
     const errorMsg = e.response?.data?.message || "Error al procesar el registro";
     emit('notify', { msg: errorMsg, type: 'error' });

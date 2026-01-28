@@ -143,10 +143,10 @@
 </template>
 
 <script setup>
-// [Lógica idéntica a la anterior sin recortes]
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from './stores/cartStore';
+import api from '@/api/axios'; // IMPORTANTE: Importa tu cliente axios
 import LoginModal from './components/auth/LoginModal.vue';
 import PetOnboarding from './components/auth/PetOnboarding.vue';
 import CartDrawer from './components/cart/CartDrawer.vue';
@@ -173,44 +173,50 @@ const addNotify = (n) => {
   setTimeout(() => notifications.value = notifications.value.filter(x => x.id !== id), 4000);
 };
 
-const handleLoginSuccess = async (tutor) => {
+// --- LOGICA DE LOGIN REPARADA ---
+const handleLoginSuccess = async (data) => {
+  // Normalizamos: Google envía {tutor, token, esNuevoDeGoogle}, manual envía {tutor, token}
+  const tutor = data.id ? data : data.tutor;
+  const token = data.token || localStorage.getItem('ps_token');
+  const esNuevo = data.esNuevoDeGoogle || false;
+
+  // 1. Guardar token inmediatamente
+  localStorage.setItem('ps_token', token);
+  
+  // 2. Inyectar token en Axios para que la siguiente peticion NO de 403
+  api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+  // 3. Actualizar estado reactivo
   tutorData.value = tutor;
   availablePets.value = tutor.mascotas || [];
-  isLoginOpen.value = false;
+  
   saveSession();
+  isLoginOpen.value = false;
+
+  // 4. Esperar a que Vue procese los cambios antes de mover al usuario
+  await nextTick();
+
   if (tutor.rol === 'ROLE_ADMIN' || tutor.rol === 'ADMIN') {
     router.push('/admin/dashboard');
+  } else if (esNuevo || availablePets.value.length === 0) {
+    // Si es nuevo de Google, abrimos Onboarding sobre la ruta actual
+    isOnboardingOpen.value = true;
   } else {
-    if (availablePets.value.length > 0) router.push('/seleccionar-perfil');
-    else isOnboardingOpen.value = true;
+    router.push('/seleccionar-perfil');
   }
 };
 
 const handleOnboardingFinish = (data) => {
-  console.log("Datos recibidos en el Onboarding:", data);
+  addNotify("¡Mascota registrada!");
+  // data es el objeto mascota devuelto por el backend
+  availablePets.value.push(data);
+  activePet.value = data;
+  
+  localStorage.setItem('ps_active_pet', JSON.stringify(data));
+  saveSession();
 
-  let mascotaParaActivar = null;
-
-  if (data.mascotas && Array.isArray(data.mascotas)) {
-    mascotaParaActivar = data.mascotas[data.mascotas.length - 1];
-    availablePets.value = data.mascotas;
-    tutorData.value = data; 
-  }
-  else if (data.id && (data.nombre || data.nombreMascota)) {
-    mascotaParaActivar = data;
-    availablePets.value = [...(availablePets.value || []), data];
-  }
-
-  if (mascotaParaActivar && mascotaParaActivar.id) {
-    activePet.value = mascotaParaActivar;
-    localStorage.setItem('ps_active_pet', JSON.stringify(mascotaParaActivar));
-
-    saveSession();
-    isOnboardingOpen.value = false;
-    router.push('/expediente');
-  } else {
-    addNotify({ msg: "Se creó el registro pero no pudimos identificar la mascota activa", type: "error" });
-  }
+  isOnboardingOpen.value = false;
+  router.push('/expediente');
 };
 
 const handlePetSelection = (pet) => {
@@ -218,56 +224,6 @@ const handlePetSelection = (pet) => {
   localStorage.setItem('ps_active_pet', JSON.stringify(pet));
   saveSession();
   router.push('/expediente');
-};
-
-const handlePetUpdate = (updatedPet) => {
-  activePet.value = updatedPet;
-  const idx = availablePets.value.findIndex(p => p.id === updatedPet.id);
-  if (idx !== -1) availablePets.value[idx] = updatedPet;
-  saveSession();
-};
-
-const handleDeletePet = async (petId) => {
-  const token = localStorage.getItem('ps_token');
-  try {
-    const res = await fetch(`https://api.petstationvet.com/api/mascotas/${petId}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (res.ok) {
-      availablePets.value = availablePets.value.filter(p => p.id !== petId);
-      if (activePet.value?.id === petId) {
-        activePet.value = null;
-      }
-
-      saveSession(); 
-      addNotify("Mascota eliminada");
-    }
-  } catch (e) {
-    addNotify({ msg: "Error al conectar con el servidor", type: "error" });
-  }
-};
-
-const handleLogout = () => {
-  localStorage.removeItem('ps_session');
-  localStorage.removeItem('ps_token');
-  localStorage.removeItem('ps_active_pet');
-  tutorData.value = null; activePet.value = null; availablePets.value = [];
-  router.push('/');
-  addNotify("Sesión cerrada");
-};
-
-const handleAgendarClick = () => {
-  if (!tutorData.value) isLoginOpen.value = true;
-  else if (availablePets.value.length === 0) isOnboardingOpen.value = true;
-  else router.push('/agendar');
-};
-
-const toggleTheme = () => {
-  darkMode.value = !darkMode.value;
-  document.documentElement.classList.toggle('dark', darkMode.value);
-  localStorage.setItem('ps_theme', darkMode.value ? 'dark' : 'light');
 };
 
 const saveSession = () => {
@@ -278,17 +234,44 @@ const saveSession = () => {
   }));
 };
 
+const handleLogout = () => {
+  localStorage.removeItem('ps_session');
+  localStorage.removeItem('ps_token');
+  localStorage.removeItem('ps_active_pet');
+  tutorData.value = null; 
+  activePet.value = null; 
+  availablePets.value = [];
+  delete api.defaults.headers.common['Authorization']; // Limpiar headers
+  router.push('/');
+  addNotify("Sesión cerrada");
+};
+
+const toggleTheme = () => {
+  darkMode.value = !darkMode.value;
+  document.documentElement.classList.toggle('dark', darkMode.value);
+  localStorage.setItem('ps_theme', darkMode.value ? 'dark' : 'light');
+};
+
+// --- UN SOLO onMounted PARA TODO ---
 onMounted(() => {
   window.addEventListener('scroll', () => isScrolled.value = window.scrollY > 30);
+  
+  // 1. Tema
   darkMode.value = localStorage.getItem('ps_theme') === 'dark';
   document.documentElement.classList.toggle('dark', darkMode.value);
+  
+  // 2. Cargar Sesión
   const saved = localStorage.getItem('ps_session');
-  if (saved) {
+  const token = localStorage.getItem('ps_token');
+
+  if (saved && token) {
     const session = JSON.parse(saved);
     tutorData.value = session.tutor;
-    activePet.value = session.pet || JSON.parse(localStorage.getItem('ps_active_pet'));
     availablePets.value = session.pets || [];
+    activePet.value = session.pet;
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
+  
   loadingSession.value = false;
 });
 </script>

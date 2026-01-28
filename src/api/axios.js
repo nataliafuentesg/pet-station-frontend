@@ -8,36 +8,32 @@ const api = axios.create({
   }
 });
 
-// Interceptor para añadir el TOKEN a todas las peticiones
+// ESTO ES LO QUE TE FALTA: Inyectar el token en cada llamada
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('ps_token');
   if (token) {
-    // IMPORTANTE: Asegúrate de que el string no tenga saltos de línea ni espacios extra
     config.headers.Authorization = `Bearer ${token.trim()}`;
   }
   return config;
-}, error => {
-  return Promise.reject(error);
-});
+}, error => Promise.reject(error));
 
-// Interceptor para manejar errores globales
 api.interceptors.response.use(
   response => response,
   error => {
     const status = error.response?.status;
-
-    if (status === 401) {
-      console.error("Sesión expirada (401)");
-      localStorage.removeItem('ps_session');
-      localStorage.removeItem('ps_token');
-      window.location.href = '/'; 
+    
+    // Si el error es de autenticación y NO estamos intentando loguearnos
+    if ((status === 401 || status === 403) && !error.config.url.includes('/auth/')) {
+      const tokenReciente = localStorage.getItem('ps_token');
+      
+      if (!tokenReciente) {
+        console.warn("Sesión inválida. Limpiando...");
+        localStorage.clear();
+        if (window.location.pathname !== '/') {
+          window.location.href = '/?error=session_expired';
+        }
+      }
     }
-
-    if (status === 403) {
-      // Este es tu error actual: El token es válido pero el servidor rechaza el acceso a esta ruta
-      console.error("Acceso denegado (403): Tu usuario no tiene permisos de ADMIN o el CORS está bloqueando la ruta.");
-    }
-
     return Promise.reject(error);
   }
 );
