@@ -8,10 +8,12 @@
       <h2 class="text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-ps-black dark:text-white leading-none">
         PET <span class="text-ps-red">STATION.</span>
       </h2>
-      <p class="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mt-2 md:mt-3 italic">Acceso Clientes</p>
+      <p class="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mt-2 md:mt-3 italic">
+        {{ isForgotMode ? 'Recuperar Clave' : 'Acceso Clientes' }}
+      </p>
     </div>
 
-    <form @submit.prevent="handleLogin" class="space-y-4 md:space-y-6">
+    <form v-if="!isForgotMode" @submit.prevent="handleLogin" class="space-y-4 md:space-y-6">
       <div class="space-y-1">
         <label class="text-[9px] md:text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-4 tracking-widest">Correo Electrónico</label>
         <input v-model="form.email" type="email" required placeholder="tu@email.com" class="input-adaptive" />
@@ -29,22 +31,42 @@
         </div>
       </div>
 
+      <div class="text-right px-2">
+        <button type="button" @click="isForgotMode = true" class="text-[9px] font-black uppercase text-ps-red hover:underline italic">¿Olvidaste tu contraseña?</button>
+      </div>
+
       <button :disabled="loading" type="submit"
         class="w-full bg-ps-black dark:bg-white text-white dark:text-ps-black py-4 md:py-5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest hover:bg-ps-red dark:hover:bg-ps-red hover:text-white active:scale-95 transition-all italic shadow-xl text-sm md:text-base">
         {{ loading ? 'Iniciando...' : 'Entrar ahora' }}
       </button>
     </form>
 
-    <div class="relative my-6 md:my-8">
-      <div class="absolute inset-0 flex items-center"><span class="w-full border-t border-slate-200 dark:border-white/5"></span></div>
-      <div class="relative flex justify-center text-[9px] md:text-[10px] uppercase font-black italic">
-        <span class="bg-white dark:bg-ps-black px-4 text-slate-400 dark:text-slate-500 tracking-[0.2em]">O continúa con</span>
+    <form v-else @submit.prevent="handleForgotPassword" class="space-y-6 animate-in fade-in duration-300">
+      <div class="space-y-1">
+        <label class="text-[9px] md:text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-4 tracking-widest">Tu Correo de Registro</label>
+        <input v-model="forgotEmail" type="email" required placeholder="tu@email.com" class="input-adaptive" />
       </div>
-    </div>
 
-    <div class="flex justify-center overflow-hidden">
-      <GoogleLogin :callback="handleGoogleLogin" :theme="isDark ? 'dark' : 'outline'" shape="pill" />
-    </div>
+      <button :disabled="loading" type="submit"
+        class="w-full bg-ps-red text-white py-4 md:py-5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest hover:bg-ps-black dark:hover:bg-white dark:hover:text-ps-black active:scale-95 transition-all italic shadow-xl text-sm md:text-base">
+        {{ loading ? 'Enviando...' : 'Enviar Instrucciones' }}
+      </button>
+
+      <button type="button" @click="isForgotMode = false" class="w-full text-[9px] font-black uppercase text-slate-400 hover:text-ps-red transition-all italic">Volver al inicio de sesión</button>
+    </form>
+
+    <template v-if="!isForgotMode">
+      <div class="relative my-6 md:my-8">
+        <div class="absolute inset-0 flex items-center"><span class="w-full border-t border-slate-200 dark:border-white/5"></span></div>
+        <div class="relative flex justify-center text-[9px] md:text-[10px] uppercase font-black italic">
+          <span class="bg-white dark:bg-ps-black px-4 text-slate-400 dark:text-slate-500 tracking-[0.2em]">O continúa con</span>
+        </div>
+      </div>
+
+      <div class="flex justify-center overflow-hidden">
+        <GoogleLogin :callback="handleGoogleLogin" :theme="isDark ? 'dark' : 'outline'" shape="pill" />
+      </div>
+    </template>
 
     <div class="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-slate-200 dark:border-white/5 text-center">
       <button @click="$emit('goRegister')"
@@ -63,10 +85,11 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const showPassword = ref(false);
 const loading = ref(false);
+const isForgotMode = ref(false); // Estado para cambiar de formulario
+const forgotEmail = ref(''); // Email para recuperación
 const form = reactive({ email: '', password: '' });
 const emit = defineEmits(['success', 'close', 'goRegister', 'notify']);
 
-// Detectamos si el modo oscuro está activo en el HTML
 const isDark = computed(() => document.documentElement.classList.contains('dark'));
 
 const handleLogin = async () => {
@@ -87,7 +110,6 @@ const handleGoogleLogin = async (response) => {
     const { data } = await api.post('/auth/google', { token: response.credential });
     localStorage.setItem('ps_token', data.token);
     localStorage.setItem('ps_tutor', JSON.stringify(data.tutor));
-
     api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
 
     if (data.nuevo) {
@@ -97,6 +119,21 @@ const handleGoogleLogin = async (response) => {
     }
   } catch (e) {
     emit('notify', { msg: "Error con Google", type: 'error' });
+  }
+};
+
+const handleForgotPassword = async () => {
+  if (!forgotEmail.value) return;
+  loading.value = true;
+  try {
+    const { data } = await api.post('/auth/forgot-password', { email: forgotEmail.value });
+    emit('notify', { msg: "Instrucciones enviadas al correo", type: 'success' });
+    isForgotMode.value = false; 
+  } catch (e) {
+    const msg = e.response?.data || "Error al solicitar el cambio";
+    emit('notify', { msg: msg, type: 'error' });
+  } finally {
+    loading.value = false;
   }
 };
 </script>

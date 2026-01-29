@@ -34,7 +34,12 @@ const routes = [
     name: 'AdminDashboard',
     component: AdminDashboard,
     meta: { requiresAdmin: true } // Importante
-  }
+  },
+  {
+  path: '/reset-password',
+  name: 'ResetPassword',
+  component: () => import('@/components/auth/ResetPassword.vue')
+}
 ]
 
 const router = createRouter({

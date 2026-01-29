@@ -129,7 +129,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue';
-import { useCartStore } from '../../stores/cartStore'; //
+import { useCartStore } from '../../stores/cartStore'; 
 import { usePedidoStore } from '../../stores/usePedidoStore';
 
 const props = defineProps(['isOpen', 'tutor']);
@@ -149,14 +149,12 @@ const form = reactive({
   zona: ''
 });
 
-// Pre-llenado automático con los datos del tutor (usando 'rol' como estándar)
 const prefillForm = () => {
   if (props.tutor) {
     form.nombre = `${props.tutor.nombre} ${props.tutor.apellido || ''}`.trim();
     form.telefono = props.tutor.telefono || '';
     form.email = props.tutor.email || '';
     form.direccion = props.tutor.direccion || '';
-    // Si el backend no envía zona, queda vacío para que el usuario elija
     form.zona = props.tutor.zona || ''; 
   }
 };
@@ -179,24 +177,25 @@ const handleFinalizeOrder = async () => {
   if (!isFormValid.value) return;
   loading.value = true;
 
+  const payload = {
+    nombre: form.nombre,
+    telefono: form.telefono,
+    direccion: form.direccion,
+    email: form.email,
+    zona: form.zona,
+    items: cartStore.items.map(item => ({
+      productoId: item.id,
+      cantidad: item.quantity
+    })),
+    tutorId: props.tutor?.id || null
+  };
+
   try {
-    // 1. Guardar en Backend usando la lógica de Axios en el Store
-    const pedidoGuardado = await pedidoStore.crearPedido(
-      form,
-      cartStore.items,
-      props.tutor?.id
-    );
-
-    // 2. Notificación visual al usuario
-    emit('notify', { msg: "¡Pedido #"+ pedidoGuardado.id +" registrado!", type: 'success' });
-
-    // 3. Abrir WhatsApp con el ID real retornado por el servidor
+    const pedidoGuardado = await pedidoStore.crearPedido(payload);
+    emit('notify', { msg: "¡Pedido #" + pedidoGuardado.id + " exitoso!", type: 'success' });
     sendWhatsApp(pedidoGuardado.id);
-
-    // 4. Limpiar carrito y cerrar drawer
     cartStore.clearCart();
     closeAndReset();
-
   } catch (error) {
     emit('notify', { msg: error.message, type: 'error' });
   } finally {

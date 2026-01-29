@@ -10,41 +10,19 @@ export const usePedidoStore = defineStore('pedidos', {
     }),
 
     actions: {
-        async crearPedido(datosFormulario, itemsCarrito, usuarioId = null) {
+        async crearPedido(payload) { 
             this.loading = true;
             this.error = null;
 
             try {
-                // Mapeo de items para que coincidan con el PedidoDTO del backend
-                const itemsProcesados = itemsCarrito.map(item => ({
-                    productoId: item.id,
-                    cantidad: item.quantity,
-                    nombreProducto: item.nombre,      
-                    precioSnapshot: item.precio, // El backend usa precioSnapshot para auditoría
-                    fotoUrl: item.fotosUrls?.[0] || '' 
-                }));
-
-                const payload = {
-                    nombreCliente: datosFormulario.nombre,
-                    emailCliente: datosFormulario.email,
-                    telefonoCliente: datosFormulario.telefono,
-                    direccionEnvio: datosFormulario.direccion,
-                    zona: datosFormulario.zona,
-                    items: itemsProcesados,
-                    total: itemsCarrito.reduce((acc, i) => acc + (i.precio * i.quantity), 0)
-                };
-
-                // Petición usando Axios con parámetros opcionales
                 const { data } = await api.post('/pedidos', payload, {
-                    params: usuarioId ? { usuarioId } : {}
+                    params: payload.tutorId ? { usuarioId: payload.tutorId } : {}
                 });
 
                 this.ultimoPedido = data;
                 return data;
-
             } catch (err) {
-                this.error = err.response?.data?.message || err.message || 'Error al procesar el pedido';
-                console.error("Error en pedidoStore:", err);
+                this.error = err.response?.data?.message || 'Error al procesar el pedido';
                 throw new Error(this.error);
             } finally {
                 this.loading = false;
