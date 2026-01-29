@@ -21,17 +21,13 @@ api.interceptors.response.use(
   response => response,
   error => {
     const status = error.response?.status;
-    
-    // Si el error es de autenticación y NO estamos intentando loguearnos
     if ((status === 401 || status === 403) && !error.config.url.includes('/auth/')) {
-      const tokenReciente = localStorage.getItem('ps_token');
       
-      if (!tokenReciente) {
-        console.warn("Sesión inválida. Limpiando...");
-        localStorage.clear();
-        if (window.location.pathname !== '/') {
-          window.location.href = '/?error=session_expired';
-        }
+      console.warn("Sesión expirada o inválida detectada. Redirigiendo al inicio...");
+      
+      localStorage.removeItem('ps_token'); 
+      if (window.location.pathname !== '/') {
+        window.location.href = '/?error=session_expired';
       }
     }
     return Promise.reject(error);
