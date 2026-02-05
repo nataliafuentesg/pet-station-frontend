@@ -21,13 +21,12 @@ api.interceptors.response.use(
   response => response,
   error => {
     const status = error.response?.status;
-    if ((status === 401 || status === 403) && !error.config.url.includes('/auth/')) {
+    if (status === 401 && !error.config.url.includes('/auth/')) {
+      localStorage.removeItem('ps_token');
+      localStorage.removeItem('ps_session');
       
-      console.warn("Sesión expirada o inválida detectada. Redirigiendo al inicio...");
-      
-      localStorage.removeItem('ps_token'); 
       if (window.location.pathname !== '/') {
-        window.location.href = '/?error=session_expired';
+        window.location.replace('/?auth_error=session_expired');
       }
     }
     return Promise.reject(error);

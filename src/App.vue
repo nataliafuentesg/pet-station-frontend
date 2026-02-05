@@ -173,33 +173,22 @@ const addNotify = (n) => {
   setTimeout(() => notifications.value = notifications.value.filter(x => x.id !== id), 4000);
 };
 
-// --- LOGICA DE LOGIN REPARADA ---
 const handleLoginSuccess = async (data) => {
-  // Normalizamos: Google envía {tutor, token, esNuevoDeGoogle}, manual envía {tutor, token}
   const tutor = data.id ? data : data.tutor;
   const token = data.token || localStorage.getItem('ps_token');
   const esNuevo = data.esNuevoDeGoogle || false;
-
-  // 1. Guardar token inmediatamente
   localStorage.setItem('ps_token', token);
-  
-  // 2. Inyectar token en Axios para que la siguiente peticion NO de 403
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-  // 3. Actualizar estado reactivo
   tutorData.value = tutor;
   availablePets.value = tutor.mascotas || [];
   
   saveSession();
   isLoginOpen.value = false;
-
-  // 4. Esperar a que Vue procese los cambios antes de mover al usuario
   await nextTick();
 
   if (tutor.rol === 'ROLE_ADMIN' || tutor.rol === 'ADMIN') {
     router.push('/admin/dashboard');
   } else if (esNuevo || availablePets.value.length === 0) {
-    // Si es nuevo de Google, abrimos Onboarding sobre la ruta actual
     isOnboardingOpen.value = true;
   } else {
     router.push('/seleccionar-perfil');
@@ -208,7 +197,6 @@ const handleLoginSuccess = async (data) => {
 
 const handleOnboardingFinish = (data) => {
   addNotify("¡Mascota registrada!");
-  // data es el objeto mascota devuelto por el backend
   availablePets.value.push(data);
   activePet.value = data;
   
@@ -241,7 +229,7 @@ const handleLogout = () => {
   tutorData.value = null; 
   activePet.value = null; 
   availablePets.value = [];
-  delete api.defaults.headers.common['Authorization']; // Limpiar headers
+  delete api.defaults.headers.common['Authorization']; 
   router.push('/');
   addNotify("Sesión cerrada");
 };
@@ -252,15 +240,10 @@ const toggleTheme = () => {
   localStorage.setItem('ps_theme', darkMode.value ? 'dark' : 'light');
 };
 
-// --- UN SOLO onMounted PARA TODO ---
 onMounted(() => {
   window.addEventListener('scroll', () => isScrolled.value = window.scrollY > 30);
-  
-  // 1. Tema
   darkMode.value = localStorage.getItem('ps_theme') === 'dark';
   document.documentElement.classList.toggle('dark', darkMode.value);
-  
-  // 2. Cargar Sesión
   const saved = localStorage.getItem('ps_session');
   const token = localStorage.getItem('ps_token');
 
@@ -273,6 +256,16 @@ onMounted(() => {
   }
   
   loadingSession.value = false;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('auth_error') === 'session_expired') {
+    window.history.replaceState({}, document.title, "/");
+    
+    addNotify({
+      msg: "Tu sesión ha expirado por seguridad. Por favor, ingresa de nuevo.",
+      type: 'error',
+      persistent: true 
+    });
+  }
 });
 </script>
 
