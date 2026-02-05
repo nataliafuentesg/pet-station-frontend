@@ -1,96 +1,72 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-[#050505] transition-colors duration-500">
+  <div class="min-h-screen bg-white dark:bg-[#050505] transition-colors duration-500 font-sans">
     
-    <section class="relative min-h-[70vh] flex items-center pt-20 overflow-hidden px-4 md:px-6 font-sans">
-      <div class="absolute top-0 right-0 w-full md:w-1/2 h-full bg-[#152C77]/5 dark:bg-[#DE1F27]/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4"></div>
-
-      <div class="max-w-[1400px] mx-auto w-full relative z-10 grid lg:grid-cols-2 gap-12 items-center">
-        <div class="space-y-6 md:space-y-8 text-center lg:text-left">
-          <div class="space-y-4">
-            <span class="inline-block px-4 py-1 bg-[#152C77] text-white font-[1000] uppercase tracking-widest text-[9px] md:text-[10px] rounded-lg">
-              Ciencia y Ética Veterinaria
-            </span>
-            <h1 class="text-5xl md:text-[90px] font-[1000] uppercase italic leading-[0.85] tracking-tighter text-[#152C77] dark:text-white">
-              SABEMOS <br /> <span class="text-[#DE1F27]">CUIDARLOS.</span>
+    <section class="pt-1 md:pt-17 pb-4 px-3 md:px-6">
+      <div class="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-6">
+        
+        <div class="lg:col-span-8 bg-[#152C77] rounded-[1.8rem] md:rounded-[3.5rem] p-7 md:p-20 text-white relative overflow-hidden flex flex-col justify-center min-h-[300px] md:min-h-[550px]">
+          <div class="relative z-10 space-y-4 md:space-y-8">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 bg-[#DE1F27] rounded-full animate-pulse"></span>
+              <span class="text-[8px] md:text-[11px] font-[1000] uppercase tracking-widest opacity-80">
+                Respaldo Médico Ético • Chía
+              </span>
+            </div>
+            
+            <h1 class="text-4xl md:text-[100px] font-[1000] uppercase italic leading-[0.8] tracking-tighter italic">
+              CIENCIA <br /> <span class="text-[#DE1F27]">QUE CUIDA.</span>
             </h1>
-            <p class="text-slate-500 dark:text-slate-400 font-bold uppercase italic text-xs md:text-lg max-w-lg mx-auto lg:mx-0 leading-tight px-4 md:px-0">
-              No se trata de estilo, se trata de conocimiento. Brindamos la confianza médica que tu familia necesita para estar tranquila.
+            
+            <p class="text-white/60 font-bold uppercase italic text-[11px] md:text-xl max-w-md leading-tight">
+              Brindamos la confianza médica que tu familia necesita. Salud real, sin rodeos.
             </p>
-          </div>
 
-          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start px-6 md:px-0">
-            <button @click="router.push('/agendar')" 
-              class="group flex items-center justify-center gap-3 bg-[#DE1F27] text-white px-8 py-5 md:px-10 md:py-6 rounded-[2rem] font-[1000] uppercase text-[10px] md:text-xs tracking-widest shadow-2xl shadow-[#DE1F27]/20 hover:scale-105 active:scale-95 transition-all">
-              📅 Agendar Cita
-            </button>
-            <button @click="router.push('/tienda')" 
-              class="group flex items-center justify-center gap-3 bg-[#152C77] text-white px-8 py-5 md:px-10 md:py-6 rounded-[2rem] font-[1000] uppercase text-[10px] md:text-xs tracking-widest hover:bg-black active:scale-95 transition-all">
-              🛒 Productos 
-            </button>
+            <div class="flex gap-3 md:gap-6 pt-2 md:pt-6">
+              <button @click="router.push('/agendar')" class="flex-1 md:flex-none bg-[#DE1F27] text-white px-6 py-4 md:px-12 md:py-6 rounded-xl md:rounded-2xl font-[1000] uppercase text-[10px] md:text-sm tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl">
+                Agendar Cita
+              </button>
+              <button @click="router.push('/tienda')" class="flex-1 md:flex-none bg-white/10 backdrop-blur-md text-white px-6 py-4 md:px-12 md:py-6 rounded-xl md:rounded-2xl font-[1000] uppercase text-[10px] md:text-sm tracking-widest border border-white/20 hover:bg-white hover:text-[#152C77] transition-all">
+                Tienda
+              </button>
+            </div>
+          </div>
+          <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-[#DE1F27]/20 blur-[120px] rounded-full"></div>
+        </div>
+
+        <div class="lg:col-span-4 grid grid-cols-1 gap-3 md:gap-6">
+          <div class="h-40 md:h-full bg-slate-100 dark:bg-white/5 rounded-[1.8rem] md:rounded-[3.5rem] overflow-hidden border border-slate-100 dark:border-white/10 relative group">
+            <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80" 
+                 class="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-1000" />
+            <div class="absolute inset-0 bg-gradient-to-t from-[#152C77]/80 via-transparent flex items-end p-6 md:p-10">
+               <p class="text-white font-[1000] italic uppercase text-lg md:text-2xl leading-none italic">
+                 Compromiso <br/><span class="text-[#DE1F27]">Garantizado.</span>
+               </p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-slate-50 dark:bg-white/5 rounded-[1.5rem] md:rounded-[2.5rem] p-5 md:p-10 flex flex-col justify-center border border-slate-100 dark:border-white/10">
+              <span class="text-2xl md:text-4xl font-[1000] text-[#152C77] dark:text-white italic leading-none">100%</span>
+              <span class="text-[7px] md:text-[10px] font-black uppercase text-slate-400 tracking-widest mt-2">Ética Profesional</span>
+            </div>
+            <div class="bg-[#DE1F27] rounded-[1.5rem] md:rounded-[2.5rem] p-5 md:p-10 flex flex-col justify-center shadow-xl shadow-[#DE1F27]/10">
+              <span class="text-2xl md:text-4xl font-[1000] text-white italic leading-none">CHÍA</span>
+              <span class="text-[7px] md:text-[10px] font-black uppercase text-white/80 tracking-widest mt-2">Variante Chía-Cota</span>
+            </div>
           </div>
         </div>
 
-        <div class="hidden lg:block relative">
-           <div class="w-full aspect-[4/5] rounded-[4rem] overflow-hidden border-2 border-slate-100 dark:border-white/5 p-4 bg-slate-50 dark:bg-white/5">
-             <img src="https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&q=80" 
-                  class="w-full h-full object-cover rounded-[3rem] transition-all duration-1000" />
-           </div>
-           <div class="absolute -bottom-6 -left-6 bg-[#152C77] p-8 rounded-[2rem] shadow-2xl border-b-8 border-[#DE1F27]">
-              <p class="text-white font-[1000] text-3xl italic leading-none">ÉTICA</p>
-              <p class="text-[#DE1F27] font-black text-[9px] uppercase tracking-[0.2em]">Profesionalismo Garantizado</p>
-           </div>
-        </div>
       </div>
     </section>
 
-    <section class="py-16 md:py-24 px-4 md:px-6 bg-slate-50 dark:bg-[#080808] transition-colors font-sans">
-      <div class="max-w-[1400px] mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-center md:items-end mb-12 md:mb-16 gap-6 text-center md:text-left">
-          <div class="space-y-2">
-            <h2 class="text-4xl md:text-6xl font-[1000] uppercase italic tracking-tighter text-[#152C77] dark:text-white leading-none">
-              RESPALDO <span class="text-[#DE1F27]">MÉDICO.</span>
-            </h2>
-            <p class="text-slate-400 font-bold uppercase text-[9px] md:text-[10px] tracking-[0.3em]">Protocolos rigurosos para pacientes reales</p>
-          </div>
-          <router-link to="/servicios" class="text-[#DE1F27] font-black uppercase text-[10px] md:text-xs border-b-4 border-[#DE1F27] pb-1">Conoce nuestros procesos →</router-link>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <div v-for="s in serviciosHome" :key="s.name" 
-            class="group bg-white dark:bg-white/5 p-8 md:p-10 rounded-[2.5rem] md:rounded-[3rem] border border-slate-100 dark:border-white/10 hover:border-[#DE1F27] transition-all duration-500 shadow-sm hover:shadow-xl">
-            <span class="text-4xl md:text-5xl mb-6 md:mb-8 block group-hover:scale-110 transition-transform">{{ s.icon }}</span>
-            <h3 class="text-xl md:text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white mb-3">{{ s.name }}</h3>
-            <p class="text-[9px] md:text-[11px] text-slate-500 font-bold uppercase italic leading-relaxed mb-6 md:mb-8">{{ s.desc }}</p>
-            <router-link :to="s.link" class="inline-block bg-[#152C77] text-white px-6 py-3 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-[#DE1F27] transition-all">
-              Ver Detalles
-            </router-link>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="py-16 md:py-24 px-4 md:px-6 relative overflow-hidden font-sans">
-      <div class="max-w-[1400px] mx-auto bg-[#152C77] rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-20 text-white flex flex-col lg:flex-row items-center gap-10 md:gap-16 shadow-2xl relative">
-        <div class="lg:w-1/2 space-y-6 md:space-y-8 text-center lg:text-left">
-          <span class="text-[#DE1F27] font-black uppercase tracking-widest text-[10px] md:text-xs">Curaduría Pet Station</span>
-          <h2 class="text-4xl md:text-7xl font-[1000] uppercase italic leading-[0.9] tracking-tighter">SOLO LO QUE <br/> <span class="text-[#DE1F27]">FUNCIONA.</span></h2>
-          <p class="text-white/60 font-bold uppercase italic text-xs md:text-base leading-relaxed">
-            No vendemos por vender. Cada producto ha sido seleccionado bajo criterios médicos para garantizar la salud real de tu mascota.
-          </p>
-          <router-link to="/tienda" class="inline-block bg-white text-[#152C77] px-8 py-4 md:px-12 md:py-6 rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest hover:bg-[#DE1F27] hover:text-white transition-all shadow-xl active:scale-95">
-            Ver Productos Avalados 🩺
-          </router-link>
-        </div>
-
-        <div class="lg:w-1/2 grid grid-cols-2 gap-4 w-full">
-          <div class="aspect-square bg-white/10 rounded-[2rem] border border-white/10 flex flex-col items-center justify-center text-center p-4">
-            <span class="text-4xl md:text-6xl mb-2">💊</span>
-            <p class="text-[8px] font-black uppercase tracking-widest">Farmacia Ética</p>
-          </div>
-          <div class="aspect-square bg-white/10 rounded-[2rem] border border-white/10 flex flex-col items-center justify-center text-center p-4 translate-y-6 md:translate-y-8">
-            <span class="text-4xl md:text-6xl mb-2">🥩</span>
-            <p class="text-[8px] font-black uppercase tracking-widest">Nutrición Clínica</p>
-          </div>
+    <section class="pb-12 px-3 md:px-6">
+      <div class="max-w-[1400px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+        <div v-for="s in serviciosHome" :key="s.name" 
+             @click="router.push(s.link)"
+             class="group bg-white dark:bg-white/5 p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] border border-slate-100 dark:border-white/10 hover:border-[#DE1F27] transition-all cursor-pointer flex flex-col items-center text-center">
+          <span class="text-3xl md:text-6xl mb-3 md:mb-6 group-hover:rotate-12 transition-transform">{{ s.icon }}</span>
+          <h3 class="text-[10px] md:text-sm font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight">{{ s.name }}</h3>
+          <p class="text-[7px] md:text-[10px] font-black text-[#DE1F27] uppercase mt-2 opacity-0 group-hover:opacity-100 transition-all">Ver Más</p>
         </div>
       </div>
     </section>
@@ -103,14 +79,25 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const serviciosHome = [
-  { name: 'Clínica', desc: 'Diagnóstico preciso con equipos de última generación.', icon: '🩺', link: '/servicios/medicina' },
-  { name: 'Peluquería', desc: 'Higiene dermocosmética sin estrés, enfocada en salud.', icon: '✂️', link: '/servicios/peluqueria' },
-  { name: 'Viajes', desc: 'Toda la gestión internacional (ICA y microchips) sin errores.', icon: '✈️', link: '/servicios/viajes' },
-  { name: 'Guardería', desc: 'Socialización controlada bajo supervisión veterinaria.', icon: '🏡', link: '/servicios/guarderia' }
+  { name: 'Medicina Especializada', icon: '🩺', link: '/servicios/medicina' },
+  { name: 'Grooming Saludable', icon: '✂️', link: '/servicios/peluqueria' },
+  { name: 'Documentos Viajes', icon: '✈️', link: '/servicios/viajes' },
+  { name: 'Guardería Técnica', icon: '🏡', link: '/servicios/guarderia' }
 ];
 </script>
 
 <style scoped>
 @reference "../../style.css";
-/* Se eliminó la importación manual de fuentes para usar las de la app */
+
+/* Reset para evitar espacios fantasmas */
+section {
+  margin-top: 0 !important;
+}
+
+/* En móvil, forzamos que el contenido empiece justo después del Navbar */
+@media (max-width: 768px) {
+  section:first-of-type {
+    padding-top: 5px; /* Ajuste preciso al alto del nav */
+  }
+}
 </style>
