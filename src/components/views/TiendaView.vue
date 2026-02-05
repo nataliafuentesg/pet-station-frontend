@@ -1,320 +1,306 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-[#050505] pt-24 md:pt-32 pb-44 md:pb-20 px-4 md:px-8 transition-colors duration-500">
-    <div class="max-w-[1700px] mx-auto">
+  <div class="min-h-screen bg-white dark:bg-[#050505] pt-24 pb-44 transition-colors duration-500 font-sans overflow-x-hidden text-slate-900 dark:text-white">
+    <div class="max-w-[1700px] mx-auto px-4 md:px-8">
       
-      <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-12 md:mb-20">
-        <div class="space-y-2 w-full lg:w-auto">
-          <h1 class="text-5xl md:text-9xl font-[1000] uppercase italic tracking-tighter text-[#152C77] dark:text-white leading-[0.8]">
+      <header class="mb-12 flex flex-col lg:flex-row justify-between items-center gap-8">
+        <div @click="resetTienda" class="cursor-pointer group text-center lg:text-left">
+          <h1 class="text-6xl md:text-8xl font-[1000] uppercase italic tracking-tighter text-[#152C77] dark:text-white leading-none transition-all">
             PET <span class="text-[#DE1F27]">SHOP.</span>
           </h1>
-          
-          <div class="relative w-full max-w-md mt-4 md:mt-8 group">
-            <div class="absolute left-5 top-1/2 -translate-y-1/2 text-ps-blue dark:text-white/40 z-10">🔍</div>
-            <input 
-              v-model="searchQuery" 
-              @focus="showResults = true"
-              placeholder="¿Qué buscas para tu mascota?" 
-              class="w-full bg-slate-100 dark:bg-white/5 border-2 border-transparent focus:border-[#DE1F27] rounded-2xl md:rounded-3xl py-4 md:py-5 pl-12 md:pl-14 pr-6 text-[10px] md:text-[11px] font-black uppercase italic tracking-widest outline-none transition-all dark:text-white"
-            />
-            
-            <transition name="fade">
-              <div v-if="showResults && searchQuery.length > 2" class="absolute top-full left-0 w-full bg-white dark:bg-[#0a0a0a] mt-2 rounded-2xl shadow-2xl border border-slate-100 dark:border-white/10 z-[2000] overflow-hidden">
-                <div v-if="suggestedProducts.length" class="p-2">
-                  <div v-for="p in suggestedProducts" :key="p.id" @click="selectSearch(p)"
-                       class="flex items-center gap-3 p-3 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer rounded-xl transition-all">
-                    <img :src="p.fotosUrls?.[0]" class="w-10 h-10 object-contain bg-white rounded p-1" />
-                    <div class="flex-1">
-                      <p class="text-[9px] font-black dark:text-white uppercase italic leading-tight">{{ p.nombre }}</p>
-                      <p class="text-[7px] font-bold text-[#DE1F27] uppercase">{{ p.marca }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </transition>
-          </div>
+          <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 mt-2 italic italic">Premium Veterinary Inventory</p>
         </div>
 
-        <div class="hidden md:flex bg-[#152C77] text-white p-6 rounded-[2.5rem] shadow-2xl min-w-[280px] border-b-4 border-[#DE1F27] justify-between items-center group transition-all hover:scale-105 shrink-0">
-          <div>
-            <p class="text-[10px] font-black uppercase opacity-60 tracking-widest mb-1">Tu Carrito</p>
-            <p class="text-3xl font-[1000] italic">${{ cartStore.totalPrice.toLocaleString() }}</p>
-          </div>
-          <div class="bg-[#DE1F27] w-12 h-12 rounded-full flex items-center justify-center font-[1000] italic">
-            {{ cartStore.cartCount }}
+        <div class="w-full lg:w-[500px] relative group">
+          <div class="absolute -inset-1 bg-gradient-to-r from-[#152C77] to-[#DE1F27] rounded-3xl blur opacity-10 transition duration-500"></div>
+          <div class="relative flex items-center bg-slate-50 dark:bg-white/5 rounded-3xl border-2 border-slate-200 dark:border-white/10 px-8 py-4 shadow-sm">
+            <input v-model="searchQuery" @input="onSearch" type="text" placeholder="BUSCAR PRODUCTO O MARCA..." 
+              class="w-full bg-transparent text-[11px] font-[1000] uppercase tracking-widest outline-none dark:text-white" />
+            <span class="text-xl ml-4">🔍</span>
           </div>
         </div>
       </header>
 
-      <div class="flex flex-col lg:flex-row gap-16">
-        
-        <aside class="hidden lg:block w-64 shrink-0 sticky top-40 h-fit space-y-10">
-          <div v-if="mascotaActiva" @click="toggleRecomendaciones" class="cursor-pointer group">
-            <p class="text-[9px] font-black uppercase tracking-[0.3em] text-[#DE1F27] mb-3">Recomendados para</p>
-            <div class="flex items-center gap-3">
-              <div :class="filterByMascota ? 'bg-[#DE1F27] scale-110 shadow-lg' : 'bg-slate-100 dark:bg-white/10'"
-                class="w-12 h-12 rounded-full flex items-center justify-center transition-all">
-                <span class="text-xl">{{ mascotaActiva.especie === 'FELINO' ? '🐱' : '🐶' }}</span>
+      <Transition name="fade-scale" mode="out-in">
+        <section v-if="!pasilloSeleccionado && !searchQuery" class="py-10">
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 md:gap-8">
+            <div v-for="p in pasillosCards" :key="p.id" @click="setPasillo(p.name)"
+              class="group cursor-pointer relative aspect-square bg-slate-50 dark:bg-white/5 rounded-[3.5rem] flex flex-col items-center justify-center p-10 border-2 border-transparent hover:border-[#DE1F27] transition-all duration-500 hover:-translate-y-4 shadow-sm hover:shadow-2xl">
+              <div class="text-[100px] mb-6 transform group-hover:scale-110 transition-transform duration-700">{{ p.icon }}</div>
+              <h3 class="text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white italic">{{ p.name }}</h3>
+              <div v-if="p.isPersonalized && mascotaActiva" class="absolute -top-4 bg-[#DE1F27] text-white px-6 py-2 rounded-xl font-black italic text-[9px] shadow-2xl animate-bounce">
+                ✨ MODO: {{ mascotaActiva.nombre }}
               </div>
-              <h3 class="font-[1000] uppercase italic text-xl dark:text-white">{{ mascotaActiva.nombre }}</h3>
+            </div>
+            <div @click="setPasillo('TODOS')" class="group cursor-pointer aspect-square bg-[#152C77] rounded-[3.5rem] flex flex-col items-center justify-center p-10 hover:bg-[#DE1F27] transition-all duration-500 shadow-xl">
+              <div class="text-5xl mb-6">📦</div>
+              <h3 class="text-xl font-[1000] uppercase italic text-white text-center leading-none italic italic">CATÁLOGO<br/>COMPLETO</h3>
             </div>
           </div>
+        </section>
 
-          <div v-for="(label, key) in filterGroups" :key="key" class="space-y-4">
-            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-[#DE1F27] opacity-80">{{ label }}</h4>
-            <div class="flex flex-col gap-2">
-              <button v-for="opt in getOptions(key)" :key="opt" @click="setFilter(key, opt)"
-                :class="isFilterActive(key, opt) ? 'text-[#152C77] dark:text-white font-[1000] translate-x-4' : 'text-slate-400 font-bold'"
-                class="text-left text-[11px] uppercase italic transition-all flex items-center gap-2">
-                <span v-if="isFilterActive(key, opt)" class="w-3 h-[2px] bg-[#DE1F27]"></span>
-                {{ opt }}
-              </button>
+        <div v-else class="flex flex-col lg:flex-row gap-16 pt-10">
+          
+          <aside class="hidden lg:block w-72 shrink-0 sticky top-40 h-fit space-y-12">
+            <div v-if="filterByMascota && mascotaActiva" class="p-8 bg-[#152C77] text-white rounded-[3rem] shadow-2xl space-y-4 border-b-8 border-black/20">
+              <p class="text-[9px] font-black uppercase opacity-60">Filtro Inteligente:</p>
+              <h4 class="text-3xl font-[1000] uppercase italic italic">{{ mascotaActiva.nombre }}</h4>
+              <div class="text-[10px] font-bold uppercase tracking-widest space-y-1 opacity-80 italic">
+                <p>🧬 {{ mascotaActiva.especie }}</p>
+                <p>⚖️ {{ mascotaActiva.pesoActual }}KG | 🕒 {{ autoEtapa }}</p>
+              </div>
+              <button @click="resetTienda" class="w-full py-3 bg-[#DE1F27] text-white rounded-xl font-black uppercase text-[9px] hover:scale-105 transition-transform">Desactivar</button>
             </div>
-          </div>
-          <button @click="resetFiltros" class="text-[9px] font-black uppercase text-slate-400 pt-6">✕ Limpiar filtros</button>
-        </aside>
 
-        <main class="flex-1">
-          <div class="mb-8 border-b-2 border-[#152C77] dark:border-white/10 pb-6 flex items-end justify-between">
-            <h2 class="text-3xl md:text-6xl font-[1000] uppercase italic dark:text-white tracking-tighter">{{ dynamicTitle }}</h2>
-          </div>
+            <button v-else @click="resetTienda" class="w-full flex items-center justify-center gap-3 px-6 py-5 bg-[#DE1F27] text-white rounded-2xl font-[1000] uppercase italic text-[10px] shadow-xl hover:bg-[#152C77] transition-all italic">
+              ← REGRESAR
+            </button>
 
-          <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-10">
-            <div v-for="n in 3" :key="n" class="bg-slate-50 dark:bg-white/5 p-6 rounded-[2.5rem] animate-pulse">
-              <div class="aspect-square bg-slate-200 dark:bg-white/10 rounded-[2rem] mb-6"></div>
-              <div class="h-4 w-20 bg-slate-200 dark:bg-white/10 rounded mb-4"></div>
-              <div class="h-8 w-full bg-slate-200 dark:bg-white/10 rounded mb-10"></div>
-            </div>
-          </div>
-
-          <div v-else-if="paginatedProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-10">
-            <div v-for="p in paginatedProducts" :key="p.id"
-              class="group flex flex-col bg-slate-50 dark:bg-white/5 p-5 md:p-6 rounded-[2.5rem] md:rounded-[3.5rem] transition-all border border-transparent hover:border-[#DE1F27]/20">
-              
-              <router-link :to="{ name: 'ProductoDetalle', params: { id: p.id } }" 
-                class="relative block overflow-hidden rounded-[2rem] bg-white p-6 md:p-8 aspect-square mb-4 md:mb-6 shadow-inner">
-                <img :src="p.fotosUrls?.[0]" class="w-full h-full object-contain">
-              </router-link>
-
-              <div class="flex-1 flex flex-col">
-                <p class="text-[9px] font-black text-[#DE1F27] uppercase opacity-60">{{ p.marca }}</p>
-                <h3 class="text-sm md:text-xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight mb-4 line-clamp-2 italic">
-                  {{ p.nombre }}
-                </h3>
-                <div class="mt-auto flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/10">
-                  <span class="text-xl md:text-3xl font-[1000] dark:text-white italic text-[#152C77]">${{ p.precio.toLocaleString() }}</span>
-                  <button @click="onAddToCart(p)" :disabled="p.stock <= 0" class="w-12 h-12 md:w-14 md:h-14 bg-[#152C77] text-white rounded-2xl flex items-center justify-center shadow-xl">
-                    <span class="text-lg">🛒</span>
+            <div class="space-y-10">
+              <div v-for="(label, key) in filterGroups" :key="key" class="space-y-4">
+                <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#DE1F27] italic italic">{{ label }}</h4>
+                <div class="flex flex-col gap-2.5">
+                  <button v-for="opt in getOptions(key)" :key="opt" @click="setFilter(key, opt)"
+                    :class="isFilterActive(key, opt) ? 'bg-[#152C77] text-white shadow-xl translate-x-2' : 'bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-[#152C77]'"
+                    class="w-full text-left px-5 py-3.5 rounded-xl text-[10px] font-[1000] uppercase italic transition-all">
+                    {{ opt }}
                   </button>
                 </div>
               </div>
+
+              <div class="space-y-4 pt-6 border-t border-slate-100 dark:border-white/5">
+                <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#DE1F27] italic italic">Marca</h4>
+                <select v-model="activeMarca" class="clean-select italic italic">
+                  <option value="TODOS">Todas las marcas</option>
+                  <option v-for="m in uniqueMarcas" :key="m" :value="m">{{ m }}</option>
+                </select>
+              </div>
             </div>
-          </div>
+          </aside>
 
-          <div v-if="hasMore" class="mt-20 flex justify-center">
-            <button @click="loadMore" class="group flex flex-col items-center gap-4">
-              <span class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400">Cargar más</span>
-              <div class="w-16 h-16 rounded-full border-2 border-slate-200 dark:border-white/10 flex items-center justify-center text-xl">↓</div>
-            </button>
-          </div>
-        </main>
-      </div>
+          <main class="flex-1">
+            <div class="mb-12 border-b-4 border-[#152C77] dark:border-white/10 pb-6 flex justify-between items-end">
+              <h2 class="text-4xl md:text-7xl font-[1000] uppercase italic dark:text-white tracking-tighter leading-none italic italic italic italic italic">{{ dynamicTitle }}</h2>
+              <div class="flex gap-2 lg:hidden">
+                <button v-if="filterByMascota || pasilloSeleccionado" @click="resetTienda" class="bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase italic">✕ Salir</button>
+                <button @click="showMobileFilters = true" class="bg-[#152C77] text-white p-4 rounded-xl text-xl shadow-lg">⚙️</button>
+              </div>
+            </div>
+
+            <div v-if="paginatedProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-10">
+              <div v-for="p in paginatedProducts" :key="p.id" class="group relative flex flex-col bg-slate-50 dark:bg-[#0A0A0A] p-6 rounded-[3rem] transition-all border-2 border-transparent hover:border-[#DE1F27]/20 shadow-sm hover:shadow-2xl">
+                <router-link :to="{ name: 'ProductoDetalle', params: { id: p.id } }" class="relative block overflow-hidden rounded-[2.5rem] bg-white p-8 aspect-square mb-6 shadow-inner">
+                  <img v-if="p.fotosUrls?.length" :src="p.fotosUrls[0]" class="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-110">
+                </router-link>
+
+                <div class="flex-1 px-2 space-y-4">
+                  <router-link :to="{ name: 'ProductoDetalle', params: { id: p.id } }">
+                    <p class="text-[9px] font-black text-[#DE1F27] uppercase tracking-widest mb-1 italic opacity-70 italic">{{ p.marca }}</p>
+                    <h3 class="text-xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight mb-4 h-12 line-clamp-2 italic italic italic italic">{{ p.nombre }}</h3>
+                  </router-link>
+                  <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/10">
+                    <span class="text-3xl font-[1000] dark:text-white italic text-[#152C77] tracking-tighter italic italic italic italic italic italic">${{ p.precio.toLocaleString() }}</span>
+                    <button @click="onAddToCart(p)" class="w-12 h-12 bg-[#152C77] hover:bg-[#DE1F27] text-white rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all font-bold">🛒</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="hasMore" class="mt-20 flex justify-center pb-20">
+              <button @click="loadMore" class="px-12 py-5 bg-slate-100 dark:bg-white/5 rounded-full font-[1000] uppercase italic text-[9px] tracking-[0.4em] hover:bg-[#DE1F27] hover:text-white transition-all italic italic italic italic">
+                Cargar más ↓
+              </button>
+            </div>
+          </main>
+        </div>
+      </Transition>
     </div>
 
-    <div class="lg:hidden fixed bottom-28 left-0 right-0 z-[1500] px-6 flex justify-center pointer-events-none">
-      <button @click="showMobileFilters = true" 
-        class="pointer-events-auto bg-[#152C77] text-white px-8 py-4 rounded-full shadow-2xl font-[1000] uppercase italic text-[10px] flex items-center gap-3">
-        🔍 Filtrar Productos
-      </button>
-    </div>
-
-    <transition name="slide">
-      <div v-if="showMobileFilters" class="fixed inset-0 z-[9000] lg:hidden">
-        <div class="absolute inset-0 bg-black/95 backdrop-blur-md" @click="showMobileFilters = false"></div>
-        <div class="absolute inset-y-0 left-0 w-[85%] bg-white dark:bg-[#080808] p-8 overflow-y-auto no-scrollbar">
-          
+    <Transition name="slide">
+      <div v-if="showMobileFilters" class="fixed inset-0 z-[5000] lg:hidden">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-md" @click="showMobileFilters = false"></div>
+        <div class="absolute inset-y-0 right-0 w-[85%] bg-white dark:bg-[#050505] p-10 shadow-2xl flex flex-col">
           <div class="flex justify-between items-center mb-10">
-            <h2 class="font-[1000] uppercase italic text-2xl dark:text-white italic">Filtros</h2>
-            <button @click="showMobileFilters = false" class="text-2xl dark:text-white">✕</button>
+            <h3 class="font-[1000] uppercase italic text-3xl dark:text-white italic italic italic italic">Filtros</h3>
+            <button @click="showMobileFilters = false" class="text-4xl text-[#DE1F27]">✕</button>
           </div>
-
-          <div v-if="mascotaActiva" @click="toggleRecomendaciones"
-            :class="filterByMascota ? 'bg-[#DE1F27] border-[#DE1F27]' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10'"
-            class="mb-10 p-6 rounded-[2.5rem] border-2 transition-all flex items-center gap-4 cursor-pointer">
-            <span class="text-3xl">{{ mascotaActiva.especie === 'FELINO' ? '🐱' : '🐶' }}</span>
-            <div>
-              <p :class="filterByMascota ? 'text-white/70' : 'text-slate-400'" class="text-[9px] font-black uppercase">Para tu mascota</p>
-              <h3 :class="filterByMascota ? 'text-white' : 'text-[#152C77] dark:text-white'" class="font-[1000] uppercase italic text-xl">{{ mascotaActiva.nombre }}</h3>
-              <p v-if="filterByMascota" class="text-white text-[8px] font-black mt-1 uppercase">✓ ACTIVADO</p>
-            </div>
-          </div>
-
-          <div class="space-y-8">
+          <div class="flex-1 space-y-10 overflow-y-auto no-scrollbar pb-32">
             <div v-for="(label, key) in filterGroups" :key="key" class="space-y-4">
-              <label class="text-[10px] font-black uppercase text-[#DE1F27] tracking-widest">{{ label }}</label>
+              <p class="text-xs font-black uppercase text-[#DE1F27] tracking-widest italic italic italic italic">{{ label }}</p>
               <div class="flex flex-wrap gap-2">
                 <button v-for="opt in getOptions(key)" :key="opt" @click="setFilter(key, opt)"
-                  :class="isFilterActive(key, opt) ? 'bg-[#152C77] text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-400'"
-                  class="px-4 py-2 rounded-xl text-[9px] font-black uppercase">
+                  :class="isFilterActive(key, opt) ? 'bg-[#152C77] text-white shadow-lg' : 'bg-slate-100 dark:bg-white/5 text-slate-400'"
+                  class="px-5 py-3 rounded-xl text-[10px] font-black uppercase italic italic italic italic">
                   {{ opt }}
                 </button>
               </div>
             </div>
-            <div class="space-y-4">
-               <label class="text-[10px] font-black uppercase text-[#DE1F27] tracking-widest">Marca</label>
-               <select v-model="activeMarca" class="clean-select !text-xs !py-3">
-                 <option value="TODOS">Todas las marcas</option>
-                 <option v-for="m in uniqueMarcas" :key="m" :value="m">{{ m }}</option>
-               </select>
-            </div>
           </div>
-          
-          <button @click="showMobileFilters = false" class="w-full mt-10 bg-[#152C77] text-white py-4 rounded-2xl font-black uppercase italic shadow-xl">
-            Ver {{ filteredProducts.length }} Productos
-          </button>
+          <button @click="showMobileFilters = false" class="w-full bg-[#152C77] text-white py-6 rounded-2xl font-black uppercase text-xs italic italic shadow-xl">Ver Resultados</button>
         </div>
       </div>
-    </transition>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import { useProductStore } from '../../stores/productStore';
 import { useCartStore } from '../../stores/cartStore';
 
-const router = useRouter();
 const productStore = useProductStore();
 const cartStore = useCartStore();
 const emit = defineEmits(['notify']);
 
-const isLoading = ref(true);
-const searchQuery = ref('');
-const showResults = ref(false);
+const pasilloSeleccionado = ref(false);
 const showMobileFilters = ref(false);
+const searchQuery = ref('');
+const activeCategory = ref('TODOS');
+const mascotaActiva = ref(null);
+const filterByMascota = ref(false);
+
+const pasillosCards = [
+  { id: 1, name: 'NUTRICIÓN', icon: '🥩' },
+  { id: 2, name: 'FARMACIA', icon: '💊' },
+  { id: 3, name: 'HIGIENE', icon: '🧼' },
+  { id: 4, name: 'ACCESORIOS', icon: '🎾' },
+  { id: 5, name: 'PERSONALIZADO', icon: '✨', isPersonalized: true }
+];
 
 const activeSpecies = ref('TODOS');
-const activeCategory = ref('TODOS');
-const activeMarca = ref('TODOS');
 const activeEtapa = ref('TODOS');
 const activePeso = ref('TODOS');
-const filterByMascota = ref(false);
-const mascotaActiva = ref(null);
+const activeMarca = ref('TODOS');
 const currentPage = ref(1);
 const itemsPerPage = 12;
 
-const filterGroups = { species: 'Especie', category: 'Categoría', etapa: 'Etapa', peso: 'Raza' };
-
-const suggestedProducts = computed(() => {
-  if (searchQuery.value.length < 3) return [];
-  return productStore.allProducts.filter(p => p.nombre.toLowerCase().includes(searchQuery.value.toLowerCase())).slice(0, 5);
-});
-
-const selectSearch = (p) => {
-  searchQuery.value = '';
-  showResults.value = false;
-  router.push({ name: 'ProductoDetalle', params: { id: p.id } });
+const filterGroups = { species: 'Especie', etapa: 'Etapa Vida', peso: 'Tamaño/Peso' };
+const getOptions = (key) => {
+  if (key === 'species') return ['TODOS', 'CANINO', 'FELINO'];
+  if (key === 'etapa') return ['TODOS', 'CACHORRO', 'ADULTO', 'SENIOR'];
+  if (key === 'peso') return ['TODOS', 'RAZA PEQUEÑA', 'RAZA MEDIANA', 'RAZA GRANDE'];
+  return [];
 };
 
-const uniqueMarcas = computed(() => [...new Set(productStore.allProducts.map(p => p.marca).filter(Boolean))].sort());
+// CÁLCULO DE ETAPA DINÁMICO
+const autoEtapa = computed(() => {
+  if (!mascotaActiva.value?.fechaNacimiento) return 'ADULTO';
+  const naci = new Date(mascotaActiva.value.fechaNacimiento);
+  const hoy = new Date();
+  const meses = (hoy.getFullYear() - naci.getFullYear()) * 12 + (hoy.getMonth() - naci.getMonth());
+  return meses < 12 ? 'CACHORRO' : (meses > 84 ? 'SENIOR' : 'ADULTO');
+});
 
+// MOTOR DE FILTRADO CON REACTIVIDAD REAL
 const filteredProducts = computed(() => {
   return productStore.allProducts.filter(p => {
-    const query = searchQuery.value.toLowerCase().trim();
-    let mSearch = true;
+    // 1. Buscador flexible
+    const searchTerms = searchQuery.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(' ');
+    const targetText = `${p.nombre} ${p.marca} ${p.categoria}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const matchesSearch = searchTerms.every(term => targetText.includes(term));
+    
+    // 2. Pasillo
+    const normalizeCat = (s) => s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const cProd = normalizeCat(p.categoria || '');
+    const cAct = normalizeCat(activeCategory.value);
+    const matchesCat = cAct === 'TODOS' || cProd.includes(cAct) || (cAct === 'NUTRICION' && cProd.includes('ALIMEN'));
 
-    if (query !== '') {
-        const words = query.split(/\s+/); 
-        const productName = (p.nombre + " " + (p.marca || "")).toLowerCase();
-        mSearch = words.every(word => productName.includes(word));
+    // 3. Filtros Manuales e Inteligentes (INCLUSIVOS CON "TODOS")
+    const mEspS = activeSpecies.value === 'TODOS' || p.especie === activeSpecies.value || p.especie === 'TODOS';
+    const mEtaS = activeEtapa.value === 'TODOS' || p.etapaVida === activeEtapa.value || p.etapaVida === 'TODOS';
+    const mPesS = activePeso.value === 'TODOS' || p.rangoPeso === activePeso.value || p.rangoPeso === 'TODOS';
+    const mMarS = activeMarca.value === 'TODOS' || p.marca === activeMarca.value;
+
+    // 4. LÓGICA DE MASCOTA SELECCIONADA (FREYJA O GATO)
+    let matchesMascota = true;
+    if (filterByMascota.value && mascotaActiva.value) {
+      const pet = mascotaActiva.value;
+      
+      // ESPECIE: Bloqueo total si es perro vs gato
+      const sameSpecies = p.especie === 'TODOS' || p.especie === pet.especie;
+      
+      // PESO: Bloqueo preventivo según tamaño
+      let weightSafety = true;
+      if (p.rangoPeso && p.rangoPeso !== 'TODOS' && p.rangoPeso !== '') {
+         weightSafety = (pet.pesoActual > 20) ? (p.rangoPeso !== 'RAZA PEQUEÑA') : (p.rangoPeso !== 'RAZA GRANDE');
+      }
+      
+      // ETAPA: Uso del cálculo automático
+      const stageSafety = p.etapaVida === 'TODOS' || p.etapaVida === autoEtapa.value || !p.etapaVida;
+
+      matchesMascota = sameSpecies && weightSafety && stageSafety;
     }
 
-    const mEsp = activeSpecies.value === 'TODOS' || p.especie === activeSpecies.value;
-    const mCat = activeCategory.value === 'TODOS' || p.categoria === activeCategory.value;
-    const mMar = activeMarca.value === 'TODOS' || p.marca === activeMarca.value;
-    const mEta = activeEtapa.value === 'TODOS' || p.etapaVida === activeEtapa.value || p.etapaVida === 'TODOS';
-    const mPes = activePeso.value === 'TODOS' || p.rangoPeso === activePeso.value || p.rangoPeso === 'TODOS';
-    
-    return mSearch && mEsp && mCat && mMar && mEta && mPes;
+    return matchesSearch && matchesCat && mEspS && mEtaS && mPesS && mMarS && matchesMascota;
   });
 });
 
 const paginatedProducts = computed(() => filteredProducts.value.slice(0, currentPage.value * itemsPerPage));
 const hasMore = computed(() => paginatedProducts.value.length < filteredProducts.value.length);
-const loadMore = () => currentPage.value++;
+const loadMore = () => { currentPage.value++; };
 
-const getOptions = (k) => {
-  if (k === 'species') return ['TODOS', 'CANINO', 'FELINO'];
-  if (k === 'category') return ['TODOS', ...productStore.filtros.categorias];
-  if (k === 'etapa') return ['TODOS', 'CACHORRO', 'ADULTO', 'SENIOR'];
-  if (k === 'peso') return ['TODOS', 'RAZA PEQUEÑA', 'RAZA MEDIANA', 'RAZA GRANDE'];
-  return [];
-};
-
-const setFilter = (k, v) => {
-  if (k === 'species') activeSpecies.value = v;
-  if (k === 'category') activeCategory.value = v;
-  if (k === 'etapa') activeEtapa.value = v;
-  if (k === 'peso') activePeso.value = v;
-  filterByMascota.value = false;
+const setPasillo = async (cat) => {
+  activeSpecies.value = activeEtapa.value = activePeso.value = activeMarca.value = 'TODOS';
   currentPage.value = 1;
-};
-
-const isFilterActive = (k, o) => {
-  if (k === 'species') return activeSpecies.value === o;
-  if (k === 'category') return activeCategory.value === o;
-  if (k === 'etapa') return activeEtapa.value === o;
-  return activePeso.value === o;
-};
-
-const resetFiltros = () => {
-  activeSpecies.value = activeCategory.value = activeMarca.value = activeEtapa.value = activePeso.value = 'TODOS';
-  searchQuery.value = '';
-  filterByMascota.value = false;
-};
-
-const dynamicTitle = computed(() => {
-  if (searchQuery.value) return "Resultados";
-  if (filterByMascota.value && mascotaActiva.value) return `Para ${mascotaActiva.value.nombre}`;
-  return activeCategory.value !== 'TODOS' ? activeCategory.value : 'Tienda';
-});
-
-const toggleRecomendaciones = () => {
-  filterByMascota.value = !filterByMascota.value;
-  if (filterByMascota.value && mascotaActiva.value) {
-    activeSpecies.value = mascotaActiva.value.especie;
-    const peso = mascotaActiva.value.pesoActual || 0;
-    if (peso > 0) {
-      if (peso <= 10) activePeso.value = 'RAZA PEQUEÑA';
-      else if (peso <= 25) activePeso.value = 'RAZA MEDIANA';
-      else activePeso.value = 'RAZA GRANDE';
+  if (cat === 'PERSONALIZADO') {
+    filterByMascota.value = true;
+    activeCategory.value = 'TODOS';
+    loadMascota();
+    if (mascotaActiva.value) {
+      activeSpecies.value = mascotaActiva.value.especie;
+      activePeso.value = mascotaActiva.value.pesoActual > 20 ? 'RAZA GRANDE' : 'RAZA PEQUEÑA';
+      activeEtapa.value = autoEtapa.value;
     }
   } else {
-    resetFiltros();
+    activeCategory.value = cat;
+    filterByMascota.value = false;
+  }
+  pasilloSeleccionado.value = true;
+  localStorage.setItem('ps_last_pasillo', cat);
+  await nextTick();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const resetTienda = () => {
+  pasilloSeleccionado.value = false;
+  activeCategory.value = activeSpecies.value = activeEtapa.value = activePeso.value = activeMarca.value = 'TODOS';
+  searchQuery.value = '';
+  filterByMascota.value = false;
+  localStorage.removeItem('ps_last_pasillo');
+};
+
+const loadMascota = () => {
+  const data = localStorage.getItem('ps_active_pet');
+  if (data) {
+    const pet = JSON.parse(data);
+    // Normalizar especie para que el filtro funcione (Perro -> CANINO)
+    const esp = (pet.especie || '').toUpperCase();
+    pet.especie = (esp.includes('PERRO') || esp.includes('CANIN')) ? 'CANINO' : 'FELINO';
+    mascotaActiva.value = pet;
   }
 };
 
-const onAddToCart = (p) => {
-  cartStore.addToCart(p, 1);
-  emit('notify', { msg: `${p.nombre} añadido`, type: 'success' });
-};
+const isFilterActive = (k, o) => (k==='species'?activeSpecies.value:k==='etapa'?activeEtapa.value:activePeso.value) === o;
+const setFilter = (k, v) => { if(k==='species')activeSpecies.value=v; if(k==='etapa')activeEtapa.value=v; if(k==='peso')activePeso.value=v; currentPage.value = 1;};
+const uniqueMarcas = computed(() => [...new Set(productStore.allProducts.map(p => p.marca).filter(Boolean))].sort());
+const dynamicTitle = computed(() => filterByMascota.value ? `PARA ${mascotaActiva.value?.nombre || 'TU MASCOTA'}` : `PASILLO ${activeCategory.value}`);
+const onAddToCart = (p) => { cartStore.addToCart(p, 1); emit('notify', { msg: `${p.nombre} añadido`, type: 'success' }); };
+const onSearch = () => { if (searchQuery.value) pasilloSeleccionado.value = true; };
 
 onMounted(async () => {
   if (productStore.allProducts.length === 0) await productStore.fetchTienda();
-  const saved = localStorage.getItem('ps_active_pet');
-  if (saved) {
-    const pet = JSON.parse(saved);
-    const esp = (pet.especie || '').toUpperCase();
-    mascotaActiva.value = { ...pet, especie: (esp === 'PERRO' || esp === 'CANINO') ? 'CANINO' : 'FELINO' };
-  }
-  setTimeout(() => isLoading.value = false, 800);
+  loadMascota();
+  const last = localStorage.getItem('ps_last_pasillo');
+  if (last) setPasillo(last);
 });
+
+// VIGILAR CAMBIOS EN LOCALSTORAGE PARA REACTIVIDAD
+watch(filterByMascota, (newVal) => { if(newVal) loadMascota(); });
 </script>
 
 <style scoped>
 @reference "../../style.css";
 .no-scrollbar::-webkit-scrollbar { display: none; }
-.slide-enter-active, .slide-leave-active { transition: transform 0.4s ease; }
-.slide-enter-from, .slide-leave-to { transform: translateX(-100%); }
-.clean-select { @apply bg-transparent border-b border-slate-200 dark:border-white/10 w-full py-2 text-[10px] font-black uppercase outline-none focus:border-[#DE1F27] transition-all dark:text-white cursor-pointer appearance-none; }
+.clean-select {
+  @apply bg-transparent border-b-2 border-slate-200 dark:border-white/10 w-full py-4 text-[10px] font-black uppercase outline-none focus:border-[#DE1F27] transition-all dark:text-white appearance-none italic cursor-pointer;
+}
 </style>
