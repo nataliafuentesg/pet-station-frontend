@@ -4,7 +4,7 @@
     <div class="max-w-7xl mx-auto mb-12 md:mb-20">
       <span class="text-[#DE1F27] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[9px] md:text-[10px]">Pet Station Portafolio</span>
       <h2 class="text-4xl md:text-8xl font-[1000] uppercase italic tracking-tighter leading-[0.9] text-[#152C77] dark:text-white mt-4">
-        NUESTRO <br/><span class="text-[#DE1F27]">UNIVERSO</span>
+        NUESTROS <br/><span class="text-[#DE1F27]">SERVICIOS</span>
       </h2>
     </div>
 
@@ -13,7 +13,7 @@
       <div class="group relative overflow-hidden bg-white dark:bg-white/5 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-10 border border-slate-200 dark:border-white/10 shadow-xl transition-all hover:-translate-y-1">
         <div class="relative z-10 space-y-6">
           <div class="w-14 h-14 md:w-16 md:h-16 bg-[#152C77] dark:bg-[#DE1F27] rounded-2xl flex items-center justify-center text-white text-2xl md:text-3xl">✂️</div>
-          <h3 class="text-3xl md:text-4xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight">Peluquería <br/> Premium</h3>
+          <h3 class="text-3xl md:text-4xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight">Peluquería <br/> & Spa</h3>
           <p class="text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] md:text-[11px] leading-relaxed">Higiene y dermocosmética de alta gama para mascotas que exigen lo mejor.</p>
           
           <div class="flex flex-col gap-3 pt-2">

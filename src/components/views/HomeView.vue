@@ -21,11 +21,11 @@
           <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start px-6 md:px-0">
             <button @click="router.push('/agendar')" 
               class="group flex items-center justify-center gap-3 bg-[#DE1F27] text-white px-8 py-5 md:px-10 md:py-6 rounded-[2rem] font-[1000] uppercase text-[10px] md:text-xs tracking-widest shadow-2xl shadow-[#DE1F27]/20 hover:scale-105 active:scale-95 transition-all">
-              📅 Agendar por Conocimiento
+              📅 Agendar Cita
             </button>
             <button @click="router.push('/tienda')" 
               class="group flex items-center justify-center gap-3 bg-[#152C77] text-white px-8 py-5 md:px-10 md:py-6 rounded-[2rem] font-[1000] uppercase text-[10px] md:text-xs tracking-widest hover:bg-black active:scale-95 transition-all">
-              🛒 Productos Avalados
+              🛒 Productos 
             </button>
           </div>
         </div>
