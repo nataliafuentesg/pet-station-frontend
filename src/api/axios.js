@@ -8,7 +8,6 @@ const api = axios.create({
   }
 });
 
-// ESTO ES LO QUE TE FALTA: Inyectar el token en cada llamada
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('ps_token');
   if (token) {
@@ -21,7 +20,11 @@ api.interceptors.response.use(
   response => response,
   error => {
     const status = error.response?.status;
-    if (status === 401 && !error.config.url.includes('/auth/')) {
+    
+    if ((status === 401 || status === 403) && !error.config.url.includes('/auth/')) {
+      
+      console.warn('Sesión caducada (401/403). Redirigiendo...');
+      
       localStorage.removeItem('ps_token');
       localStorage.removeItem('ps_session');
       
