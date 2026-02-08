@@ -6,6 +6,8 @@ import AgendarCita from '../components/appointments/AgendarCita.vue'
 import ProfileSelector from '../components/home/ProfileSelector.vue'
 import TiendaView from '../components/views/TiendaView.vue'
 import AdminDashboard from '../components/views/admin/AdminDashboard.vue';
+import PrivacyView from '../components/views/legal/PrivacyView.vue';
+import TermsView from '../components/views/legal/TermsView.vue';
 
 const routes = [
   { path: '/', name: 'Home', component: HomeView },
@@ -36,10 +38,20 @@ const routes = [
     meta: { requiresAdmin: true } // Importante
   },
   {
-  path: '/reset-password',
-  name: 'ResetPassword',
-  component: () => import('@/components/auth/ResetPassword.vue')
-}
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('@/components/auth/ResetPassword.vue')
+  },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: PrivacyView
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: TermsView
+  }
 ]
 
 const router = createRouter({
