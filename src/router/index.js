@@ -10,47 +10,124 @@ import PrivacyView from '../components/views/legal/PrivacyView.vue';
 import TermsView from '../components/views/legal/TermsView.vue';
 
 const routes = [
-  { path: '/', name: 'Home', component: HomeView },
-  { path: '/servicios', component: Servicios },
-  { path: '/servicios/peluqueria', component: () => import('../components/views/PeluqueriaView.vue') },
-  { path: '/servicios/medicina', component: () => import('../components/views/MedicinaView.vue') },
-  { path: '/servicios/viajes', component: () => import('../components/views/ViajesView.vue') },
-  { path: '/servicios/guarderia', component: () => import('../components/views/GuarderiaView.vue') },
-  { path: '/seleccionar-perfil', component: ProfileSelector },
-  { path: '/expediente', component: PetExpediente },
-  { path: '/agendar', component: AgendarCita },
-  { path: '/tienda', component: TiendaView },
+  { 
+    path: '/', 
+    name: 'Home', 
+    component: HomeView,
+    meta: {
+      // CORREGIDO: Eliminado "24 Horas"
+      title: 'Veterinaria en Chía - Especialistas y Pet Shop | Pet Station',
+      description: 'Clínica veterinaria líder en Chía. Medicina interna, cirugía, peluquería, tienda de mascotas y trámites de viaje internacional. Tu aliado en salud animal.'
+    }
+  },
+  { 
+    path: '/servicios', 
+    component: Servicios,
+    meta: {
+      title: 'Servicios Veterinarios Integrales en Chía | Pet Station',
+      description: 'Portafolio completo de salud animal: Medicina interna, cirugía, laboratorio clínico e imágenes diagnósticas en Chía.'
+    }
+  },
+  { 
+    path: '/servicios/peluqueria', 
+    component: () => import('../components/views/PeluqueriaView.vue'),
+    meta: {
+      title: 'Peluquería Canina y Spa de Mascotas en Chía | Pet Station',
+      description: 'Grooming profesional y baños medicados para perros y gatos en Chía. Estética animal con los mejores productos dermatológicos.'
+    }
+  },
+  { 
+    path: '/servicios/medicina', 
+    component: () => import('../components/views/MedicinaView.vue'),
+    meta: {
+      title: 'Consultas Médicas y Especialistas Veterinarios Chía | Pet Station',
+      description: 'Atención médica experta: Vacunación, desparasitación, cirugía y medicina interna para tu mascota en Chía y Cundinamarca.'
+    }
+  },
+  { 
+    path: '/servicios/viajes', 
+    component: () => import('../components/views/ViajesView.vue'),
+    meta: {
+      title: 'Viajar con Mascotas a USA y Europa - Trámites ICA | Pet Station',
+      description: 'Expertos en certificados de viaje internacional, serología de rabia, microchips y permisos CDC/ICA para exportación de mascotas.'
+    }
+  },
+  { 
+    path: '/servicios/guarderia', 
+    component: () => import('../components/views/GuarderiaView.vue'),
+    meta: {
+      title: 'Guardería Canina Campestre y Hotel en Chía | Pet Station',
+      description: 'El mejor cuidado para tu perro mientras no estás. Zonas verdes, recreación dirigida y supervisión veterinaria constante.'
+    }
+  },
+  { 
+    path: '/seleccionar-perfil', 
+    component: ProfileSelector,
+    meta: { title: 'Selecciona tu Mascota | Pet Station' }
+  },
+  { 
+    path: '/expediente', 
+    component: PetExpediente,
+    meta: { title: 'Historia Clínica y Expediente Digital | Pet Station' }
+  },
+  { 
+    path: '/agendar', 
+    component: AgendarCita,
+    meta: {
+      title: 'Agendar Cita Veterinaria Online Chía | Pet Station',
+      description: 'Reserva tu cita médica, baño o servicio de guardería fácil y rápido. Disponibilidad en tiempo real.'
+    }
+  },
+  { 
+    path: '/tienda', 
+    component: TiendaView,
+    meta: {
+      title: 'Pet Shop Online Chía - Alimento Premium y Farmacia | Pet Station',
+      description: 'Tienda de mascotas con domicilio en Chía. Encuentra Royal Canin, Pro Plan, Bravecto y farmacia veterinaria especializada.'
+    }
+  },
   {
     path: '/tienda/producto/:id',
     name: 'ProductoDetalle',
     component: () => import('../components/views/ProductoDetalleView.vue'),
-    props: true
+    props: true,
+    meta: { 
+      title: 'Detalle de Producto - Pet Shop Chía | Pet Station',
+      description: 'Compra los mejores productos para tu mascota con entrega rápida en Chía y alrededores.'
+    }
   },
   {
     path: '/checkout',
     name: 'Checkout',
-    component: () => import('../components/views/CheckoutView.vue')
+    component: () => import('../components/views/CheckoutView.vue'),
+    meta: { title: 'Finalizar Compra Segura | Pet Station' }
   },
   {
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: AdminDashboard,
-    meta: { requiresAdmin: true } // Importante
+    meta: { 
+      requiresAdmin: true,
+      title: 'Panel Administrativo | Pet Station' 
+    }
   },
   {
     path: '/reset-password',
     name: 'ResetPassword',
-    component: () => import('@/components/auth/ResetPassword.vue')
+    component: () => import('@/components/auth/ResetPassword.vue'),
+    meta: { title: 'Recuperar Contraseña | Pet Station' }
   },
   {
     path: '/privacy',
     name: 'Privacy',
-    component: PrivacyView
+    component: PrivacyView,
+    meta: { title: 'Política de Privacidad | Pet Station' }
   },
   {
     path: '/terms',
     name: 'Terms',
-    component: TermsView
+    component: TermsView,
+    meta: { title: 'Términos y Condiciones | Pet Station' }
   }
 ]
 
@@ -63,6 +140,16 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
+  document.title = to.meta.title || 'Pet Station - Veterinaria en Chía';
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) {
+    metaDescription.setAttribute('content', to.meta.description || 'Clínica veterinaria y Pet Shop en Chía. Servicios médicos, peluquería y viajes internacionales.');
+  } else {
+    const meta = document.createElement('meta');
+    meta.name = 'description';
+    meta.content = to.meta.description || 'Clínica veterinaria y Pet Shop en Chía.';
+    document.head.appendChild(meta);
+  }
   const sessionStr = localStorage.getItem('ps_session');
   if (!sessionStr) {
     return to.meta.requiresAdmin ? next('/') : next();

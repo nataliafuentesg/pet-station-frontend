@@ -31,7 +31,7 @@
         <p>Tus datos están almacenados en servidores seguros con encriptación. No compartimos tu información personal con terceros, salvo proveedores logísticos necesarios para entregar tus pedidos.</p>
 
         <h3 class="text-xl font-black uppercase text-[#152C77] dark:text-white mt-8 mb-4">5. Eliminación de datos</h3>
-        <p>Tienes derecho a solicitar la eliminación de tu cuenta y todos tus datos en cualquier momento enviando un correo a <strong>contacto@petstationvet.com</strong>.</p>
+        <p>Tienes derecho a solicitar la eliminación de tu cuenta y todos tus datos en cualquier momento enviando un correo a <strong>community.manager@petstationvet.com</strong>.</p>
       </div>
       
       <div class="mt-12 pt-8 border-t border-slate-200 dark:border-white/10">
