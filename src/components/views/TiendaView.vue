@@ -158,20 +158,29 @@ const activeCategory = ref('TODOS');
 const mascotaActiva = ref(null);
 const filterByMascota = ref(false);
 
-const pasillosCards = [
-  { id: 1, name: 'NUTRICIÓN', icon: '🥩' },
-  { id: 2, name: 'FARMACIA', icon: '💊' },
-  { id: 3, name: 'HIGIENE', icon: '🧼' },
-  { id: 4, name: 'ACCESORIOS', icon: '🎾' },
-  { id: 5, name: 'PERSONALIZADO', icon: '✨', isPersonalized: true }
-];
-
 const activeSpecies = ref('TODOS');
 const activeEtapa = ref('TODOS');
 const activePeso = ref('TODOS');
 const activeMarca = ref('TODOS');
 const currentPage = ref(1);
 const itemsPerPage = 12;
+
+// VERIFICAR SESIÓN
+const isLoggedIn = computed(() => !!localStorage.getItem('ps_token'));
+
+// TARJETAS DINÁMICAS (Oculta Personalizado si no hay login)
+const pasillosCards = computed(() => {
+  const cards = [
+    { id: 1, name: 'NUTRICIÓN', icon: '🥩' },
+    { id: 2, name: 'FARMACIA', icon: '💊' },
+    { id: 3, name: 'HIGIENE', icon: '🧼' },
+    { id: 4, name: 'ACCESORIOS', icon: '🎾' }
+  ];
+  if (isLoggedIn.value) {
+    cards.push({ id: 5, name: 'PERSONALIZADO', icon: '✨', isPersonalized: true });
+  }
+  return cards;
+});
 
 const filterGroups = { species: 'Especie', etapa: 'Etapa Vida', peso: 'Tamaño/Peso' };
 const getOptions = (key) => {
@@ -181,7 +190,6 @@ const getOptions = (key) => {
   return [];
 };
 
-// CÁLCULO DE ETAPA DINÁMICO
 const autoEtapa = computed(() => {
   if (!mascotaActiva.value?.fechaNacimiento) return 'ADULTO';
   const naci = new Date(mascotaActiva.value.fechaNacimiento);
@@ -190,43 +198,34 @@ const autoEtapa = computed(() => {
   return meses < 12 ? 'CACHORRO' : (meses > 84 ? 'SENIOR' : 'ADULTO');
 });
 
-// MOTOR DE FILTRADO CON REACTIVIDAD REAL
 const filteredProducts = computed(() => {
   return productStore.allProducts.filter(p => {
-    // 1. Buscador flexible
     const searchTerms = searchQuery.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(' ');
     const targetText = `${p.nombre} ${p.marca} ${p.categoria}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const matchesSearch = searchTerms.every(term => targetText.includes(term));
     
-    // 2. Pasillo
     const normalizeCat = (s) => s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const cProd = normalizeCat(p.categoria || '');
     const cAct = normalizeCat(activeCategory.value);
     const matchesCat = cAct === 'TODOS' || cProd.includes(cAct) || (cAct === 'NUTRICION' && cProd.includes('ALIMEN'));
 
-    // 3. Filtros Manuales e Inteligentes (INCLUSIVOS CON "TODOS")
     const mEspS = activeSpecies.value === 'TODOS' || p.especie === activeSpecies.value || p.especie === 'TODOS';
     const mEtaS = activeEtapa.value === 'TODOS' || p.etapaVida === activeEtapa.value || p.etapaVida === 'TODOS';
     const mPesS = activePeso.value === 'TODOS' || p.rangoPeso === activePeso.value || p.rangoPeso === 'TODOS';
     const mMarS = activeMarca.value === 'TODOS' || p.marca === activeMarca.value;
 
-    // 4. LÓGICA DE MASCOTA SELECCIONADA (FREYJA O GATO)
     let matchesMascota = true;
-    if (filterByMascota.value && mascotaActiva.value) {
+    // DOBLE VERIFICACIÓN: Que esté el filtro activo Y que haya sesión real
+    if (filterByMascota.value && mascotaActiva.value && isLoggedIn.value) {
       const pet = mascotaActiva.value;
-      
-      // ESPECIE: Bloqueo total si es perro vs gato
       const sameSpecies = p.especie === 'TODOS' || p.especie === pet.especie;
       
-      // PESO: Bloqueo preventivo según tamaño
       let weightSafety = true;
       if (p.rangoPeso && p.rangoPeso !== 'TODOS' && p.rangoPeso !== '') {
          weightSafety = (pet.pesoActual > 20) ? (p.rangoPeso !== 'RAZA PEQUEÑA') : (p.rangoPeso !== 'RAZA GRANDE');
       }
       
-      // ETAPA: Uso del cálculo automático
       const stageSafety = p.etapaVida === 'TODOS' || p.etapaVida === autoEtapa.value || !p.etapaVida;
-
       matchesMascota = sameSpecies && weightSafety && stageSafety;
     }
 
@@ -241,7 +240,9 @@ const loadMore = () => { currentPage.value++; };
 const setPasillo = async (cat) => {
   activeSpecies.value = activeEtapa.value = activePeso.value = activeMarca.value = 'TODOS';
   currentPage.value = 1;
+  
   if (cat === 'PERSONALIZADO') {
+    if (!isLoggedIn.value) return; // Seguridad extra
     filterByMascota.value = true;
     activeCategory.value = 'TODOS';
     loadMascota();
@@ -255,7 +256,14 @@ const setPasillo = async (cat) => {
     filterByMascota.value = false;
   }
   pasilloSeleccionado.value = true;
-  localStorage.setItem('ps_last_pasillo', cat);
+  
+  // Solo guardamos el historial si NO es personalizado (para evitar errores al recargar sin sesión)
+  if (cat !== 'PERSONALIZADO') {
+    localStorage.setItem('ps_last_pasillo', cat);
+  } else {
+    localStorage.removeItem('ps_last_pasillo');
+  }
+  
   await nextTick();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
@@ -269,13 +277,23 @@ const resetTienda = () => {
 };
 
 const loadMascota = () => {
+  // SI NO HAY TOKEN, BORRAMOS DATOS FANTASMA Y SALIMOS
+  if (!localStorage.getItem('ps_token')) {
+    mascotaActiva.value = null;
+    filterByMascota.value = false;
+    return;
+  }
+
   const data = localStorage.getItem('ps_active_pet');
   if (data) {
-    const pet = JSON.parse(data);
-    // Normalizar especie para que el filtro funcione (Perro -> CANINO)
-    const esp = (pet.especie || '').toUpperCase();
-    pet.especie = (esp.includes('PERRO') || esp.includes('CANIN')) ? 'CANINO' : 'FELINO';
-    mascotaActiva.value = pet;
+    try {
+      const pet = JSON.parse(data);
+      if(pet) {
+        const esp = (pet.especie || '').toUpperCase();
+        pet.especie = (esp.includes('PERRO') || esp.includes('CANIN')) ? 'CANINO' : 'FELINO';
+        mascotaActiva.value = pet;
+      }
+    } catch (e) { localStorage.removeItem('ps_active_pet'); }
   }
 };
 
@@ -288,15 +306,21 @@ const onSearch = () => { if (searchQuery.value) pasilloSeleccionado.value = true
 
 onMounted(async () => {
   if (productStore.allProducts.length === 0) await productStore.fetchTienda();
-  loadMascota();
+  
+  // Solo cargamos mascota si hay sesión
+  if (isLoggedIn.value) {
+    loadMascota();
+  }
+
   const last = localStorage.getItem('ps_last_pasillo');
-  if (last) setPasillo(last);
+  // Evitamos cargar 'PERSONALIZADO' desde el historial si ya no hay sesión
+  if (last && (last !== 'PERSONALIZADO' || isLoggedIn.value)) {
+    setPasillo(last);
+  }
 });
 
-// VIGILAR CAMBIOS EN LOCALSTORAGE PARA REACTIVIDAD
 watch(filterByMascota, (newVal) => { if(newVal) loadMascota(); });
 </script>
-
 <style scoped>
 @reference "../../style.css";
 .no-scrollbar::-webkit-scrollbar { display: none; }

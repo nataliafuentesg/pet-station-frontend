@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-[#050505] transition-colors duration-500 font-sans">
     
-    <section class="pt-1 md:pt-17 pb-4 px-3 md:px-6">
+    <section class="pt-2 md:pt-28 pb-4 px-3 md:px-6">
       <div class="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-6">
         
         <div class="lg:col-span-8 bg-[#152C77] rounded-[1.8rem] md:rounded-[3.5rem] p-7 md:p-20 text-white relative overflow-hidden flex flex-col justify-center min-h-[300px] md:min-h-[550px]">
@@ -59,13 +59,52 @@
       </div>
     </section>
 
+    <section class="py-6 px-3 md:px-6">
+      <div class="max-w-[1400px] mx-auto bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/10 rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-16 text-center relative overflow-hidden">
+        
+        <div class="relative z-10 mb-12">
+          <p class="text-[#DE1F27] font-black uppercase text-[9px] md:text-xs tracking-[0.4em] mb-4">Innovación Veterinaria</p>
+          <h2 class="text-3xl md:text-6xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-[0.9] italic">
+            DESCUBRE <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#152C77] to-[#DE1F27]">PET STATION APP</span>
+          </h2>
+          <p class="text-slate-500 dark:text-slate-400 font-bold text-[10px] md:text-sm mt-6 max-w-2xl mx-auto leading-relaxed uppercase">
+            Más que una clínica, somos una plataforma integral. Conecta tu cuenta Google para acceder al 
+            <span class="text-[#152C77] dark:text-white">Expediente Médico Digital</span>, gestionar tus <span class="text-[#152C77] dark:text-white">Citas</span> y recibir recomendaciones personalizadas para tu mascota.
+          </p>
+        </div>
+
+        <div class="relative z-10 grid md:grid-cols-3 gap-6 text-left">
+          
+          <div class="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group">
+            <span class="text-4xl mb-4 block group-hover:scale-110 transition-transform">📂</span>
+            <h3 class="text-lg font-[1000] uppercase italic text-[#152C77] dark:text-white mb-2 italic">Expediente Cloud</h3>
+            <p class="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">Tu historia clínica, vacunas y fórmulas siempre disponibles en la nube.</p>
+          </div>
+
+          <div class="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group">
+            <span class="text-4xl mb-4 block group-hover:scale-110 transition-transform">📅</span>
+            <h3 class="text-lg font-[1000] uppercase italic text-[#152C77] dark:text-white mb-2 italic">Smart Booking</h3>
+            <p class="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">Agenda citas médicas y grooming en tiempo real sin llamadas.</p>
+          </div>
+
+          <div class="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group">
+            <span class="text-4xl mb-4 block group-hover:scale-110 transition-transform">🧬</span>
+            <h3 class="text-lg font-[1000] uppercase italic text-[#152C77] dark:text-white mb-2 italic">Filtro Genético</h3>
+            <p class="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">Nuestra tienda filtra productos automáticamente según la raza y edad de tu mascota.</p>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
     <section class="pb-12 px-3 md:px-6">
       <div class="max-w-[1400px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <div v-for="s in serviciosHome" :key="s.name" 
              @click="router.push(s.link)"
              class="group bg-white dark:bg-white/5 p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] border border-slate-100 dark:border-white/10 hover:border-[#DE1F27] transition-all cursor-pointer flex flex-col items-center text-center">
           <span class="text-3xl md:text-6xl mb-3 md:mb-6 group-hover:rotate-12 transition-transform">{{ s.icon }}</span>
-          <h3 class="text-[10px] md:text-sm font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight">{{ s.name }}</h3>
+          <h3 class="text-[10px] md:text-sm font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight italic">{{ s.name }}</h3>
           <p class="text-[7px] md:text-[10px] font-black text-[#DE1F27] uppercase mt-2 opacity-0 group-hover:opacity-100 transition-all">Ver Más</p>
         </div>
       </div>
@@ -88,16 +127,4 @@ const serviciosHome = [
 
 <style scoped>
 @reference "../../style.css";
-
-/* Reset para evitar espacios fantasmas */
-section {
-  margin-top: 0 !important;
-}
-
-/* En móvil, forzamos que el contenido empiece justo después del Navbar */
-@media (max-width: 768px) {
-  section:first-of-type {
-    padding-top: 5px; /* Ajuste preciso al alto del nav */
-  }
-}
 </style>

@@ -9,7 +9,7 @@
             <h2 class="text-3xl font-[1000] uppercase italic tracking-tighter text-[#152C77] dark:text-white leading-none">
               PET <span class="text-[#DE1F27]">STATION.</span>
             </h2>
-            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mt-2">Clinic & Grooming</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mt-2">Clinic & Grooming App</p>
           </div>
           
           <div class="grid grid-cols-4 gap-3 w-fit">
@@ -47,7 +47,7 @@
           </p>
           <div class="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 aspect-video shadow-xl">
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3975.332306306541!2d-74.0620986!3d4.8839061!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3f8796ded22bfa%3A0x800b06946b4e7f69!2sPet%20Station!5e0!3m2!1ses!2sco!4v1707080000000!5m2!1ses!2sco" 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3975.362624424367!2d-74.06649882415162!3d4.879109340078235!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3f878dcfabd971%3A0x92d69ccf679f1700!2sPet%20Station%20Veterinaria!5e0!3m2!1ses!2sco!4v1700000000000!5m2!1ses!2sco" 
               width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
             </iframe>
           </div>
@@ -75,9 +75,23 @@
       </div>
 
       <div class="pt-10 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-        <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 text-center">
-          © {{ new Date().getFullYear() }} PET STATION. ALL RIGHTS RESERVED.
-        </p>
+        
+        <div class="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+          <p class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 text-center">
+            © {{ new Date().getFullYear() }} PET STATION APP.
+          </p>
+          
+          <div class="flex gap-4">
+            <router-link to="/privacy" class="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-[#DE1F27] transition-colors">
+              Privacidad
+            </router-link>
+            <span class="text-[9px] text-slate-300">•</span>
+            <router-link to="/terms" class="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-[#DE1F27] transition-colors">
+              Términos
+            </router-link>
+          </div>
+        </div>
+
         <a href="https://marcapro.agency" target="_blank" class="flex items-center gap-2 group">
           <span class="text-[9px] font-bold uppercase text-slate-400 tracking-widest">Designed by</span>
           <span class="text-[11px] font-[1000] uppercase italic text-[#152C77] dark:text-white group-hover:text-[#DE1F27] transition-colors underline decoration-[#DE1F27]/30">
@@ -92,7 +106,7 @@
 
 <script setup>
 const socials = [
-  { name: 'Instagram', icon: 'fab fa-instagram', link: 'https://instagram.com/petstation.vet' },
+  { name: 'Instagram', icon: 'fab fa-instagram', link: 'https://instagram.com/petstationvet' },
   { name: 'TikTok', icon: 'fab fa-tiktok', link: '#' },
   { name: 'Facebook', icon: 'fab fa-facebook-f', link: '#' },
   { name: 'YouTube', icon: 'fab fa-youtube', link: '#' }
