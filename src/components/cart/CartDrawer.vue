@@ -204,7 +204,7 @@ const handleFinalizeOrder = async () => {
 };
 
 const sendWhatsApp = (orderId) => {
-  const phone = "573124965755";
+  const phone = "573053462413";
   const iconOrder = "🚀";
   const iconUser = "👤";
   const iconLoc = "📍";
