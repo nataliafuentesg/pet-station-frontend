@@ -264,12 +264,16 @@ const handleAgendarClick = () => {
   router.push('/agendar');
 };
 
-onMounted(() => {
+// En App.vue
+
+onMounted(async () => {
   window.addEventListener('scroll', () => isScrolled.value = window.scrollY > 30);
   darkMode.value = localStorage.getItem('ps_theme') === 'dark';
   document.documentElement.classList.toggle('dark', darkMode.value);
+
   const saved = localStorage.getItem('ps_session');
   const token = localStorage.getItem('ps_token');
+  
   if (saved && token) {
     const session = JSON.parse(saved);
     tutorData.value = session.tutor;
@@ -277,6 +281,33 @@ onMounted(() => {
     activePet.value = session.pet;
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
+  if (token) {
+    try {
+      const { data } = await api.get('/tutores/me'); 
+      
+      tutorData.value = data;
+      availablePets.value = data.mascotas || [];
+      
+      if (activePet.value) {
+        const sigueExistiendo = availablePets.value.find(p => p.id === activePet.value.id);
+        if (!sigueExistiendo) {
+          activePet.value = null; // Si la borraste en localhost, aquí se quita sola
+          localStorage.removeItem('ps_active_pet');
+        } else {
+          activePet.value = sigueExistiendo;
+        }
+      }
+      saveSession();
+      console.log("Sesión sincronizada con la nube ☁️");
+
+    } catch (e) {
+      console.error("Sesión caducada o error de red", e);
+      if (e.response && e.response.status === 403) {
+        handleLogout();
+      }
+    }
+  }
+
   loadingSession.value = false;
 });
 
