@@ -249,11 +249,7 @@ const handleLogout = () => {
 };
 
 const handleAgendarClick = () => {
-  if (tutorData.value) {
-    router.push('/agendar');
-  } else {
-    isLoginOpen.value = true;
-  }
+  router.push('/agendar');
 };
 
 onMounted(() => {
