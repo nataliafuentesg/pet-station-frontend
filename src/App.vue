@@ -146,9 +146,21 @@
     </div>
 
     <main class="w-full pt-24 md:pt-0 pb-24 md:pb-0">
-      <router-view :key="availablePets.length" v-if="!loadingSession" :tutor="tutorData" :pet="activePet"
-        :availablePets="availablePets" @selected="handlePetSelection" @notify="addNotify"
-        @create-new="isOnboardingOpen = true" @login-success="handleLoginSuccess" @delete-pet="handleDeletePet" />
+      <router-view 
+    :key="availablePets.length" 
+    v-if="!loadingSession" 
+    
+    :tutor="tutorData" 
+    :pet="activePet" 
+    :availablePets="availablePets" 
+    
+    @selected="handlePetSelection" 
+    @notify="addNotify" 
+    @create-new="isOnboardingOpen = true" 
+    @login-success="handleLoginSuccess" 
+    
+    @delete-pet="handleDeletePet" 
+    @update-pet="handleUpdatePet"     @update-tutor="handleUpdateTutor" />
     </main>
 
     <TheFooter :tutor="tutorData" />
@@ -414,6 +426,37 @@ const handleDeletePet = async (petId) => {
       }
     });
   }
+};
+
+const handleUpdatePet = (petActualizada) => {
+  if (activePet.value && activePet.value.id === petActualizada.id) {
+    activePet.value = petActualizada;
+  }
+
+  const index = availablePets.value.findIndex(p => p.id === petActualizada.id);
+  if (index !== -1) {
+    availablePets.value[index] = petActualizada;
+  }
+
+  if (tutorData.value && tutorData.value.mascotas) {
+    const tIndex = tutorData.value.mascotas.findIndex(p => p.id === petActualizada.id);
+    if (tIndex !== -1) {
+      tutorData.value.mascotas[tIndex] = petActualizada;
+    }
+  }
+
+  saveSession();
+};
+
+const handleUpdateTutor = (tutorActualizado) => {
+  const mascotasBackup = tutorData.value.mascotas;
+  
+  tutorData.value = { 
+    ...tutorActualizado, 
+    mascotas: mascotasBackup 
+  };
+  
+  saveSession();
 };
 </script>
 
