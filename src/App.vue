@@ -312,43 +312,28 @@ onMounted(async () => {
 });
 
 const handleOnboardingFinish = (dataRecibida) => {
-  // 1. Cerrar modal
   isOnboardingOpen.value = false;
 
-  console.log("Datos recibidos del backend:", dataRecibida); // Para depurar si vuelve a pasar
+  console.log("Datos recibidos del backend:", dataRecibida); 
 
   let nuevaMascotaReal = null;
-
-  // --- LÓGICA DE DETECCIÓN INTELIGENTE ---
-
-  // CASO A: El backend devolvió al Tutor completo (con su lista de mascotas)
-  // Esto pasa usualmente en el registro completo o si el endpoint retorna el usuario actualizado
   if (dataRecibida.mascotas && Array.isArray(dataRecibida.mascotas)) {
-    // Tomamos la ÚLTIMA mascota de la lista (la recién creada)
     if (dataRecibida.mascotas.length > 0) {
       nuevaMascotaReal = dataRecibida.mascotas[dataRecibida.mascotas.length - 1];
     }
   }
-  // CASO B: El backend devolvió directamente la Mascota
-  // Lo sabemos porque tiene 'especie' pero NO tiene 'mascotas'
   else if (dataRecibida.especie && dataRecibida.nombre) {
     nuevaMascotaReal = dataRecibida;
   }
-  // CASO C: El backend devolvió un objeto genérico o wrapper
   else if (dataRecibida.data && dataRecibida.data.especie) {
     nuevaMascotaReal = dataRecibida.data;
   }
 
-  // 2. AHORA SÍ PROCESAMOS LA MASCOTA LIMPIA
   if (nuevaMascotaReal && nuevaMascotaReal.id) {
 
-    // Agregamos a la lista visual
     availablePets.value.push(nuevaMascotaReal);
-
-    // Actualizamos el tutor en memoria
     if (tutorData.value) {
       if (!tutorData.value.mascotas) tutorData.value.mascotas = [];
-      // Evitamos duplicados por si acaso
       const existe = tutorData.value.mascotas.find(p => p.id === nuevaMascotaReal.id);
       if (!existe) {
         tutorData.value.mascotas.push(nuevaMascotaReal);

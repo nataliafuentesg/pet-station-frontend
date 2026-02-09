@@ -220,11 +220,13 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
 import { ref, reactive, onMounted, watch, computed } from 'vue';
 import api from '@/api/axios'; // Cliente Axios centralizado
 
 const props = defineProps(['pet', 'tutor']);
 const emit = defineEmits(['update-pet', 'update-tutor', 'notify']);
+const router = useRouter();
 
 // Estados de carga y UI
 const loading = ref(true);
@@ -307,33 +309,36 @@ const loadAllData = async () => {
   
   try {
     const [resP, resT, resC, resO] = await Promise.all([
-      api.get(`/mascotas/${props.pet.id}`), //
-      props.tutor?.id ? api.get(`/tutores/${props.tutor.id}`) : Promise.resolve({ data: null }), //
-      api.get(`/citas/mascota/${props.pet.id}`), //
-      props.tutor?.id ? api.get(`/pedidos/tutor/${props.tutor.id}`) : Promise.resolve({ data: [] }) //
+      api.get(`/mascotas/${props.pet.id}`),
+      props.tutor?.id ? api.get(`/tutores/${props.tutor.id}`) : Promise.resolve({ data: null }),
+      api.get(`/citas/mascota/${props.pet.id}`),
+      props.tutor?.id ? api.get(`/pedidos/tutor/${props.tutor.id}`) : Promise.resolve({ data: [] })
     ]);
 
     if (resP.data) {
       petData.value = resP.data;
       Object.assign(form, resP.data);
-      // Asegurar compatibilidad de especies si el backend devuelve valores raros
       if(form.especie === 'PERRO') form.especie = 'CANINO';
       if(form.especie === 'GATO') form.especie = 'FELINO';
     }
-
-    if (resT.data) {
-      Object.assign(tutorForm, resT.data);
-    }
-
+    if (resT.data) Object.assign(tutorForm, resT.data);
     appointments.value = resC.data || [];
-
-    if (resO.data) {
-      orders.value = resO.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    }
+    if (resO.data) orders.value = resO.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   } catch (error) {
     console.error("Error al sincronizar expediente:", error);
-    emit('notify', { msg: 'Error al actualizar los datos', type: 'error' });
+
+    if (error.response && error.response.status === 404) {
+      emit('notify', { msg: 'Esta mascota ya no existe. Redirigiendo...', type: 'error' });
+      
+      localStorage.removeItem('ps_active_pet');
+      setTimeout(() => {
+        router.push('/seleccionar-perfil');
+      }, 1500);
+      
+    } else {
+      emit('notify', { msg: 'Error de conexión', type: 'error' });
+    }
   } finally { 
     loading.value = false; 
   }
