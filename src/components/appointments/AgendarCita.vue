@@ -1,7 +1,20 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-[#050505] pt-32 pb-20 px-4 transition-colors duration-500">
+  <div class="min-h-screen bg-white dark:bg-[#050505] pt-32 pb-20 px-4 transition-colors duration-500 relative">
+    
+    <Transition name="fade">
+      <div v-if="loading" class="fixed inset-0 z-[6000] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-16 h-16 border-4 border-white/20 border-t-[#DE1F27] rounded-full animate-spin mb-8"></div>
+        
+        <h3 class="text-3xl md:text-5xl font-[1000] uppercase italic text-white mb-2 animate-pulse">
+          Agendando Cita...
+        </h3>
+        <p class="text-white/60 font-bold uppercase tracking-widest text-xs">
+          Por favor no cierres esta ventana
+        </p>
+      </div>
+    </Transition>
+
     <div class="max-w-4xl mx-auto">
-      
       <div class="text-center mb-12">
         <h1 class="text-5xl md:text-6xl font-[1000] uppercase italic tracking-tighter text-[#152C77] dark:text-white">
           RESERVAR <span class="text-[#DE1F27]">TURNO</span>
@@ -90,7 +103,7 @@
             :disabled="loading || (props.tutor && !form.mascotaId)" 
             class="w-full bg-[#DE1F27] text-white py-8 rounded-[2.5rem] font-[1000] uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            {{ loading ? 'Sincronizando con Google Calendar...' : 'Confirmar Cita' }}
+            Confirmar Cita
           </button>
         </form>
       </div>
@@ -126,6 +139,7 @@ const form = reactive({
   motivo: ''
 });
 
+// ... (TUS COMPUTED minDate, esDomingo, filteredHours y formatHora IGUAL QUE ANTES) ...
 const minDate = computed(() => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -167,26 +181,27 @@ onMounted(() => {
   }
 });
 
+// 2. LÓGICA DE ENVÍO MEJORADA CON BLOQUEO
 const handleSubmit = async () => {
-  loading.value = true;
+  loading.value = true; // Activa el overlay negro
   form.fechaHora = `${tempDate.value}T${tempTime.value}:00`;
 
   try {
-    const { data } = await api.post('/citas/agendar', form);
-
-    emit('notify', '¡Cita agendada con éxito! Te esperamos.');
-    
-    if (props.tutor) {
-      router.push('/expediente');
-    } else {
-      router.push('/');
-    }
+    await api.post('/citas/agendar', form);
+    emit('notify', { msg: '¡ÉXITO! TU CITA HA SIDO AGENDADA.', type: 'success' });
+    setTimeout(() => {
+      loading.value = false;
+      if (props.tutor) {
+        router.push('/expediente');
+      } else {
+        router.push('/');
+      }
+    }, 1500);
 
   } catch (e) {
+    loading.value = false; // Solo quitamos el loading si hay error
     const errorMsg = e.response?.data?.message || 'Error al agendar la cita';
-    emit('notify', errorMsg, 'error');
-  } finally {
-    loading.value = false;
+    emit('notify', { msg: errorMsg, type: 'error' });
   }
 };
 </script>
@@ -215,5 +230,16 @@ const handleSubmit = async () => {
   margin-left: 1rem;
   margin-bottom: 0.5rem;
   display: block;
+}
+
+/* ESTILO PARA LA TRANSICIÓN DEL OVERLAY */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

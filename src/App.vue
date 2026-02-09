@@ -146,9 +146,21 @@
     </div>
 
     <main class="w-full pt-24 md:pt-0 pb-24 md:pb-0">
-      <router-view :key="availablePets.length" v-if="!loadingSession" :tutor="tutorData" :pet="activePet"
-        :availablePets="availablePets" @selected="handlePetSelection" @notify="addNotify"
-        @create-new="isOnboardingOpen = true" @login-success="handleLoginSuccess" />
+      <router-view 
+    :key="availablePets.length" 
+    v-if="!loadingSession" 
+    
+    :tutor="tutorData" 
+    :pet="activePet" 
+    :availablePets="availablePets" 
+    
+    @selected="handlePetSelection" 
+    @notify="addNotify" 
+    @create-new="isOnboardingOpen = true" 
+    @login-success="handleLoginSuccess" 
+    
+    @delete-pet="handleDeletePet" 
+  />
     </main>
 
     <TheFooter :tutor="tutorData" />
@@ -270,6 +282,118 @@ onMounted(() => {
   }
   loadingSession.value = false;
 });
+
+const handleOnboardingFinish = (dataRecibida) => {
+  // 1. Cerrar modal
+  isOnboardingOpen.value = false;
+
+  console.log("Datos recibidos del backend:", dataRecibida); // Para depurar si vuelve a pasar
+
+  let nuevaMascotaReal = null;
+
+  // --- LÓGICA DE DETECCIÓN INTELIGENTE ---
+  
+  // CASO A: El backend devolvió al Tutor completo (con su lista de mascotas)
+  // Esto pasa usualmente en el registro completo o si el endpoint retorna el usuario actualizado
+  if (dataRecibida.mascotas && Array.isArray(dataRecibida.mascotas)) {
+    // Tomamos la ÚLTIMA mascota de la lista (la recién creada)
+    if (dataRecibida.mascotas.length > 0) {
+      nuevaMascotaReal = dataRecibida.mascotas[dataRecibida.mascotas.length - 1];
+    }
+  } 
+  // CASO B: El backend devolvió directamente la Mascota
+  // Lo sabemos porque tiene 'especie' pero NO tiene 'mascotas'
+  else if (dataRecibida.especie && dataRecibida.nombre) {
+    nuevaMascotaReal = dataRecibida;
+  }
+  // CASO C: El backend devolvió un objeto genérico o wrapper
+  else if (dataRecibida.data && dataRecibida.data.especie) {
+    nuevaMascotaReal = dataRecibida.data;
+  }
+
+  // 2. AHORA SÍ PROCESAMOS LA MASCOTA LIMPIA
+  if (nuevaMascotaReal && nuevaMascotaReal.id) {
+    
+    // Agregamos a la lista visual
+    availablePets.value.push(nuevaMascotaReal);
+    
+    // Actualizamos el tutor en memoria
+    if (tutorData.value) {
+      if (!tutorData.value.mascotas) tutorData.value.mascotas = [];
+      // Evitamos duplicados por si acaso
+      const existe = tutorData.value.mascotas.find(p => p.id === nuevaMascotaReal.id);
+      if (!existe) {
+        tutorData.value.mascotas.push(nuevaMascotaReal);
+      }
+    }
+
+    // Guardamos sesión segura
+    saveSession();
+    
+    addNotify({ type: 'success', message: '¡Mascota agregada correctamente!' });
+    
+    // Seleccionar automáticamente
+    handlePetSelection(nuevaMascotaReal);
+
+  } else {
+    // Si no pudimos encontrar la mascota en la respuesta,
+    // HACEMOS UN REFRESH FORZADO DESDE LA API para evitar errores
+    console.warn("Formato de respuesta desconocido, recargando datos...");
+    refreshUserData(); 
+  }
+};
+
+// Función de respaldo por si acaso (agrégala también en el script setup)
+const refreshUserData = async () => {
+  try {
+    const { data } = await api.get('/tutores/me'); // O tu endpoint para obtener perfil
+    tutorData.value = data;
+    availablePets.value = data.mascotas || [];
+    saveSession();
+    // Si hay mascotas, seleccionamos la última
+    if (availablePets.value.length > 0) {
+      handlePetSelection(availablePets.value[availablePets.value.length - 1]);
+    }
+  } catch (e) {
+    console.error("Error actualizando perfil", e);
+  }
+};
+
+// En App.vue (dentro de <script setup>)
+
+const handleDeletePet = async (petId) => {
+  // 1. Confirmación visual (opcional, pero recomendada)
+  if (!confirm('¿Estás seguro de eliminar esta mascota permanentemente?')) return;
+
+  try {
+    // 2. Petición al Backend
+    await api.delete(`/mascotas/${petId}`); // Asegúrate que tu ruta sea esta o la que uses en Spring Boot
+
+    // 3. Actualizar listas en memoria (Visual)
+    availablePets.value = availablePets.value.filter(p => p.id !== petId);
+    
+    if (tutorData.value && tutorData.value.mascotas) {
+      tutorData.value.mascotas = tutorData.value.mascotas.filter(p => p.id !== petId);
+    }
+
+    // 4. Si borraste la mascota que tenías seleccionada, limpiamos la selección
+    if (activePet.value && activePet.value.id === petId) {
+      activePet.value = null;
+      localStorage.removeItem('ps_active_pet');
+    }
+
+    // 5. Guardar cambios en sesión
+    saveSession();
+    
+    // 6. Notificar éxito
+    addNotify({ type: 'success', message: 'Mascota eliminada correctamente' });
+
+  } catch (e) {
+    console.error(e);
+    const msg = e.response?.data?.message || 'Error al eliminar mascota';
+    addNotify({ type: 'error', message: msg });
+  }
+};
 </script>
 
 <style scoped>
