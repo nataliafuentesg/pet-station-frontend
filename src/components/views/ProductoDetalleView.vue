@@ -158,7 +158,7 @@ const emit = defineEmits(['notify']);
 
 const whatsappUrl = computed(() => {
   if (!product.value) return '#';
-  return `https://wa.me/573124965755?text=${encodeURIComponent('Me interesa el producto: ' + product.value.nombre)}`;
+  return `https://wa.me/573053462413?text=${encodeURIComponent('Me interesa el producto: ' + product.value.nombre)}`;
 });
 
 const fetchData = async (id) => {
