@@ -70,7 +70,7 @@
                     {{ activePet ? activePet.nombre.charAt(0) : '?' }}</div>
                 </div>
                 <span class="hidden sm:block text-[10px] font-black uppercase italic">{{ activePet?.nombre || 'Elegir'
-                  }}</span>
+                }}</span>
               </router-link>
               <button @click="handleLogout"
                 class="p-1.5 text-slate-400 hover:text-ps-red transition-all cursor-pointer">
@@ -146,21 +146,9 @@
     </div>
 
     <main class="w-full pt-24 md:pt-0 pb-24 md:pb-0">
-      <router-view 
-    :key="availablePets.length" 
-    v-if="!loadingSession" 
-    
-    :tutor="tutorData" 
-    :pet="activePet" 
-    :availablePets="availablePets" 
-    
-    @selected="handlePetSelection" 
-    @notify="addNotify" 
-    @create-new="isOnboardingOpen = true" 
-    @login-success="handleLoginSuccess" 
-    
-    @delete-pet="handleDeletePet" 
-  />
+      <router-view :key="availablePets.length" v-if="!loadingSession" :tutor="tutorData" :pet="activePet"
+        :availablePets="availablePets" @selected="handlePetSelection" @notify="addNotify"
+        @create-new="isOnboardingOpen = true" @login-success="handleLoginSuccess" @delete-pet="handleDeletePet" />
     </main>
 
     <TheFooter :tutor="tutorData" />
@@ -180,6 +168,7 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2';
 import { ref, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from './stores/cartStore';
@@ -292,7 +281,7 @@ const handleOnboardingFinish = (dataRecibida) => {
   let nuevaMascotaReal = null;
 
   // --- LÓGICA DE DETECCIÓN INTELIGENTE ---
-  
+
   // CASO A: El backend devolvió al Tutor completo (con su lista de mascotas)
   // Esto pasa usualmente en el registro completo o si el endpoint retorna el usuario actualizado
   if (dataRecibida.mascotas && Array.isArray(dataRecibida.mascotas)) {
@@ -300,7 +289,7 @@ const handleOnboardingFinish = (dataRecibida) => {
     if (dataRecibida.mascotas.length > 0) {
       nuevaMascotaReal = dataRecibida.mascotas[dataRecibida.mascotas.length - 1];
     }
-  } 
+  }
   // CASO B: El backend devolvió directamente la Mascota
   // Lo sabemos porque tiene 'especie' pero NO tiene 'mascotas'
   else if (dataRecibida.especie && dataRecibida.nombre) {
@@ -313,10 +302,10 @@ const handleOnboardingFinish = (dataRecibida) => {
 
   // 2. AHORA SÍ PROCESAMOS LA MASCOTA LIMPIA
   if (nuevaMascotaReal && nuevaMascotaReal.id) {
-    
+
     // Agregamos a la lista visual
     availablePets.value.push(nuevaMascotaReal);
-    
+
     // Actualizamos el tutor en memoria
     if (tutorData.value) {
       if (!tutorData.value.mascotas) tutorData.value.mascotas = [];
@@ -326,31 +315,23 @@ const handleOnboardingFinish = (dataRecibida) => {
         tutorData.value.mascotas.push(nuevaMascotaReal);
       }
     }
-
-    // Guardamos sesión segura
     saveSession();
-    
+
     addNotify({ type: 'success', message: '¡Mascota agregada correctamente!' });
-    
-    // Seleccionar automáticamente
     handlePetSelection(nuevaMascotaReal);
 
   } else {
-    // Si no pudimos encontrar la mascota en la respuesta,
-    // HACEMOS UN REFRESH FORZADO DESDE LA API para evitar errores
     console.warn("Formato de respuesta desconocido, recargando datos...");
-    refreshUserData(); 
+    refreshUserData();
   }
 };
 
-// Función de respaldo por si acaso (agrégala también en el script setup)
 const refreshUserData = async () => {
   try {
-    const { data } = await api.get('/tutores/me'); // O tu endpoint para obtener perfil
+    const { data } = await api.get('/tutores/me'); 
     tutorData.value = data;
     availablePets.value = data.mascotas || [];
     saveSession();
-    // Si hay mascotas, seleccionamos la última
     if (availablePets.value.length > 0) {
       handlePetSelection(availablePets.value[availablePets.value.length - 1]);
     }
@@ -359,39 +340,83 @@ const refreshUserData = async () => {
   }
 };
 
-// En App.vue (dentro de <script setup>)
-
 const handleDeletePet = async (petId) => {
-  // 1. Confirmación visual (opcional, pero recomendada)
-  if (!confirm('¿Estás seguro de eliminar esta mascota permanentemente?')) return;
+  const result = await Swal.fire({
+    title: '¿ELIMINAR MASCOTA?',
+    text: "Esta acción no se puede deshacer. Se perderá todo el historial médico.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#DE1F27', 
+    cancelButtonColor: '#152C77', 
+    confirmButtonText: 'SÍ, BORRAR',
+    cancelButtonText: 'CANCELAR',
+    background: '#ffffff',
+    color: '#152C77', 
+    iconColor: '#DE1F27', 
+    reverseButtons: true, 
+    customClass: {
+      popup: 'rounded-[2rem] border-4 border-slate-100 shadow-2xl font-sans',
+      title: 'font-[1000] italic uppercase tracking-tighter text-2xl md:text-3xl',
+      htmlContainer: 'font-bold text-slate-500',
+      confirmButton: 'font-black uppercase tracking-widest rounded-xl px-6 py-4 shadow-lg',
+      cancelButton: 'font-black uppercase tracking-widest rounded-xl px-6 py-4'
+    }
+  });
+
+  if (!result.isConfirmed) return;
 
   try {
-    // 2. Petición al Backend
-    await api.delete(`/mascotas/${petId}`); // Asegúrate que tu ruta sea esta o la que uses en Spring Boot
+    Swal.fire({
+      title: 'BORRANDO...',
+      text: 'Actualizando base de datos',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+      background: '#fff',
+      color: '#152C77',
+      customClass: { popup: 'rounded-[2rem] font-sans font-bold' }
+    });
 
-    // 3. Actualizar listas en memoria (Visual)
+    await api.delete(`/mascotas/${petId}`);
+
     availablePets.value = availablePets.value.filter(p => p.id !== petId);
-    
+
     if (tutorData.value && tutorData.value.mascotas) {
       tutorData.value.mascotas = tutorData.value.mascotas.filter(p => p.id !== petId);
     }
-
-    // 4. Si borraste la mascota que tenías seleccionada, limpiamos la selección
     if (activePet.value && activePet.value.id === petId) {
       activePet.value = null;
       localStorage.removeItem('ps_active_pet');
     }
 
-    // 5. Guardar cambios en sesión
     saveSession();
-    
-    // 6. Notificar éxito
-    addNotify({ type: 'success', message: 'Mascota eliminada correctamente' });
+    Swal.fire({
+      icon: 'success',
+      title: '¡ELIMINADA!',
+      text: 'El perfil ha sido borrado correctamente.',
+      confirmButtonColor: '#152C77',
+      confirmButtonText: 'ENTENDIDO',
+      timer: 2000,
+      timerProgressBar: true,
+      customClass: {
+        popup: 'rounded-[2.5rem] font-sans',
+        title: 'font-[1000] italic uppercase text-[#152C77]',
+        confirmButton: 'rounded-xl font-black shadow-lg'
+      }
+    });
 
   } catch (e) {
     console.error(e);
     const msg = e.response?.data?.message || 'Error al eliminar mascota';
-    addNotify({ type: 'error', message: msg });
+    Swal.fire({
+      icon: 'error',
+      title: 'ERROR',
+      text: msg,
+      confirmButtonColor: '#DE1F27',
+      customClass: {
+        popup: 'rounded-[2rem] font-sans',
+        title: 'font-[1000] italic uppercase'
+      }
+    });
   }
 };
 </script>
