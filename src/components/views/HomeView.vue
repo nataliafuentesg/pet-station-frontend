@@ -69,7 +69,7 @@
           </h2>
           <p class="text-slate-500 dark:text-slate-400 font-bold text-[10px] md:text-sm mt-6 max-w-2xl mx-auto leading-relaxed uppercase">
             Más que una clínica, somos una plataforma integral. Conecta tu cuenta Google para acceder al 
-            <span class="text-[#152C77] dark:text-white">Expediente Médico Digital</span>, gestionar tus <span class="text-[#152C77] dark:text-white">Citas</span> y recibir recomendaciones personalizadas para tu mascota.
+            <span class="text-[#152C77] dark:text-white">Perfil Digital de tu Mascota</span>, gestionar tus <span class="text-[#152C77] dark:text-white">Citas</span> y recibir recomendaciones personalizadas.
           </p>
         </div>
 
@@ -77,8 +77,10 @@
           
           <div class="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group">
             <span class="text-4xl mb-4 block group-hover:scale-110 transition-transform">📂</span>
-            <h3 class="text-lg font-[1000] uppercase italic text-[#152C77] dark:text-white mb-2 italic">Expediente Cloud</h3>
-            <p class="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">Tu historia clínica, vacunas y fórmulas siempre disponibles en la nube.</p>
+            <h3 class="text-lg font-[1000] uppercase italic text-[#152C77] dark:text-white mb-2 italic">Perfil Digital</h3>
+            <p class="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">
+              Centraliza la información básica, fotos y preferencias de tu mascota en un solo lugar seguro.
+            </p>
           </div>
 
           <div class="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group">
@@ -119,9 +121,9 @@ const router = useRouter();
 
 const serviciosHome = [
   { name: 'Medicina Especializada', icon: '🩺', link: '/servicios/medicina' },
-  { name: 'Grooming Saludable', icon: '✂️', link: '/servicios/peluqueria' },
+  { name: 'Grooming', icon: '✂️', link: '/servicios/peluqueria' },
   { name: 'Documentos Viajes', icon: '✈️', link: '/servicios/viajes' },
-  { name: 'Guardería Técnica', icon: '🏡', link: '/servicios/guarderia' }
+  { name: 'Guardería', icon: '🏡', link: '/servicios/guarderia' }
 ];
 </script>
 

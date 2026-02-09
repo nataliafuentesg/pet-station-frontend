@@ -10,28 +10,28 @@
 
       <div
         class="bg-slate-50 dark:bg-white/5 rounded-[3.5rem] p-10 flex flex-col md:flex-row items-center gap-10 shadow-2xl border border-slate-100 dark:border-white/5">
+        
         <div class="relative group cursor-pointer" @click="$refs.fileInput.click()">
-          <div :class="['w-44 h-44 rounded-[2.5rem] border-4 overflow-hidden shadow-2xl transform -rotate-3 transition-all duration-500 bg-white flex items-center justify-center',
+          <div :class="['w-44 h-44 rounded-[2.5rem] border-4 overflow-hidden shadow-2xl transform -rotate-3 transition-all duration-500 bg-white flex items-center justify-center relative',
             justSavedPhoto ? 'border-green-500 scale-105 rotate-0' : 'border-ps-blue dark:border-ps-red']">
+            
             <img v-if="form.fotoUrl" :src="form.fotoUrl" class="w-full h-full object-cover" />
             <div v-else
               class="w-full h-full bg-ps-blue flex items-center justify-center text-5xl font-black text-white italic">
               {{ form.nombre ? form.nombre.charAt(0) : '?' }}
             </div>
-          </div>
-          <div
-            class="absolute inset-0 bg-black/40 rounded-[2.5rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform -rotate-3 group-hover:rotate-0">
-            <div class="flex flex-col items-center gap-2">
-              <div v-if="compressing || savingPhoto"
-                class="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+
+            <div class="absolute bottom-3 right-3 bg-white/20 backdrop-blur-md border border-white/50 p-2 rounded-xl shadow-lg z-20">
+              <svg v-if="!compressing && !savingPhoto" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
               </svg>
-              <span class="text-white text-[8px] font-black uppercase tracking-widest text-center px-4">Cambiar
-                Foto</span>
+              <div v-else class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             </div>
+          </div>
+
+          <div
+            class="absolute inset-0 bg-black/40 rounded-[2.5rem] hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform -rotate-3 group-hover:rotate-0">
+            <span class="text-white text-[8px] font-black uppercase tracking-widest text-center px-4">Cambiar Foto</span>
           </div>
           <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileUpload" />
         </div>
@@ -41,7 +41,7 @@
             class="bg-ps-red/10 text-ps-red px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-4 inline-block italic">Expediente
             Oficial</span>
           <h1
-            class="text-6xl md:text-7xl font-black uppercase italic tracking-tighter text-ps-blue dark:text-white leading-none mb-4">
+            class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter text-ps-blue dark:text-white leading-none mb-4">
             {{ form.nombre }}</h1>
           <p class="text-slate-400 dark:text-white/40 font-black uppercase text-[10px] tracking-[0.4em]">{{ form.especie
           }} • {{ form.raza }}</p>
@@ -76,8 +76,8 @@
                 <div class="flex flex-col gap-2">
                   <label class="label-exp">Especie</label>
                   <select v-model="form.especie" class="input-dark-expediente">
-                    <option value="PERRO">Perro 🐶</option>
-                    <option value="GATO">Gato 🐱</option>
+                    <option value="CANINO">Perro 🐶</option>
+                    <option value="FELINO">Gato 🐱</option>
                   </select>
                 </div>
                 <div class="flex flex-col gap-2">
@@ -109,16 +109,24 @@
             <h3 class="text-2xl font-black uppercase italic text-ps-red mb-10 border-b dark:border-white/10 pb-6">Datos
               Personales</h3>
             <form @submit.prevent="saveTutor" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
               <div v-for="(label, key) in tutorFields" :key="key" :class="key === 'direccion' ? 'md:col-span-2' : ''"
-                class="flex flex-col gap-2">
-                <label class="label-exp">{{ label }}</label>
-                <input v-model="tutorForm[key]" type="text" :readonly="key === 'email' || key === 'cedula'" :class="[
+                class="flex flex-col gap-2 relative">
+                
+                <label class="label-exp flex justify-between">
+                  {{ label }}
+                  <span v-if="key === 'email'" class="text-[7px] text-ps-red">🔒 NO EDITABLE</span>
+                </label>
+
+                <input v-model="tutorForm[key]" type="text" :readonly="key === 'email'" 
+                  :class="[
                   'w-full p-4 rounded-2xl border-2 border-transparent outline-none font-bold text-sm transition-all',
-                  (key === 'email' || key === 'cedula')
+                  (key === 'email')
                     ? 'bg-slate-200 dark:bg-white/5 opacity-50 cursor-not-allowed text-slate-500'
                     : 'bg-white dark:bg-white/10 dark:text-white focus:border-ps-red'
                 ]" />
               </div>
+
               <button :disabled="saving"
                 class="md:col-span-2 bg-ps-red text-white py-6 rounded-3xl font-black uppercase tracking-widest shadow-2xl hover:brightness-110 active:scale-95 transition-all mt-6">
                 {{ saving ? 'Sincronizando...' : 'Guardar Información' }}
@@ -126,8 +134,6 @@
             </form>
           </div>
         </div>
-
-
 
         <div class="space-y-8">
 
@@ -236,7 +242,7 @@ const orders = ref([]);
 // Formulario reactivo para la Mascota
 const form = reactive({
   nombre: '', 
-  especie: '', 
+  especie: 'CANINO', // Valor por defecto seguro 
   raza: '', 
   fechaNacimiento: '',
   fotoUrl: '', 
@@ -310,6 +316,9 @@ const loadAllData = async () => {
     if (resP.data) {
       petData.value = resP.data;
       Object.assign(form, resP.data);
+      // Asegurar compatibilidad de especies si el backend devuelve valores raros
+      if(form.especie === 'PERRO') form.especie = 'CANINO';
+      if(form.especie === 'GATO') form.especie = 'FELINO';
     }
 
     if (resT.data) {
@@ -349,8 +358,9 @@ const saveTutor = async () => {
   if (!props.tutor?.id) return;
   saving.value = true;
   try {
+    // IMPORTANTE: NO enviamos mascotas en el PUT de tutor para evitar recursividad o cargas pesadas
     const { mascotas, ...datosLimpios } = tutorForm;
-    const { data } = await api.put(`/tutores/${props.tutor.id}`, datosLimpios); //
+    const { data } = await api.put(`/tutores/${props.tutor.id}`, datosLimpios); 
     Object.assign(tutorForm, data);
     emit('update-tutor', data);
     emit('notify', { msg: 'Datos de contacto guardados', type: 'success' });
