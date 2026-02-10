@@ -122,7 +122,7 @@
           PRODUCTOS <span class="text-ps-red">SUGERIDOS</span>
         </h2>
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          <div v-for="sug in suggestedProducts" :key="sug.id" @click="goToSuggested(sug.id)"
+          <div v-for="sug in suggestedProducts" :key="sug.id" @click="goToSuggested(sug)"
                class="group bg-slate-50 dark:bg-white/5 p-4 rounded-[2.5rem] transition-all cursor-pointer border border-transparent hover:border-ps-red/20">
             <div class="aspect-square bg-white dark:bg-white/10 rounded-3xl overflow-hidden mb-4 p-4 shadow-inner">
               <img :src="sug.fotosUrls?.[0]" class="w-full h-full object-contain group-hover:scale-110 transition-transform">
@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCartStore } from '../../stores/cartStore';
 import { useProductStore } from '../../stores/productStore';
@@ -161,21 +161,53 @@ const whatsappUrl = computed(() => {
   return `https://wa.me/573053462413?text=${encodeURIComponent('Me interesa el producto: ' + product.value.nombre)}`;
 });
 
+// --- NUEVA FUNCIÓN PARA EXTRAER UUID ---
+const getRealId = (param) => {
+  if (!param) return null;
+  const strParam = String(param);
+  
+  // La URL viene como: "nombre-producto-UUID"
+  // El UUID tiene 36 caracteres. Lo extraemos del final.
+  // Ejemplo: "collar-rojo-bd4131fd-47c4-495c-836f-b75e0d83f51f"
+  
+  // Opción A: Si siempre es UUID estándar (36 chars)
+  if (strParam.length >= 36) {
+    return strParam.slice(-36); 
+  }
+  
+  // Opción B (Fallback): Si por alguna razón es corto, devolvemos null
+  return null;
+};
+
+// --- FUNCIÓN PARA GENERAR URL (Debe coincidir con la de Tienda) ---
+const crearSlug = (id, nombre) => {
+  const cleanName = (nombre || '').toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+  return `${cleanName}-${id}`;
+};
+
 const fetchData = async (id) => {
+  if (!id) return;
   isLoading.value = true;
+
   try {
+    // AHORA SÍ enviamos el UUID correcto (bd4131fd...)
     const { data } = await api.get(`/tienda/productos/${id}`);
+    
     product.value = data;
     isExpanded.value = false;
     currentImage.value = null;
 
     if (productStore.allProducts.length === 0) await productStore.fetchTienda();
+    
     suggestedProducts.value = productStore.allProducts
       .filter(p => p.categoria === data.categoria && p.id !== data.id)
       .sort(() => 0.5 - Math.random()).slice(0, 4);
       
     setTimeout(() => isLoading.value = false, 600);
+
   } catch (e) {
+    console.error("Error al cargar producto:", e);
+    // Si falla, volvemos a la tienda
     router.push('/tienda');
   }
 };
@@ -185,12 +217,23 @@ const handleAddToCart = () => {
   emit('notify', { msg: `¡Añadido: ${product.value.nombre}!`, type: 'success' });
 };
 
-const goToSuggested = (id) => {
+const goToSuggested = (sug) => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  router.push({ name: 'ProductoDetalle', params: { id } });
+  const slug = crearSlug(sug.id, sug.nombre);
+  router.push({ name: 'ProductoDetalle', params: { id: slug } });
 };
 
-watch(() => route.params.id, (id) => id && fetchData(id), { immediate: true });
+watch(() => route.params.id, (newVal) => {
+  if (newVal) {
+    const realUuid = getRealId(newVal);
+    if (realUuid) {
+      fetchData(realUuid);
+    } else {
+      console.warn("UUID no encontrado en URL");
+      router.push('/tienda');
+    }
+  }
+}, { immediate: true });
 </script>
 
 <style scoped>
