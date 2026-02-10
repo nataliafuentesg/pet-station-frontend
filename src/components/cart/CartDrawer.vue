@@ -91,8 +91,6 @@
                   <select v-model="form.zona" class="custom-input appearance-none">
                     <option value="" disabled>Selecciona zona</option>
                     <option value="Chía">Chía</option>
-                    <option value="Cajicá">Cajicá</option>
-                    <option value="Zipaquirá">Zipaquirá</option>
                     <option value="Bogotá">Bogotá Norte</option>
                   </select>
                 </div>
