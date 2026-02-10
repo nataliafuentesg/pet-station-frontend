@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Bloquear rutas privadas (No queremos que Google intente comprar o ver perfiles)
+Disallow: /admin/
+Disallow: /expediente
+Disallow: /checkout
+Disallow: /seleccionar-perfil
+Disallow: /reset-password
+
+# Indicar dónde está el mapa
+Sitemap: https://petstationvet.com/sitemap.xml
