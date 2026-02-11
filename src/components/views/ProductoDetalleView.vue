@@ -88,6 +88,23 @@
             </button>
           </div>
 
+          <Transition name="fade-scale">
+            <div v-if="product.requiereReceta" 
+                 class="mb-8 bg-red-50 dark:bg-[#DE1F27]/10 border-2 border-[#DE1F27] rounded-[2rem] p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6 shadow-xl shadow-[#DE1F27]/10">
+              <div class="w-16 h-16 shrink-0 bg-[#DE1F27] text-white rounded-2xl flex items-center justify-center text-3xl shadow-inner">
+                👨‍⚕️
+              </div>
+              <div>
+                <h4 class="text-[11px] font-[1000] uppercase tracking-widest text-[#DE1F27] mb-2 italic">
+                  Venta Bajo Fórmula Médica
+                </h4>
+                <p class="text-xs md:text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                  Para despachar este producto, será necesario <strong>adjuntar tu receta médica</strong> al finalizar el pedido por WhatsApp. Nuestro equipo veterinario verificará la dosis y te brindará asesoría personalizada.
+                </p>
+              </div>
+            </div>
+          </Transition>
+
           <div class="bg-ps-blue text-white rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 shadow-2xl mt-auto">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 mb-10">
               <div>
@@ -121,14 +138,26 @@
         <h2 class="text-3xl font-[1000] uppercase italic text-ps-blue dark:text-white mb-10">
           PRODUCTOS <span class="text-ps-red">SUGERIDOS</span>
         </h2>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <div v-for="sug in suggestedProducts" :key="sug.id" @click="goToSuggested(sug)"
-               class="group bg-slate-50 dark:bg-white/5 p-4 rounded-[2.5rem] transition-all cursor-pointer border border-transparent hover:border-ps-red/20">
-            <div class="aspect-square bg-white dark:bg-white/10 rounded-3xl overflow-hidden mb-4 p-4 shadow-inner">
-              <img :src="sug.fotosUrls?.[0]" class="w-full h-full object-contain group-hover:scale-110 transition-transform">
+               class="group bg-slate-50 dark:bg-white/5 p-4 rounded-[2.5rem] transition-all cursor-pointer border-2 border-transparent hover:border-[#DE1F27]/20 relative flex flex-col hover:shadow-2xl">
+            
+            <div class="absolute top-6 left-6 right-6 flex justify-between items-start z-10 pointer-events-none">
+              <span v-if="sug.presentacion" class="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm border border-slate-100 text-[7px] font-black text-[#152C77] uppercase tracking-widest">
+                {{ sug.presentacion }}
+              </span>
+              <span v-else></span> <span v-if="sug.requiereReceta" class="bg-[#DE1F27] text-white px-2 py-1 rounded-md shadow-md text-[7px] font-black uppercase tracking-widest animate-pulse">
+                📋 Fórmula
+              </span>
             </div>
-            <p class="text-[8px] font-black text-ps-red uppercase mb-1">{{ sug.marca }}</p>
-            <h3 class="font-[1000] uppercase italic text-xs text-ps-blue dark:text-white truncate">{{ sug.nombre }}</h3>
+
+            <div class="aspect-square w-full bg-white dark:bg-white/10 rounded-3xl overflow-hidden mb-4 p-4 shadow-inner relative flex items-center justify-center">
+              <img :src="sug.fotosUrls?.[0]" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700">
+            </div>
+            
+            <p class="text-[8px] font-black text-[#DE1F27] uppercase mb-1 tracking-widest italic">{{ sug.marca }}</p>
+            <h3 class="font-[1000] uppercase italic text-xs text-[#152C77] dark:text-white line-clamp-2 leading-tight flex-1">{{ sug.nombre }}</h3>
+            <p class="mt-3 text-sm font-black text-[#152C77] dark:text-white italic">${{ sug.precio.toLocaleString() }}</p>
           </div>
         </div>
       </div>

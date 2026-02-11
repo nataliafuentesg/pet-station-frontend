@@ -72,7 +72,7 @@
                   <button v-for="opt in getOptions(key)" :key="opt" @click="setFilter(key, opt)"
                     :class="isFilterActive(key, opt) ? 'bg-[#152C77] text-white shadow-xl translate-x-2' : 'bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-[#152C77]'"
                     class="w-full text-left px-5 py-3.5 rounded-xl text-[10px] font-[1000] uppercase italic transition-all">{{
-                    opt }}</button>
+                      opt }}</button>
                 </div>
               </div>
               <div class="space-y-4 pt-6 border-t border-slate-100 dark:border-white/5">
@@ -110,39 +110,51 @@
                 :class="['group relative flex flex-col bg-slate-50 dark:bg-[#0A0A0A] p-6 rounded-[3rem] transition-all border-2 shadow-sm',
                   p.stock <= 0 ? 'opacity-60 grayscale border-slate-200 pointer-events-none' : 'border-transparent hover:border-[#DE1F27]/20 hover:shadow-2xl']">
 
-                <router-link :to="{ name: 'ProductoDetalle', params: { id: crearSlug(p.id, p.nombre) } }" class="block relative w-full">
-  
-  <div v-if="p.presentacion"
-    class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm border border-slate-100 z-20">
-    <span class="text-[8px] font-black text-[#152C77] uppercase tracking-widest">{{ p.presentacion }}</span>
-  </div>
+                <router-link :to="{ name: 'ProductoDetalle', params: { id: crearSlug(p.id, p.nombre) } }"
+                  class="block relative w-full">
 
-  <div class="relative w-full aspect-square overflow-hidden rounded-[2rem] bg-white dark:bg-white/5 p-4 mb-4 flex items-center justify-center">
-      <img v-if="p.fotosUrls?.length" :src="p.fotosUrls[0]"
-        class="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-110 z-10">
-  </div>
+                  <div v-if="p.presentacion"
+                    class="absolute top-4 left-4 bg-[#DE1F27] px-3 py-1.5 rounded-xl shadow-lg shadow-[#DE1F27]/30 z-20 border border-white/10">
+                    <span class="text-[8px] font-black text-white uppercase tracking-widest">{{ p.presentacion }}</span>
+                  </div>
 
-  <div v-if="p.stock <= 0" class="absolute inset-0 z-30 bg-white/60 dark:bg-black/60 backdrop-blur-[2px] rounded-[2rem] flex items-center justify-center">
-    <span
-      class="bg-slate-800 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl">Agotado</span>
-  </div>
-</router-link>
+                  <div
+                    class="relative w-full aspect-square overflow-hidden rounded-[2rem] bg-white dark:bg-white/5 p-4 mb-4 flex items-center justify-center">
+                    <img v-if="p.fotosUrls?.length" :src="p.fotosUrls[0]"
+                      class="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-110 z-10">
+                  </div>
+
+                  <div v-if="p.stock <= 0"
+                    class="absolute inset-0 z-30 bg-white/60 dark:bg-black/60 backdrop-blur-[2px] rounded-[2rem] flex items-center justify-center">
+                    <span
+                      class="bg-slate-800 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl">Agotado</span>
+                  </div>
+                </router-link>
 
                 <div class="flex-1 px-2 space-y-4">
                   <router-link :to="{ name: 'ProductoDetalle', params: { id: crearSlug(p.id, p.nombre) } }"
                     class="pointer-events-auto">
-                    <p
-                      class="text-[9px] font-black text-[#DE1F27] uppercase tracking-widest mb-1 italic opacity-70 italic">
-                      {{ p.marca }}</p>
+                    
+                    <div class="flex items-center justify-between mb-2">
+                      <p class="text-[9px] font-black text-[#DE1F27] uppercase tracking-widest italic opacity-70 truncate pr-2">
+                        {{ p.marca }}
+                      </p>
+                      
+                      <span v-if="p.requiereReceta" 
+                            class="shrink-0 bg-red-50 dark:bg-[#DE1F27]/10 text-[#DE1F27] border border-[#DE1F27]/30 px-2 py-0.5 rounded-md text-[7px] font-[1000] uppercase tracking-widest flex items-center gap-1 animate-pulse">
+                        📋 Fórmula
+                      </span>
+                    </div>
+
                     <h3
-                      class="text-xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight mb-4 h-12 line-clamp-2 italic italic italic italic">
-                      {{ p.nombre }}</h3>
+                      class="text-xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight mb-4 h-12 line-clamp-2">
+                      {{ p.nombre }}
+                    </h3>
                   </router-link>
 
                   <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/10">
                     <span
-                      class="text-3xl font-[1000] dark:text-white italic text-[#152C77] tracking-tighter italic italic italic italic italic italic">${{
-                        p.precio.toLocaleString() }}</span>
+                      class="text-3xl font-[1000] dark:text-white italic text-[#152C77] tracking-tighter">${{ p.precio.toLocaleString() }}</span>
                     <button v-if="p.stock > 0" @click="onAddToCart(p)"
                       class="pointer-events-auto w-12 h-12 bg-[#152C77] hover:bg-[#DE1F27] text-white rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all font-bold">🛒</button>
                     <span v-else class="text-2xl opacity-30">🚫</span>
