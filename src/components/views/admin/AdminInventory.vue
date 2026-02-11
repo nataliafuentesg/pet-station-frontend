@@ -104,6 +104,7 @@
               <option value="NUTRICION">Nutrición</option>
               <option value="FARMACIA">Farmacia</option>
               <option value="ACCESORIOS">Accesorios</option>
+              <option value="HIGIENE">Higiene</option>
             </select>
           </div>
           <div><label class="label">Subcategoría</label><input v-model="form.subcategoria" class="admin-input" /></div>
