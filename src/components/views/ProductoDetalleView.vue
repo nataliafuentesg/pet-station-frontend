@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onUnmounted } from 'vue'; // <-- Añade onUnmounted
 import { useRoute, useRouter } from 'vue-router';
 import { useCartStore } from '../../stores/cartStore';
 import { useProductStore } from '../../stores/productStore';
@@ -161,41 +161,116 @@ const whatsappUrl = computed(() => {
   return `https://wa.me/573053462413?text=${encodeURIComponent('Me interesa el producto: ' + product.value.nombre)}`;
 });
 
-// --- NUEVA FUNCIÓN PARA EXTRAER UUID ---
+// --- FUNCIONES DE UUID Y SLUG (Déjalas tal cual las tienes) ---
 const getRealId = (param) => {
   if (!param) return null;
   const strParam = String(param);
-  
-  // La URL viene como: "nombre-producto-UUID"
-  // El UUID tiene 36 caracteres. Lo extraemos del final.
-  // Ejemplo: "collar-rojo-bd4131fd-47c4-495c-836f-b75e0d83f51f"
-  
-  // Opción A: Si siempre es UUID estándar (36 chars)
   if (strParam.length >= 36) {
     return strParam.slice(-36); 
   }
-  
-  // Opción B (Fallback): Si por alguna razón es corto, devolvemos null
   return null;
 };
 
-// --- FUNCIÓN PARA GENERAR URL (Debe coincidir con la de Tienda) ---
 const crearSlug = (id, nombre) => {
   const cleanName = (nombre || '').toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
   return `${cleanName}-${id}`;
 };
+
+// ------------------------------------------------------------------------
+// 🚀 MAGIA SEO Y RICH SNIPPETS PARA GOOGLE (NUEVO)
+// ------------------------------------------------------------------------
+const actualizarSEO = (prod) => {
+  if (!prod) return;
+
+  // 1. Título de la pestaña
+  document.title = `${prod.nombre} | Pet Station Chía`;
+
+  // 2. Descripción Corta para Google
+  const descripcionSEO = `Compra ${prod.nombre} de la marca ${prod.marca}. ${prod.descripcion?.substring(0, 100) || 'El mejor cuidado para tu mascota.'} ¡Pídelo online en Chía!`;
+
+  // Función ayudante para crear/actualizar metas
+  const setMeta = (name, content, isProperty = false) => {
+    const attr = isProperty ? 'property' : 'name';
+    let meta = document.querySelector(`meta[${attr}="${name}"]`);
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute(attr, name);
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', content);
+  };
+
+  // Metas Básicas
+  setMeta('description', descripcionSEO);
+  
+  // Metas para Redes Sociales / WhatsApp (Open Graph)
+  setMeta('og:title', `${prod.nombre} | Pet Station`, true);
+  setMeta('og:description', descripcionSEO, true);
+  setMeta('og:image', prod.fotosUrls?.[0] || '', true);
+  setMeta('og:url', window.location.href, true);
+  setMeta('og:type', 'product', true);
+
+  // 3. JSON-LD (Rich Snippets para que Google muestre el Precio y Stock)
+  // Primero limpiamos si ya había uno anterior (por si el usuario navega entre sugeridos)
+  const existingScript = document.getElementById('schema-producto');
+  if (existingScript) existingScript.remove();
+
+  // Construimos el objeto que Google lee
+  const schemaData = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": prod.nombre,
+    "image": prod.fotosUrls || [],
+    "description": prod.descripcion || descripcionSEO,
+    "sku": prod.id,
+    "brand": {
+      "@type": "Brand",
+      "name": prod.marca
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": window.location.href,
+      "priceCurrency": "COP",
+      "price": prod.precio,
+      "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0], // Válido por 1 año
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": prod.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "Pet Station"
+      }
+    }
+  };
+
+  // Inyectamos el JSON en el head
+  const scriptTag = document.createElement('script');
+  scriptTag.id = 'schema-producto';
+  scriptTag.type = 'application/ld+json';
+  scriptTag.text = JSON.stringify(schemaData);
+  document.head.appendChild(scriptTag);
+};
+
+// Limpieza cuando el usuario sale del producto
+onUnmounted(() => {
+  const existingScript = document.getElementById('schema-producto');
+  if (existingScript) existingScript.remove();
+});
+// ------------------------------------------------------------------------
+
 
 const fetchData = async (id) => {
   if (!id) return;
   isLoading.value = true;
 
   try {
-    // AHORA SÍ enviamos el UUID correcto (bd4131fd...)
     const { data } = await api.get(`/tienda/productos/${id}`);
     
     product.value = data;
     isExpanded.value = false;
     currentImage.value = null;
+
+    // --- LLAMADA AL SEO ---
+    actualizarSEO(data);
 
     if (productStore.allProducts.length === 0) await productStore.fetchTienda();
     
@@ -207,7 +282,7 @@ const fetchData = async (id) => {
 
   } catch (e) {
     console.error("Error al cargar producto:", e);
-    // Si falla, volvemos a la tienda
+    document.title = 'Producto no encontrado | Pet Station'; // SEO de Error
     router.push('/tienda');
   }
 };

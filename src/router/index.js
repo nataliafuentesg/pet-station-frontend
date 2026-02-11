@@ -15,7 +15,6 @@ const routes = [
     name: 'Home', 
     component: HomeView,
     meta: {
-      // CORREGIDO: Eliminado "24 Horas"
       title: 'Veterinaria en Chía - Especialistas y Pet Shop | Pet Station',
       description: 'Clínica veterinaria líder en Chía. Medicina interna, cirugía, peluquería, tienda de mascotas y trámites de viaje internacional. Tu aliado en salud animal.'
     }
