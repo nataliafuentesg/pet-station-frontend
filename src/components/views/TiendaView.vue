@@ -110,21 +110,23 @@
                 :class="['group relative flex flex-col bg-slate-50 dark:bg-[#0A0A0A] p-6 rounded-[3rem] transition-all border-2 shadow-sm',
                   p.stock <= 0 ? 'opacity-60 grayscale border-slate-200 pointer-events-none' : 'border-transparent hover:border-[#DE1F27]/20 hover:shadow-2xl']">
 
-                <router-link :to="{ name: 'ProductoDetalle', params: { id: crearSlug(p.id, p.nombre) } }">
-                  <div v-if="p.presentacion"
-                    class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm border border-slate-100 z-10">
-                    <span class="text-[8px] font-black text-[#152C77] uppercase tracking-widest">{{ p.presentacion
-                      }}</span>
-                  </div>
+                <router-link :to="{ name: 'ProductoDetalle', params: { id: crearSlug(p.id, p.nombre) } }" class="block relative w-full">
+  
+  <div v-if="p.presentacion"
+    class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm border border-slate-100 z-20">
+    <span class="text-[8px] font-black text-[#152C77] uppercase tracking-widest">{{ p.presentacion }}</span>
+  </div>
 
-                  <img v-if="p.fotosUrls?.length" :src="p.fotosUrls[0]"
-                    class="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-110">
+  <div class="relative w-full aspect-square overflow-hidden rounded-[2rem] bg-white dark:bg-white/5 p-4 mb-4 flex items-center justify-center">
+      <img v-if="p.fotosUrls?.length" :src="p.fotosUrls[0]"
+        class="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-110 z-10">
+  </div>
 
-                  <div v-if="p.stock <= 0" class="absolute inset-0 bg-white/60 flex items-center justify-center">
-                    <span
-                      class="bg-slate-800 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">Agotado</span>
-                  </div>
-                </router-link>
+  <div v-if="p.stock <= 0" class="absolute inset-0 z-30 bg-white/60 dark:bg-black/60 backdrop-blur-[2px] rounded-[2rem] flex items-center justify-center">
+    <span
+      class="bg-slate-800 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl">Agotado</span>
+  </div>
+</router-link>
 
                 <div class="flex-1 px-2 space-y-4">
                   <router-link :to="{ name: 'ProductoDetalle', params: { id: crearSlug(p.id, p.nombre) } }"
