@@ -181,7 +181,7 @@
 
 <script setup>
 import Swal from 'sweetalert2';
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from './stores/cartStore';
 import api from '@/api/axios';
@@ -266,10 +266,22 @@ const handleAgendarClick = () => {
 
 // En App.vue
 
+// En tu <script setup>
+
 onMounted(async () => {
   window.addEventListener('scroll', () => isScrolled.value = window.scrollY > 30);
   darkMode.value = localStorage.getItem('ps_theme') === 'dark';
   document.documentElement.classList.toggle('dark', darkMode.value);
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('sesion_expirada')) {
+    addNotify({ 
+      msg: "Tu sesión ha expirado por seguridad. Ingresa nuevamente.", 
+      type: "warning" 
+    });
+    window.history.replaceState({}, document.title, window.location.pathname);
+  
+  }
 
   const saved = localStorage.getItem('ps_session');
   const token = localStorage.getItem('ps_token');
@@ -281,17 +293,17 @@ onMounted(async () => {
     activePet.value = session.pet;
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
+
   if (token) {
     try {
       const { data } = await api.get('/tutores/me'); 
       
       tutorData.value = data;
       availablePets.value = data.mascotas || [];
-      
       if (activePet.value) {
         const sigueExistiendo = availablePets.value.find(p => p.id === activePet.value.id);
         if (!sigueExistiendo) {
-          activePet.value = null; // Si la borraste en localhost, aquí se quita sola
+          activePet.value = null; 
           localStorage.removeItem('ps_active_pet');
         } else {
           activePet.value = sigueExistiendo;
@@ -302,7 +314,7 @@ onMounted(async () => {
 
     } catch (e) {
       console.error("Sesión caducada o error de red", e);
-      if (e.response && e.response.status === 403) {
+      if (e.response && (e.response.status === 403 || e.response.status === 401)) {
         handleLogout();
       }
     }
@@ -474,6 +486,9 @@ const handleUpdateTutor = (tutorActualizado) => {
   
   saveSession();
 };
+onUnmounted(() => {
+  window.removeEventListener('scroll', () => isScrolled.value = window.scrollY > 30);
+});
 </script>
 
 <style scoped>

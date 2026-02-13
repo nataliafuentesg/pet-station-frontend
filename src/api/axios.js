@@ -8,7 +8,7 @@ const api = axios.create({
   }
 });
 
-// 1. INYECTOR DE TOKEN (Igual que antes)
+// 1. INYECTOR DE TOKEN (Esto está bien, lo dejamos igual)
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('ps_token');
   if (token) {
@@ -17,27 +17,27 @@ api.interceptors.request.use(config => {
   return config;
 }, error => Promise.reject(error));
 
-// 2. INTERCEPTOR DE RESPUESTA (MODO SEGURO)
 api.interceptors.response.use(
   response => response,
   error => {
     const status = error.response?.status;
-    
-    // CASO A: Sesión Expirada REAL (401 o 403)
-    // Aquí SÍ sacamos al usuario porque es un tema de permisos
-    if ((status === 401 || status === 403) && !error.config.url.includes('/auth/')) {
-      console.warn('Sesión caducada. Cerrando...');
+    const url = error.config?.url || '';
+    const esErrorCritico = 
+      status === 401 || 
+      status === 403 || 
+      (status === 400 && (url.includes('/tutores/me') || url.includes('/auth/me')));
+
+    if (esErrorCritico && !url.includes('/login')) {
+      console.error('⛔ SESIÓN CORRUPTA O EXPIRADA. CERRANDO SESIÓN...');
+      
       localStorage.removeItem('ps_token');
-      localStorage.removeItem('ps_session');
+      localStorage.removeItem('ps_tutor');     // O como guardes el user
       localStorage.removeItem('ps_active_pet');
+      localStorage.removeItem('ps_session');
       
       if (window.location.pathname !== '/') {
-        window.location.href = '/';
+        window.location.href = '/?sesion_expirada=true';
       }
-    }
-    if (status === 400) {
-      console.warn('Petición mal formada (Error 400). Posiblemente ID inválido o Token dañado.');
-
     }
 
     return Promise.reject(error);
