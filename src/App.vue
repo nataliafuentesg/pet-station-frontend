@@ -264,12 +264,11 @@ const handleAgendarClick = () => {
   router.push('/agendar');
 };
 
-// En App.vue
-
-// En tu <script setup>
-
 onMounted(async () => {
-  window.addEventListener('scroll', () => isScrolled.value = window.scrollY > 30);
+  window.addEventListener('scroll', () => {
+    isScrolled.value = window.scrollY > 30;
+  });
+
   darkMode.value = localStorage.getItem('ps_theme') === 'dark';
   document.documentElement.classList.toggle('dark', darkMode.value);
 
@@ -280,22 +279,33 @@ onMounted(async () => {
       type: "warning" 
     });
     window.history.replaceState({}, document.title, window.location.pathname);
-  
   }
 
   const saved = localStorage.getItem('ps_session');
   const token = localStorage.getItem('ps_token');
   
   if (saved && token) {
-    const session = JSON.parse(saved);
-    tutorData.value = session.tutor;
-    availablePets.value = session.pets || [];
-    activePet.value = session.pet;
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    try {
+      const session = JSON.parse(saved);
+      tutorData.value = session.tutor;
+      availablePets.value = session.pets || [];
+      activePet.value = session.pet;
+      
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } catch (err) {
+      console.warn("Error parseando la sesión guardada:", err);
+    }
   }
 
-  // 5. VALIDAR CON BACKEND
   if (token) {
+    const rol = tutorData.value?.rol || '';
+
+    if (['ROLE_ADMIN', 'ADMIN'].includes(rol)) {
+      console.log("👑 Modo Administrador: Saltando sincronización de perfil de tutor.");
+      loadingSession.value = false;
+      return; 
+    }
+
     try {
       const { data } = await api.get('/tutores/me'); 
       
@@ -311,17 +321,21 @@ onMounted(async () => {
           activePet.value = sigueExistiendo;
         }
       }
-      saveSession();
-      console.log("Sesión sincronizada ☁️");
+      
+      saveSession(); 
+      console.log("Sesión sincronizada con el servidor ☁️");
 
     } catch (e) {
-      console.error("Error validando sesión:", e);
-      if (e.response && e.response.status === 401) {
+      if (e.response && (e.response.status === 401 || e.response.status === 403)) {
+        console.error("Token inválido o expirado. Cerrando sesión.");
         handleLogout();
+      } else if (e.response && e.response.status === 404) {
+        console.warn("Tutor no encontrado en la base de datos.");
+      } else {
+        console.error("Error de conexión con el backend:", e);
       }
     }
   }
-
   loadingSession.value = false;
 });
 
