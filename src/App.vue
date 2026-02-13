@@ -294,12 +294,14 @@ onMounted(async () => {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
 
+  // 5. VALIDAR CON BACKEND
   if (token) {
     try {
       const { data } = await api.get('/tutores/me'); 
       
       tutorData.value = data;
       availablePets.value = data.mascotas || [];
+      
       if (activePet.value) {
         const sigueExistiendo = availablePets.value.find(p => p.id === activePet.value.id);
         if (!sigueExistiendo) {
@@ -310,11 +312,11 @@ onMounted(async () => {
         }
       }
       saveSession();
-      console.log("Sesión sincronizada con la nube ☁️");
+      console.log("Sesión sincronizada ☁️");
 
     } catch (e) {
-      console.error("Sesión caducada o error de red", e);
-      if (e.response && (e.response.status === 403 || e.response.status === 401)) {
+      console.error("Error validando sesión:", e);
+      if (e.response && e.response.status === 401) {
         handleLogout();
       }
     }
