@@ -10,20 +10,23 @@
 
       <div
         class="bg-slate-50 dark:bg-white/5 rounded-[3.5rem] p-10 flex flex-col md:flex-row items-center gap-10 shadow-2xl border border-slate-100 dark:border-white/5">
-        
+
         <div class="relative group cursor-pointer" @click="$refs.fileInput.click()">
           <div :class="['w-44 h-44 rounded-[2.5rem] border-4 overflow-hidden shadow-2xl transform -rotate-3 transition-all duration-500 bg-white flex items-center justify-center relative',
             justSavedPhoto ? 'border-green-500 scale-105 rotate-0' : 'border-ps-blue dark:border-ps-red']">
-            
+
             <img v-if="form.fotoUrl" :src="form.fotoUrl" class="w-full h-full object-cover" />
             <div v-else
               class="w-full h-full bg-ps-blue flex items-center justify-center text-5xl font-black text-white italic">
               {{ form.nombre ? form.nombre.charAt(0) : '?' }}
             </div>
 
-            <div class="absolute bottom-3 right-3 bg-white/20 backdrop-blur-md border border-white/50 p-2 rounded-xl shadow-lg z-20">
-              <svg v-if="!compressing && !savingPhoto" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <div
+              class="absolute bottom-3 right-3 bg-white/20 backdrop-blur-md border border-white/50 p-2 rounded-xl shadow-lg z-20">
+              <svg v-if="!compressing && !savingPhoto" xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
               </svg>
               <div v-else class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             </div>
@@ -31,7 +34,8 @@
 
           <div
             class="absolute inset-0 bg-black/40 rounded-[2.5rem] hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform -rotate-3 group-hover:rotate-0">
-            <span class="text-white text-[8px] font-black uppercase tracking-widest text-center px-4">Cambiar Foto</span>
+            <span class="text-white text-[8px] font-black uppercase tracking-widest text-center px-4">Cambiar
+              Foto</span>
           </div>
           <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileUpload" />
         </div>
@@ -44,7 +48,7 @@
             class="text-5xl md:text-7xl font-black uppercase italic tracking-tighter text-ps-blue dark:text-white leading-none mb-4">
             {{ form.nombre }}</h1>
           <p class="text-slate-400 dark:text-white/40 font-black uppercase text-[10px] tracking-[0.4em]">{{ form.especie
-          }} • {{ form.raza }}</p>
+            }} • {{ form.raza }}</p>
         </div>
       </div>
 
@@ -109,17 +113,16 @@
             <h3 class="text-2xl font-black uppercase italic text-ps-red mb-10 border-b dark:border-white/10 pb-6">Datos
               Personales</h3>
             <form @submit.prevent="saveTutor" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
+
               <div v-for="(label, key) in tutorFields" :key="key" :class="key === 'direccion' ? 'md:col-span-2' : ''"
                 class="flex flex-col gap-2 relative">
-                
+
                 <label class="label-exp flex justify-between">
                   {{ label }}
                   <span v-if="key === 'email'" class="text-[7px] text-ps-red">🔒 NO EDITABLE</span>
                 </label>
 
-                <input v-model="tutorForm[key]" type="text" :readonly="key === 'email'" 
-                  :class="[
+                <input v-model="tutorForm[key]" type="text" :readonly="key === 'email'" :class="[
                   'w-full p-4 rounded-2xl border-2 border-transparent outline-none font-bold text-sm transition-all',
                   (key === 'email')
                     ? 'bg-slate-200 dark:bg-white/5 opacity-50 cursor-not-allowed text-slate-500'
@@ -243,27 +246,27 @@ const orders = ref([]);
 
 // Formulario reactivo para la Mascota
 const form = reactive({
-  nombre: '', 
+  nombre: '',
   especie: 'CANINO', // Valor por defecto seguro 
-  raza: '', 
+  raza: '',
   fechaNacimiento: '',
-  fotoUrl: '', 
-  pesoActual: '', 
-  ultimaVacuna: '', 
+  fotoUrl: '',
+  pesoActual: '',
+  ultimaVacuna: '',
   ultimaDesparasitacion: '',
-  marcaComida: '', 
-  frecuenciaBano: '', 
+  marcaComida: '',
+  frecuenciaBano: '',
   snacksFavoritos: '',
-  alergiasOpcional: '', 
+  alergiasOpcional: '',
   observacionesMedicas: ''
 });
 
 const tutorForm = reactive({
-  nombre: '', 
-  apellido: '', 
-  cedula: '', 
-  telefono: '', 
-  email: '', 
+  nombre: '',
+  apellido: '',
+  cedula: '',
+  telefono: '',
+  email: '',
   direccion: ''
 });
 
@@ -280,11 +283,11 @@ const medicalFields = {
 };
 
 const tutorFields = {
-  nombre: 'Nombre', 
-  apellido: 'Apellido', 
+  nombre: 'Nombre',
+  apellido: 'Apellido',
   cedula: 'Cédula',
-  telefono: 'Teléfono', 
-  email: 'Email', 
+  telefono: 'Teléfono',
+  email: 'Email',
   direccion: 'Dirección'
 };
 
@@ -306,11 +309,11 @@ const formatDate = (dateStr) => {
 const loadAllData = async () => {
   if (!props.pet?.id) return;
   loading.value = true;
-  
+
   try {
     const [resP, resT, resC, resO] = await Promise.all([
       api.get(`/mascotas/${props.pet.id}`),
-      props.tutor?.id ? api.get(`/tutores/${props.tutor.id}`) : Promise.resolve({ data: null }),
+      props.tutor?.id ? api.get(`/tutores/${props.tutor.id}`) : Promise.resolve({ data: {} }),
       api.get(`/citas/mascota/${props.pet.id}`),
       props.tutor?.id ? api.get(`/pedidos/tutor/${props.tutor.id}`) : Promise.resolve({ data: [] })
     ]);
@@ -318,8 +321,8 @@ const loadAllData = async () => {
     if (resP.data) {
       petData.value = resP.data;
       Object.assign(form, resP.data);
-      if(form.especie === 'PERRO') form.especie = 'CANINO';
-      if(form.especie === 'GATO') form.especie = 'FELINO';
+      if (form.especie === 'PERRO') form.especie = 'CANINO';
+      if (form.especie === 'GATO') form.especie = 'FELINO';
     }
     if (resT.data) Object.assign(tutorForm, resT.data);
     appointments.value = resC.data || [];
@@ -330,17 +333,17 @@ const loadAllData = async () => {
 
     if (error.response && error.response.status === 404) {
       emit('notify', { msg: 'Esta mascota ya no existe. Redirigiendo...', type: 'error' });
-      
+
       localStorage.removeItem('ps_active_pet');
       setTimeout(() => {
         router.push('/seleccionar-perfil');
       }, 1500);
-      
+
     } else {
       emit('notify', { msg: 'Error de conexión', type: 'error' });
     }
-  } finally { 
-    loading.value = false; 
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -354,8 +357,8 @@ const saveProfile = async () => {
     emit('notify', { msg: 'Expediente actualizado con éxito', type: 'success' });
   } catch (e) {
     emit('notify', { msg: 'No se pudo guardar el expediente', type: 'error' });
-  } finally { 
-    saving.value = false; 
+  } finally {
+    saving.value = false;
   }
 };
 
@@ -365,24 +368,24 @@ const saveTutor = async () => {
   try {
     // IMPORTANTE: NO enviamos mascotas en el PUT de tutor para evitar recursividad o cargas pesadas
     const { mascotas, ...datosLimpios } = tutorForm;
-    const { data } = await api.put(`/tutores/${props.tutor.id}`, datosLimpios); 
+    const { data } = await api.put(`/tutores/${props.tutor.id}`, datosLimpios);
     Object.assign(tutorForm, data);
     emit('update-tutor', data);
     emit('notify', { msg: 'Datos de contacto guardados', type: 'success' });
   } catch (e) {
     emit('notify', { msg: 'Error al actualizar el perfil', type: 'error' });
-  } finally { 
-    saving.value = false; 
+  } finally {
+    saving.value = false;
   }
 };
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (!file) return;
-  
+
   compressing.value = true;
   const reader = new FileReader();
-  
+
   reader.onload = (e) => {
     const img = new Image();
     img.src = e.target.result;
@@ -393,9 +396,9 @@ const handleFileUpload = (event) => {
       if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
       else { if (h > MAX) { w *= MAX / h; h = MAX; } }
       canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d'); 
+      const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, w, h);
-      
+
       form.fotoUrl = canvas.toDataURL('image/jpeg', 0.7);
       compressing.value = false;
       autoSavePhoto();
@@ -407,17 +410,17 @@ const handleFileUpload = (event) => {
 const autoSavePhoto = async () => {
   savingPhoto.value = true;
   try {
-    const { data } = await api.put(`/mascotas/${props.pet.id}`, { 
-      ...petData.value, 
-      fotoUrl: form.fotoUrl 
+    const { data } = await api.put(`/mascotas/${props.pet.id}`, {
+      ...form,
+      fotoUrl: form.fotoUrl
     });
     emit('update-pet', data);
     justSavedPhoto.value = true;
     setTimeout(() => justSavedPhoto.value = false, 2000);
   } catch (e) {
     emit('notify', { msg: 'Error al subir la imagen', type: 'error' });
-  } finally { 
-    savingPhoto.value = false; 
+  } finally {
+    savingPhoto.value = false;
   }
 };
 

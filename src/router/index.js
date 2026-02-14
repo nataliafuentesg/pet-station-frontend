@@ -101,11 +101,22 @@ const routes = [
     component: () => import('../components/views/CheckoutView.vue'),
     meta: { title: 'Finalizar Compra Segura | Pet Station' }
   },
+  { 
+    path: '/seleccionar-perfil', 
+    component: ProfileSelector,
+    meta: { requiresAuth: true, title: 'Selecciona tu Mascota | Pet Station' }
+  },
+  { 
+    path: '/expediente', 
+    component: PetExpediente,
+    meta: { requiresAuth: true, title: 'Historia Clínica | Pet Station' }
+  },
   {
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: AdminDashboard,
     meta: { 
+      requiresAuth: true, 
       requiresAdmin: true,
       title: 'Panel Administrativo | Pet Station' 
     }
@@ -140,33 +151,21 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   document.title = to.meta.title || 'Pet Station - Veterinaria en Chía';
-  const metaDescription = document.querySelector('meta[name="description"]');
-  if (metaDescription) {
-    metaDescription.setAttribute('content', to.meta.description || 'Clínica veterinaria y Pet Shop en Chía. Servicios médicos, peluquería y viajes internacionales.');
-  } else {
-    const meta = document.createElement('meta');
-    meta.name = 'description';
-    meta.content = to.meta.description || 'Clínica veterinaria y Pet Shop en Chía.';
-    document.head.appendChild(meta);
-  }
+  const token = localStorage.getItem('ps_token');
   const sessionStr = localStorage.getItem('ps_session');
-  if (!sessionStr) {
-    return to.meta.requiresAdmin ? next('/') : next();
+  const session = sessionStr ? JSON.parse(sessionStr) : null;
+  const userRol = session?.tutor?.rol || session?.rol;
+
+  if (to.meta.requiresAuth && !token) {
+    return next({ path: '/', query: { login_required: 'true' } });
   }
 
-  const session = JSON.parse(sessionStr);
-  const userRol = session.tutor?.rol || session.rol;
-
-  if (to.meta.requiresAdmin) {
-    if (userRol === 'ROLE_ADMIN' || userRol === 'ADMIN') {
-      next();
-    } else {
-      console.error("ACCESO PROHIBIDO: Rol insuficiente.");
-      next('/');
-    }
-  } else {
-    next();
+  if (to.meta.requiresAdmin && (userRol !== 'ROLE_ADMIN' && userRol !== 'ADMIN')) {
+    console.error("ACCESO PROHIBIDO: Rol insuficiente.");
+    return next('/');
   }
+
+  next();
 });
 
 export default router
