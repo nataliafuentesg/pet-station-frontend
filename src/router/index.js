@@ -168,4 +168,14 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
+router.afterEach((to) => {
+  if (window.dataLayer) {
+    window.dataLayer.push({
+      event: 'pageview',
+      pagePath: to.fullPath,
+      pageTitle: to.meta.title || document.title
+    });
+  }
+});
+
 export default router

@@ -188,6 +188,15 @@ const handleSubmit = async () => {
 
   try {
     await api.post('/citas/agendar', form);
+    if (window.dataLayer) {
+      window.dataLayer.push({
+        event: 'conversion_cita',
+        servicio_tipo: form.servicioTipo,
+        mascota_especie: form.especie,
+        tutor_nombre: form.nombreTutor,
+        metodo: props.tutor ? 'usuario_registrado' : 'usuario_nuevo'
+      });
+    }
     emit('notify', { msg: '¡ÉXITO! TU CITA HA SIDO AGENDADA.', type: 'success' });
     setTimeout(() => {
       loading.value = false;
