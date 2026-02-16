@@ -1,6 +1,15 @@
 <script setup>
 import { ref, computed } from 'vue';
 
+const trackWhatsApp = (posicion) => {
+  if (window.dataLayer) {
+    window.dataLayer.push({
+      event: 'contacto_whatsapp',
+      posicion: posicion
+    });
+  }
+};
+
 const destinos = [
   { 
     nombre: 'ESTADOS UNIDOS', 
@@ -269,7 +278,7 @@ const whatsappLink = computed(() => {
               </p>
             </div>
             
-            <a :href="whatsappLink" target="_blank" 
+            <a :href="whatsappLink" @click="trackWhatsApp('viajes_asesoria_footer')" target="_blank" 
                class="relative z-10 w-full md:w-auto bg-white text-[#DE1F27] px-12 py-5 rounded-2xl font-[1000] uppercase text-[11px] tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3">
               <span>💬</span> Agendar Asesoría
             </a>

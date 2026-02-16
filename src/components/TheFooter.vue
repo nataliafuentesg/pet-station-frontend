@@ -23,13 +23,13 @@
         <div class="space-y-6">
           <h4 class="text-[#DE1F27] font-black uppercase text-xs tracking-widest italic">WhatsApp Business</h4>
           <div class="space-y-5">
-            <a href="https://wa.me/573053462413" target="_blank" class="group block">
-              <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Citas y Urgencias</p>
+            <a href="https://wa.me/573053462413" @click="trackWhatsApp('footer_petshop')" target="_blank" class="group block">
+              <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Pet Shop - Domicilios</p>
               <p class="text-xl font-[1000] text-[#152C77] dark:text-white group-hover:text-[#DE1F27] transition-colors tracking-tighter italic leading-none">
                 305 346 2413
               </p>
             </a>
-            <a href="https://wa.me/573187076798" target="_blank" class="group block border-t border-slate-200 dark:border-white/5 pt-4">
+            <a href="https://wa.me/573187076798" @click="trackWhatsApp('footer_seguimiento')" target="_blank" class="group block border-t border-slate-200 dark:border-white/5 pt-4">
               <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Seguimiento Médico</p>
               <p class="text-xl font-[1000] text-[#152C77] dark:text-white group-hover:text-[#DE1F27] transition-colors tracking-tighter italic leading-none">
                 318 707 6798
@@ -107,10 +107,18 @@
 <script setup>
 const socials = [
   { name: 'Instagram', icon: 'fab fa-instagram', link: 'https://instagram.com/petstationvet' },
-  { name: 'TikTok', icon: 'fab fa-tiktok', link: '#' },
-  { name: 'Facebook', icon: 'fab fa-facebook-f', link: '#' },
-  { name: 'YouTube', icon: 'fab fa-youtube', link: '#' }
+  { name: 'TikTok', icon: 'fab fa-tiktok', link: 'https://www.tiktok.com/@petstationvet' },
+  { name: 'Facebook', icon: 'fab fa-facebook-f', link: 'https://www.facebook.com/petstationveterinary' },
+  { name: 'YouTube', icon: 'fab fa-youtube', link: 'https://www.youtube.com/@petstationvet' }
 ];
+const trackWhatsApp = (posicion) => {
+  if (window.dataLayer) {
+    window.dataLayer.push({
+      event: 'contacto_whatsapp',
+      posicion: posicion
+    });
+  }
+};
 </script>
 
 <style scoped>

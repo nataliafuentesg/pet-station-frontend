@@ -1,6 +1,6 @@
 <template>
   <a 
-    href="https://wa.me/573053462413?text=Hola%20Pet%20Station!"
+    href="https://wa.me/573053462413?text=Hola%20Pet%20Station!" @click="trackWhatsApp('flotante')"
     target="_blank"
     class="fixed z-[4500] flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-xl"
     :class="[
@@ -18,3 +18,14 @@
     </svg>
   </a>
 </template>
+
+<script>
+const trackWhatsApp = (ubicacion) => {
+  if (window.dataLayer) {
+    window.dataLayer.push({
+      event: 'contacto_whatsapp',
+      posicion: ubicacion // Ejemplo: 'header', 'footer' o 'flotante'
+    });
+  }
+};
+</script>
