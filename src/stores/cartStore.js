@@ -16,15 +16,47 @@ export const useCartStore = defineStore('cart', {
       } else {
         this.items.push({ ...product, quantity });
       }
+      if (window.dataLayer) {
+        window.dataLayer.push({
+          event: 'add_to_cart',
+          ecommerce: {
+            currency: 'COP',
+            value: product.precio * quantity,
+            items: [{
+              item_id: product.id,
+              item_name: product.nombre,
+              item_brand: product.marca,
+              item_category: product.categoria,
+              price: product.precio,
+              quantity: quantity
+            }]
+          }
+        });
+      }
     },
     removeItem(id) {
+      if (window.dataLayer && itemToRemove) {
+        window.dataLayer.push({
+          event: 'remove_from_cart',
+          ecommerce: {
+            currency: 'COP',
+            value: itemToRemove.precio * itemToRemove.quantity,
+            items: [{
+              item_id: itemToRemove.id,
+              item_name: itemToRemove.nombre,
+              price: itemToRemove.precio,
+              quantity: itemToRemove.quantity
+            }]
+          }
+        });
+      }
       this.items = this.items.filter(i => i.id !== id);
     },
     updateQty(id, newQty) {
       const item = this.items.find(i => i.id === id);
       if (item) {
         item.quantity = Math.max(1, newQty);
-        if (item.quantity > item.stock) item.quantity = item.stock; // Opcional: Validar contra stock
+        if (item.quantity > item.stock) item.quantity = item.stock; 
       }
     },
     clearCart() {

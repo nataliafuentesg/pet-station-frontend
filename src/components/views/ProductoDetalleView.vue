@@ -298,7 +298,23 @@ const fetchData = async (id) => {
     isExpanded.value = false;
     currentImage.value = null;
 
-    // --- LLAMADA AL SEO ---
+if (window.dataLayer) {
+      window.dataLayer.push({
+        event: 'view_item',
+        ecommerce: {
+          currency: 'COP',
+          value: data.precio,
+          items: [{
+            item_id: data.id,
+            item_name: data.nombre,
+            item_brand: data.marca,
+            item_category: data.categoria,
+            price: data.precio,
+            quantity: 1
+          }]
+        }
+      });
+    }
     actualizarSEO(data);
 
     if (productStore.allProducts.length === 0) await productStore.fetchTienda();

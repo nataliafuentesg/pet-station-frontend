@@ -163,6 +163,21 @@ const isFormValid = computed(() =>
 
 const goToStep2 = () => {
   prefillForm();
+  if (window.dataLayer) {
+    window.dataLayer.push({
+      event: 'begin_checkout',
+      ecommerce: {
+        currency: 'COP',
+        value: cartStore.totalPrice,
+        items: cartStore.items.map(item => ({
+          item_id: item.id,
+          item_name: item.nombre,
+          price: item.precio,
+          quantity: item.quantity
+        }))
+      }
+    });
+  }
   step.value = 2;
 };
 
@@ -190,6 +205,24 @@ const handleFinalizeOrder = async () => {
 
   try {
     const pedidoGuardado = await pedidoStore.crearPedido(payload);
+    if (window.dataLayer) {
+      window.dataLayer.push({
+        event: 'purchase',
+        ecommerce: {
+          transaction_id: pedidoGuardado.id, 
+          value: cartStore.totalPrice,       
+          currency: 'COP',
+          items: cartStore.items.map(item => ({
+            item_id: item.id,
+            item_name: item.nombre,
+            item_brand: item.marca,
+            item_category: item.categoria,
+            price: item.precio,
+            quantity: item.quantity
+          }))
+        }
+      });
+    }
     emit('notify', { msg: "¡Pedido #" + pedidoGuardado.id + " exitoso!", type: 'success' });
     sendWhatsApp(pedidoGuardado.id);
     cartStore.clearCart();
