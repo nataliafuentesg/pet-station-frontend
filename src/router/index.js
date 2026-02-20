@@ -138,6 +138,10 @@ const routes = [
     name: 'Terms',
     component: TermsView,
     meta: { title: 'Términos y Condiciones | Pet Station' }
+  },
+  { 
+    path: '/:pathMatch(.*)*', 
+    redirect: '/' 
   }
 ]
 
