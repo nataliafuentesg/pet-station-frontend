@@ -60,24 +60,18 @@
           </template>
 
           <template v-else>
-            <div
-              class="flex items-center gap-2 bg-slate-100 dark:bg-white/10 p-1 md:pr-4 rounded-full border border-slate-200 dark:border-white/10">
+            <div class="flex items-center gap-2 bg-slate-100 dark:bg-white/10 p-1 md:pr-4 rounded-full border border-slate-200 dark:border-white/10">
               <router-link to="/seleccionar-perfil" class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded-full border-2 border-ps-red overflow-hidden bg-white shrink-0">
                   <img v-if="activePet?.fotoUrl" :src="activePet.fotoUrl" class="w-full h-full object-cover" />
-                  <div v-else
-                    class="w-full h-full flex items-center justify-center bg-ps-blue text-white text-[10px] font-black uppercase">
+                  <div v-else class="w-full h-full flex items-center justify-center bg-ps-blue text-white text-[10px] font-black uppercase">
                     {{ activePet ? activePet.nombre.charAt(0) : '?' }}</div>
                 </div>
-                <span class="hidden sm:block text-[10px] font-black uppercase italic">{{ activePet?.nombre || 'Elegir'
-                }}</span>
+                <span class="hidden sm:block text-[10px] font-black uppercase italic">{{ activePet?.nombre || 'Elegir' }}</span>
               </router-link>
-              <button @click="handleLogout"
-                class="p-1.5 text-slate-400 hover:text-ps-red transition-all cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                    d="M17 16l4-4m0 0l-4-4m4 4H7" />
+              <button @click="handleLogout" class="p-1.5 text-slate-400 hover:text-ps-red transition-all cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7" />
                 </svg>
               </button>
             </div>
@@ -103,13 +97,14 @@
         <span class="text-[8px] font-black uppercase tracking-widest">Tienda</span>
       </router-link>
 
-      <div class="flex-1 flex justify-center">
+      <div class="flex-1 flex flex-col items-center justify-end">
         <button @click="handleAgendarClick"
-          class="relative -top-6 bg-ps-red text-white p-4 rounded-2xl shadow-xl active:scale-90 transition-transform">
+          class="relative -top-3 bg-ps-red text-white p-4 rounded-[1.2rem] shadow-xl active:scale-90 transition-transform mb-1 border-4 border-white dark:border-[#050505]">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path d="M12 4v16m8-8H4" stroke-width="3" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         </button>
+        <span class="text-[8px] font-black uppercase tracking-widest text-[#152C77] dark:text-white mt-1">Citas</span>
       </div>
 
       <a href="https://wa.me/573053462413" target="_blank"
@@ -132,35 +127,32 @@
         <span class="text-[8px] font-black uppercase tracking-widest text-[#DE1F27]">Entrar</span>
       </div>
 
-      <router-link v-else to="/seleccionar-perfil"
-        class="flex-1 flex flex-col items-center gap-1 text-slate-400 dark:text-white/40">
+      <div v-else @click="router.push(activePet ? '/expediente' : '/seleccionar-perfil')"
+        class="flex-1 flex flex-col items-center gap-1 text-slate-400 dark:text-white/40 cursor-pointer">
         <div class="w-6 h-6 rounded-full overflow-hidden border border-ps-blue dark:border-white">
           <img v-if="activePet?.fotoUrl" :src="activePet.fotoUrl" class="w-full h-full object-cover" />
-          <div v-else
-            class="w-full h-full bg-ps-blue text-white flex items-center justify-center text-[8px] font-black">{{
-              activePet?.nombre?.charAt(0) || 'U' }}</div>
+          <div v-else class="w-full h-full bg-ps-blue text-white flex items-center justify-center text-[8px] font-black">{{ activePet?.nombre?.charAt(0) || 'U' }}</div>
         </div>
         <span class="text-[8px] font-black uppercase tracking-widest text-ps-blue dark:text-white">Perfil</span>
-      </router-link>
+      </div>
 
     </div>
 
     <main class="w-full pt-24 md:pt-0 pb-24 md:pb-0">
       <router-view 
-    :key="availablePets.length" 
-    v-if="!loadingSession" 
-    
-    :tutor="tutorData" 
-    :pet="activePet" 
-    :availablePets="availablePets" 
-    
-    @selected="handlePetSelection" 
-    @notify="addNotify" 
-    @create-new="isOnboardingOpen = true" 
-    @login-success="handleLoginSuccess" 
-    
-    @delete-pet="handleDeletePet" 
-    @update-pet="handleUpdatePet"     @update-tutor="handleUpdateTutor" />
+        :key="availablePets.length" 
+        v-if="!loadingSession" 
+        :tutor="tutorData" 
+        :pet="activePet" 
+        :availablePets="availablePets" 
+        @selected="handlePetSelection" 
+        @notify="addNotify" 
+        @create-new="isOnboardingOpen = true" 
+        @login-success="handleLoginSuccess" 
+        @delete-pet="handleDeletePet" 
+        @update-pet="handleUpdatePet" 
+        @update-tutor="handleUpdateTutor" 
+      />
     </main>
 
     <TheFooter :tutor="tutorData" />
@@ -218,23 +210,37 @@ const addNotify = (n) => {
   setTimeout(() => notifications.value = notifications.value.filter(x => x.id !== id), 4000);
 };
 
+// --- LOGICA DE LOGIN MEJORADA ---
 const handleLoginSuccess = async (data) => {
   const tutor = data.id ? data : data.tutor;
   const token = data.token || localStorage.getItem('ps_token');
   const esNuevo = data.esNuevoDeGoogle || false;
+  
   localStorage.setItem('ps_token', token);
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  
   tutorData.value = tutor;
   availablePets.value = tutor.mascotas || [];
+  
+  // Si tiene mascotas pero no hay ninguna activa, activamos la última por defecto
+  if (availablePets.value.length > 0 && !activePet.value) {
+    activePet.value = availablePets.value[availablePets.value.length - 1];
+    localStorage.setItem('ps_active_pet', JSON.stringify(activePet.value));
+  }
+
   saveSession();
   isLoginOpen.value = false;
+  
   await nextTick();
+  
+  // Flujo de redirección inteligente
   if (tutor.rol === 'ROLE_ADMIN' || tutor.rol === 'ADMIN') {
     router.push('/admin/dashboard');
   } else if (esNuevo || availablePets.value.length === 0) {
     isOnboardingOpen.value = true;
   } else {
-    router.push('/seleccionar-perfil');
+    // 🚀 LLEVAMOS AL EXPEDIENTE DIRECTAMENTE EN LUGAR DE SELECCIONAR PERFIL
+    router.push('/expediente');
   }
 };
 
