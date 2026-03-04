@@ -45,10 +45,16 @@
             Variante Chía - Cota<br/>
             Chía, Cundinamarca.
           </p>
-          <div class="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 aspect-video shadow-xl">
+          <div class="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 aspect-video shadow-xl relative">
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3975.362624424367!2d-74.06649882415162!3d4.879109340078235!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3f878dcfabd971%3A0x92d69ccf679f1700!2sPet%20Station%20Veterinaria!5e0!3m2!1ses!2sco!4v1700000000000!5m2!1ses!2sco" 
-              width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+              src="https://maps.google.com/maps?q=Pet%20Station%20Chia%20Cundinamarca&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+              width="100%" 
+              height="100%" 
+              style="border:0;" 
+              allowfullscreen="" 
+              loading="lazy" 
+              referrerpolicy="no-referrer-when-downgrade"
+              class="absolute inset-0 w-full h-full">
             </iframe>
           </div>
         </div>
@@ -111,6 +117,7 @@ const socials = [
   { name: 'Facebook', icon: 'fab fa-facebook-f', link: 'https://www.facebook.com/petstationveterinary' },
   { name: 'YouTube', icon: 'fab fa-youtube', link: 'https://www.youtube.com/@petstationvet' }
 ];
+
 const trackWhatsApp = (posicion) => {
   if (window.dataLayer) {
     window.dataLayer.push({
