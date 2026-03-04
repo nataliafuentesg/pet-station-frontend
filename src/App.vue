@@ -14,7 +14,7 @@
       </TransitionGroup>
     </div>
 
-    <nav
+    <nav v-if="!isAdminRoute"
       :class="['fixed top-0 w-full z-[100] transition-all px-4 md:px-12', isScrolled ? 'bg-white/95 dark:bg-black/90 border-b border-slate-200 dark:border-white/10 py-3 shadow-xl' : 'bg-transparent py-5']">
       <div class="max-w-[1800px] mx-auto flex items-center justify-between">
 
@@ -73,7 +73,7 @@
       </div>
     </nav>
 
-    <div class="lg:hidden fixed bottom-0 w-full bg-white/95 dark:bg-[#050505]/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 z-[1000] px-2 pb-8 pt-3 flex items-end shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+    <div v-if="!isAdminRoute" class="lg:hidden fixed bottom-0 w-full bg-white/95 dark:bg-[#050505]/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 z-[1000] px-2 pb-8 pt-3 flex items-end shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
 
       <router-link to="/" class="flex-1 flex flex-col items-center gap-1 text-slate-400 dark:text-white/40">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3" stroke-width="2" /></svg>
@@ -244,9 +244,9 @@
       />
     </main>
 
-    <TheFooter :tutor="tutorData" />
+    <TheFooter v-if="!isAdminRoute" :tutor="tutorData" />
     
-    <WhatsappButton class="hidden lg:flex" />
+    <WhatsappButton v-if="!isAdminRoute" class="hidden lg:flex" />
     
     <CartDrawer :is-open="isCartOpen" :tutor="tutorData" @close="isCartOpen = false" />
 
@@ -273,6 +273,10 @@ import PetOnboarding from './components/auth/PetOnboarding.vue';
 import CartDrawer from './components/cart/CartDrawer.vue';
 import TheFooter from './components/TheFooter.vue';
 import WhatsappButton from './components/shared/WhatsappButton.vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute(); // 2. Declara esto
+const isAdminRoute = computed(() => route.path.startsWith('/admin'));
 
 const router = useRouter();
 const cartStore = useCartStore();
