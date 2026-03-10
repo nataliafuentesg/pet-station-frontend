@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col justify-center items-center bg-white dark:bg-[#050505] px-6 pt-24 md:pt-0 transition-colors duration-500 overflow-x-hidden relative">
+  <div class="min-h-[calc(100dvh-12rem)] md:min-h-screen flex flex-col justify-center items-center bg-white dark:bg-[#050505] px-6 py-4 md:py-12 transition-colors duration-500 overflow-x-hidden relative w-full">
     
     <div class="w-full max-w-[400px] bg-slate-50 dark:bg-[#0A0A0A] rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden relative z-[10]">
       
@@ -62,7 +62,7 @@
               <li><strong>Precios variables:</strong> El valor base del servicio se cotiza dependiendo del estado del manto, presencia de nudos, largo del pelo y frecuencia de baño previa.</li>
               <li><strong>Para Gatos:</strong> El servicio en felinos es <strong>únicamente de baño</strong>. No realizamos cortes de pelo en gatitos.</li>
               <li><strong>Bienestar Primero:</strong> La mascota debe estar acostumbrada al proceso de peluquería. Si presenta niveles altos de estrés o agresividad, no se realizará el servicio para garantizar su integridad y bienestar.</li>
-              <li>Sujeto a disponibilidad de agenda.</li>
+              <li>Sujeto a disponibilidad de agenda. Se exigirá carné de vacunas al día.</li>
             </ul>
           </div>
 
@@ -107,7 +107,6 @@ import { ref, watch } from 'vue';
 const showTermsModal = ref(false);
 const acceptedTerms = ref(false);
 
-// Si cerramos el modal y lo volvemos a abrir, el checkbox se desmarca para mayor seguridad
 watch(showTermsModal, (newVal) => {
   if (!newVal) {
     setTimeout(() => {
