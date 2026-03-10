@@ -227,22 +227,28 @@
       </div>
     </Transition>
 
-    <main class="w-full pt-24 md:pt-0 pb-24 md:pb-0">
-      <router-view 
-        :key="availablePets.length" 
-        v-if="!loadingSession" 
-        :tutor="tutorData" 
-        :pet="activePet" 
-        :availablePets="availablePets" 
-        @selected="handlePetSelection" 
-        @notify="addNotify" 
-        @create-new="isOnboardingOpen = true" 
-        @login-success="handleLoginSuccess" 
-        @delete-pet="handleDeletePet" 
-        @update-pet="handleUpdatePet" 
-        @update-tutor="handleUpdateTutor" 
-      />
-    </main>
+    <main class="w-full pt-24 md:pt-0 pb-24 md:pb-0 relative min-h-[60vh]">
+  
+  <div v-if="loadingSession" class="absolute inset-0 flex flex-col items-center justify-center opacity-50">
+    <div class="w-10 h-10 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mb-4 shadow-xl"></div>
+    <p class="text-[9px] font-black uppercase tracking-widest text-[#152C77] dark:text-white animate-pulse italic">Cargando...</p>
+  </div>
+
+  <router-view 
+    v-else
+    :key="availablePets.length" 
+    :tutor="tutorData" 
+    :pet="activePet" 
+    :availablePets="availablePets" 
+    @selected="handlePetSelection" 
+    @notify="addNotify" 
+    @create-new="isOnboardingOpen = true" 
+    @login-success="handleLoginSuccess" 
+    @delete-pet="handleDeletePet" 
+    @update-pet="handleUpdatePet" 
+    @update-tutor="handleUpdateTutor" 
+  />
+</main>
 
     <TheFooter v-if="!isAdminRoute" :tutor="tutorData" />
     
