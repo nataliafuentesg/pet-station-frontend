@@ -139,6 +139,11 @@ const routes = [
     component: TermsView,
     meta: { title: 'Términos y Condiciones | Pet Station' }
   },
+  {
+  path: '/promo-gaita',
+  name: 'GaitaPromo',
+  component: () => import('../components/views/GaitaPromo.vue')
+},
   { 
     path: '/:pathMatch(.*)*', 
     redirect: '/' 
