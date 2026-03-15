@@ -25,7 +25,12 @@
               </div>
             </div>
             <button @click="closeAndReset"
-              class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">✕</button>
+              class="w-11 h-11 flex items-center justify-center rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white hover:bg-[#DE1F27] hover:text-white dark:hover:bg-[#DE1F27] transition-all duration-300 shadow-sm active:scale-95 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
           <div class="flex-grow p-6 overflow-y-auto no-scrollbar bg-white dark:bg-[#080808]">
@@ -127,7 +132,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue';
-import { useCartStore } from '../../stores/cartStore'; 
+import { useCartStore } from '../../stores/cartStore';
 import { usePedidoStore } from '../../stores/usePedidoStore';
 
 const props = defineProps(['isOpen', 'tutor']);
@@ -153,11 +158,11 @@ const prefillForm = () => {
     form.telefono = props.tutor.telefono || '';
     form.email = props.tutor.email || '';
     form.direccion = props.tutor.direccion || '';
-    form.zona = props.tutor.zona || ''; 
+    form.zona = props.tutor.zona || '';
   }
 };
 
-const isFormValid = computed(() => 
+const isFormValid = computed(() =>
   form.nombre && form.telefono && form.email && form.direccion && form.zona
 );
 
@@ -209,8 +214,8 @@ const handleFinalizeOrder = async () => {
       window.dataLayer.push({
         event: 'purchase',
         ecommerce: {
-          transaction_id: pedidoGuardado.id, 
-          value: cartStore.totalPrice,       
+          transaction_id: pedidoGuardado.id,
+          value: cartStore.totalPrice,
           currency: 'COP',
           items: cartStore.items.map(item => ({
             item_id: item.id,
