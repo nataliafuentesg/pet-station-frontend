@@ -40,8 +40,8 @@
         <div class="w-full text-left bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/5">
           <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-slate-300 mb-2 italic">Resumen del beneficio:</p>
           <ul class="text-[8px] text-slate-500 dark:text-slate-400 list-disc pl-4 space-y-1.5 leading-relaxed font-bold">
-            <li><strong>20% dto.</strong> (1 mascota) o <strong>30% dto.</strong> (2 o más).</li>
-            <li>Válido para <strong>todos los clientes</strong> (1 vez por mascota).</li>
+            <li><strong>20% dto.</strong> (1ra mascota) y <strong>30% dto.</strong> (2da mascota). Máx 2.</li>
+            <li>Válido para <strong>todos los clientes</strong> (1 vez).</li>
             <li :class="{'text-[#DE1F27]': isExpired}">Válido hasta el <strong>15 de Abril de 2026</strong>.</li>
           </ul>
         </div>
@@ -54,7 +54,7 @@
         <div class="bg-white dark:bg-[#0A0A0A] w-full max-w-[450px] rounded-[2rem] p-6 md:p-8 shadow-2xl border border-slate-200 dark:border-white/10 flex flex-col max-h-[90vh]">
           
           <div class="flex justify-between items-center mb-4 shrink-0">
-            <h3 class="text-xl font-[1000] uppercase italic text-[#152C77] dark:text-white">Condiciones de tu Beneficio 🐾</h3>
+            <h3 class="text-xl font-[1000] uppercase italic text-[#152C77] dark:text-white">Condiciones del beneficio</h3>
             <button @click="showTermsModal = false" class="text-3xl text-slate-400 hover:text-[#DE1F27] leading-none">&times;</button>
           </div>
 
@@ -62,8 +62,8 @@
           
           <div class="overflow-y-auto custom-scrollbar pr-2 mb-6">
             <ul class="text-[11px] text-slate-600 dark:text-slate-300 list-disc pl-4 space-y-3 font-medium">
-              <li>Recibe un <strong>20% de descuento</strong> si traes una (1) mascota, o un <strong>30% de descuento</strong> si traes dos (2) o más mascotas juntas.</li>
-              <li>Válido para <strong>todos los clientes</strong> (nuevos y actuales), redimible por una (1) sola vez por mascota.</li>
+              <li>Recibe un <strong>20% de descuento</strong> en la primera mascota y un <strong>30% de descuento</strong> en la segunda. Válido para un máximo de dos (2) mascotas por familia.</li>
+              <li>Válido para <strong>todos los clientes</strong> (nuevos y actuales), redimible por una (1) sola vez.</li>
               <li>Promoción válida únicamente hasta el <strong>15 de Abril de 2026</strong>.</li>
               <li><strong>Precios variables:</strong> El valor base del servicio se cotiza dependiendo del estado del manto, presencia de nudos, largo del pelo y frecuencia de baño previa.</li>
               <li><strong>Para Gatos:</strong> El servicio en felinos es <strong>únicamente de baño</strong>. No realizamos cortes de pelo en gatitos.</li>
@@ -130,7 +130,7 @@ const aceptarYRedimir = () => {
   showTermsModal.value = false;
 
   const phone = "573208221778"; 
-  const msg = encodeURIComponent("¡Hola Pet Station! 🐾 Soy de la comunidad de @lagaita. Ya leí las condiciones y quiero usar mi código GAITAPETS para aprovechar mi descuento del 20% o 30%.");
+  const msg = encodeURIComponent("¡Hola Pet Station! 🐾 Soy de la comunidad de @lagaita. Ya leí las condiciones y quiero usar mi código GAITAPETS para agendar y aprovechar mi beneficio.");
   
   if (window.dataLayer) {
     window.dataLayer.push({ event: 'promo_lagaita_aceptada' });
