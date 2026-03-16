@@ -82,7 +82,7 @@ const routes = [
     component: TiendaView,
     meta: {
       title: 'Pet Shop Online Chía - Alimento Premium y Farmacia | Pet Station',
-      description: 'Tienda de mascotas con domicilio en Chía. Encuentra Royal Canin, Pro Plan, Bravecto y farmacia veterinaria especializada.'
+      description: 'Tienda de mascotas con domicilio en Chía. Encuentra Royal Canin, Bravecto y farmacia veterinaria especializada.'
     }
   },
   {
@@ -142,7 +142,11 @@ const routes = [
   {
   path: '/promo-gaita',
   name: 'GaitaPromo',
-  component: () => import('../components/views/GaitaPromo.vue')
+  component: () => import('../components/views/GaitaPromo.vue'),
+  meta: {
+        title: '¡Beneficio Exclusivo @LaGaita! 🐾 | Pet Station',
+        description: 'Recibe un 20% o 30% de descuento en grooming para tus peluditos. ¡Agenda tu primera visita hoy!',
+      },
 },
   { 
     path: '/:pathMatch(.*)*', 
