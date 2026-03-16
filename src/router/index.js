@@ -141,6 +141,7 @@ const routes = [
   },
   {
   path: '/promo-gaita',
+  alias: '/promo-gaita/',
   name: 'GaitaPromo',
   component: () => import('../components/views/GaitaPromo.vue'),
   meta: {
