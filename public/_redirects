@@ -1,1 +1,5 @@
+# Proxy del sitemap dinámico al backend
+/sitemap.xml https://api.petstationvet.com/sitemap.xml 200
+
+# SPA fallback — debe ir SIEMPRE AL FINAL
 /* /index.html 200

@@ -59,17 +59,17 @@ const routes = [
       description: 'El mejor cuidado para tu perro mientras no estás. Zonas verdes, recreación dirigida y supervisión veterinaria constante.'
     }
   },
-  { 
-    path: '/seleccionar-perfil', 
+  {
+    path: '/seleccionar-perfil',
     component: ProfileSelector,
-    meta: { title: 'Selecciona tu Mascota | Pet Station' }
+    meta: { requiresAuth: true, title: 'Selecciona tu Mascota | Pet Station' }
   },
-  { 
-    path: '/expediente', 
+  {
+    path: '/expediente',
     component: PetExpediente,
-    meta: { title: 'Historia Clínica y Expediente Digital | Pet Station' }
+    meta: { requiresAuth: true, title: 'Historia Clínica y Expediente Digital | Pet Station' }
   },
-  { 
+  {
     path: '/agendar', 
     component: AgendarCita,
     meta: {
@@ -100,16 +100,6 @@ const routes = [
     name: 'Checkout',
     component: () => import('../components/views/CheckoutView.vue'),
     meta: { title: 'Finalizar Compra Segura | Pet Station' }
-  },
-  { 
-    path: '/seleccionar-perfil', 
-    component: ProfileSelector,
-    meta: { requiresAuth: true, title: 'Selecciona tu Mascota | Pet Station' }
-  },
-  { 
-    path: '/expediente', 
-    component: PetExpediente,
-    meta: { requiresAuth: true, title: 'Historia Clínica | Pet Station' }
   },
   {
     path: '/admin/dashboard',
@@ -164,7 +154,36 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  document.title = to.meta.title || 'Pet Station - Veterinaria en Chía';
+  const title = to.meta.title || 'Pet Station - Veterinaria en Chía';
+  const description = to.meta.description || 'La mejor clínica veterinaria y tienda de mascotas en Chía. Especialistas en medicina interna, cirugía, peluquería, farmacia y trámites de viaje internacional.';
+
+  document.title = title;
+
+  // Meta description
+  let metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute('content', description);
+
+  // OG tags
+  let ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) ogTitle.setAttribute('content', title);
+
+  let ogDesc = document.querySelector('meta[property="og:description"]');
+  if (ogDesc) ogDesc.setAttribute('content', description);
+
+  let ogUrl = document.querySelector('meta[property="og:url"]');
+  if (ogUrl) ogUrl.setAttribute('content', 'https://petstationvet.com' + to.path);
+
+  // Twitter Cards
+  let twTitle = document.querySelector('meta[name="twitter:title"]');
+  if (twTitle) twTitle.setAttribute('content', title);
+
+  let twDesc = document.querySelector('meta[name="twitter:description"]');
+  if (twDesc) twDesc.setAttribute('content', description);
+
+  // Canonical
+  let canonical = document.querySelector('link[rel="canonical"]');
+  if (canonical) canonical.setAttribute('href', 'https://petstationvet.com' + to.path);
+
   const token = localStorage.getItem('ps_token');
   const sessionStr = localStorage.getItem('ps_session');
   const session = sessionStr ? JSON.parse(sessionStr) : null;

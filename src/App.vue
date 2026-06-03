@@ -335,9 +335,11 @@ import CartDrawer from './components/cart/CartDrawer.vue';
 import TheFooter from './components/TheFooter.vue';
 import WhatsappButton from './components/shared/WhatsappButton.vue';
 import { useRoute } from 'vue-router';
+import { useTracking } from '@/composables/useTracking';
 
 
-const route = useRoute(); // 2. Declara esto
+const { trackLogin, trackRegistro } = useTracking();
+const route = useRoute();
 const isAdminRoute = computed(() => route.path.startsWith('/admin'));
 const isPromoRoute = computed(() => route.path.toLowerCase().includes('gaita'));
 
@@ -422,6 +424,8 @@ const handleLoginSuccess = async (data) => {
   const token = data.token || localStorage.getItem('ps_token');
   const esNuevo = data.esNuevoDeGoogle || false;
 
+  trackLogin(data.esNuevoDeGoogle ? 'google' : 'email');
+
   localStorage.setItem('ps_token', token);
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
@@ -460,13 +464,25 @@ const saveSession = () => {
   }));
 };
 
-const handleLogout = () => {
+// Agregamos un parámetro para saber si fue un cierre manual o por expiración
+const handleLogout = (isExpired = false) => {
   localStorage.removeItem('ps_session');
   localStorage.removeItem('ps_token');
   localStorage.removeItem('ps_active_pet');
-  tutorData.value = null; activePet.value = null; availablePets.value = [];
+  tutorData.value = null; 
+  activePet.value = null; 
+  availablePets.value = [];
   delete api.defaults.headers.common['Authorization'];
-  router.push('/');
+
+  if (isExpired) {
+    addNotify({ msg: "Tu sesión ha expirado por inactividad. Inicia sesión para continuar.", type: "warning" });
+    if (route.path.startsWith('/expediente') || route.path.startsWith('/admin') || route.path.startsWith('/seleccionar-perfil')) {
+      router.push('/');
+      isLoginOpen.value = true; 
+    }
+  } else {
+    router.push('/');
+  }
 };
 
 const handleAgendarClick = () => {
@@ -525,7 +541,9 @@ onMounted(async () => {
       }
       saveSession();
     } catch (e) {
-      if (e.response && (e.response.status === 401 || e.response.status === 403)) handleLogout();
+      if (e.response && (e.response.status === 401 || e.response.status === 403)) {
+        handleLogout(true); 
+      }
     }
   }
   loadingSession.value = false;
@@ -533,6 +551,7 @@ onMounted(async () => {
 
 const handleOnboardingFinish = (dataRecibida) => {
   isOnboardingOpen.value = false;
+  if (!tutorData.value) trackRegistro('email');
   let nuevaMascotaReal = null;
   if (dataRecibida.mascotas && Array.isArray(dataRecibida.mascotas)) {
     if (dataRecibida.mascotas.length > 0) nuevaMascotaReal = dataRecibida.mascotas[dataRecibida.mascotas.length - 1];

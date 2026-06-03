@@ -155,12 +155,21 @@
                   servicio</router-link>
               </div>
               <div v-for="cita in filteredAppointments" :key="cita.id"
-                class="p-6 bg-white dark:bg-white/10 rounded-[2rem] border-l-4 border-ps-blue shadow-sm hover:scale-[1.02] transition-transform">
-                <p class="text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">{{
-                  formatDate(cita.fechaHora) }}</p>
-                <h4 class="font-black text-ps-blue dark:text-white uppercase text-xs italic">{{ cita.servicioTipo }}
-                </h4>
-                <p class="text-[10px] text-slate-500 mt-2 italic leading-relaxed">"{{ cita.motivo }}"</p>
+                class="p-6 bg-white dark:bg-white/10 rounded-[2rem] border-l-4 border-ps-blue shadow-sm hover:scale-[1.02] transition-transform flex justify-between items-start gap-4">
+                
+                <div>
+                  <p class="text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">{{ formatDate(cita.fechaHora) }}</p>
+                  <h4 class="font-black text-ps-blue dark:text-white uppercase text-xs italic">{{ cita.servicioTipo }}</h4>
+                  <p class="text-[10px] text-slate-500 mt-2 italic leading-relaxed line-clamp-2">"{{ cita.motivo }}"</p>
+                </div>
+
+                <button @click="cancelarCita(cita.id)" title="Cancelar Cita"
+                  class="shrink-0 w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center hover:bg-[#DE1F27] hover:text-white hover:rotate-90 transition-all cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+
               </div>
             </div>
           </div>
@@ -225,7 +234,8 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { ref, reactive, onMounted, watch, computed } from 'vue';
-import api from '@/api/axios'; // Cliente Axios centralizado
+import api from '@/api/axios';
+import Swal from 'sweetalert2';
 
 const props = defineProps(['pet', 'tutor']);
 const emit = defineEmits(['update-pet', 'update-tutor', 'notify']);
@@ -294,8 +304,9 @@ const tutorFields = {
 const filteredAppointments = computed(() => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
   return appointments.value
-    .filter(cita => new Date(cita.fechaHora) >= today)
+    .filter(cita => new Date(cita.fechaHora) >= today && cita.estado !== 'CANCELADA')
     .sort((a, b) => new Date(a.fechaHora) - new Date(b.fechaHora));
 });
 
@@ -433,6 +444,46 @@ watch(() => props.pet?.id, (newVal) => {
 watch(() => props.tutor?.id, (newVal) => {
   if (newVal) loadAllData();
 });
+
+// LÓGICA PARA CANCELAR LA CITA
+const cancelarCita = async (citaId) => {
+  const result = await Swal.fire({
+    title: '¿CANCELAR CITA?',
+    text: "Se liberará este cupo. Esta acción no se puede deshacer.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#DE1F27',
+    cancelButtonColor: '#152C77',
+    confirmButtonText: 'SÍ, CANCELAR',
+    cancelButtonText: 'VOLVER',
+    reverseButtons: true,
+    customClass: { popup: 'rounded-[2rem] font-sans' }
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    Swal.showLoading();
+    await api.put(`/citas/${citaId}/cancelar`);
+    
+    appointments.value = appointments.value.filter(c => c.id !== citaId);
+    
+    Swal.fire({ 
+      icon: 'success', 
+      title: '¡CANCELADA!', 
+      text: 'El horario ha sido liberado exitosamente.',
+      timer: 2500, 
+      showConfirmButton: false 
+    });
+    
+  } catch (error) {
+    Swal.fire({ 
+      icon: 'error', 
+      title: 'ERROR', 
+      text: error.response?.data?.message || 'No se pudo cancelar la cita. Intenta de nuevo.' 
+    });
+  }
+};
 </script>
 
 <style scoped>

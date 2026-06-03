@@ -59,7 +59,7 @@
             </span>
           </div>
 
-          <h1 class="text-4xl md:text-6xl font-[1000] uppercase italic tracking-tighter text-ps-blue dark:text-white leading-[0.9] mb-8 italic">
+          <h1 class="text-2xl md:text-4xl font-[1000] uppercase italic tracking-tighter text-ps-blue dark:text-white leading-[0.95] mb-6">
             {{ product.nombre }}
           </h1>
 
@@ -109,7 +109,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 mb-10">
               <div>
                 <span class="block text-[10px] font-black uppercase tracking-widest opacity-50 mb-2">Inversión Final</span>
-                <span class="text-5xl md:text-7xl font-[1000] italic leading-none tracking-tighter">
+                <span class="text-3xl md:text-5xl font-[1000] italic leading-none tracking-tighter">
                   ${{ (product.precio * quantity).toLocaleString() }}
                 </span>
               </div>
@@ -166,11 +166,14 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onUnmounted } from 'vue'; // <-- Añade onUnmounted
+import { ref, watch, computed, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCartStore } from '../../stores/cartStore';
 import { useProductStore } from '../../stores/productStore';
+import { useTracking } from '@/composables/useTracking';
 import api from '@/api/axios';
+
+const { trackAddToCart } = useTracking();
 
 const route = useRoute();
 const router = useRouter();
@@ -211,72 +214,62 @@ const crearSlug = (id, nombre) => {
 const actualizarSEO = (prod) => {
   if (!prod) return;
 
-  // 1. Título de la pestaña
-  document.title = `${prod.nombre} | Pet Station Chía`;
+  const titulo = `${prod.nombre} | Pet Station Chía`;
+  const descripcion = `Compra ${prod.nombre} de ${prod.marca}. ${prod.descripcion?.substring(0, 100) || 'El mejor cuidado para tu mascota.'} Entrega en Chía.`;
+  const imagen = prod.fotosUrls?.[0] || '';
+  const url = window.location.href;
 
-  // 2. Descripción Corta para Google
-  const descripcionSEO = `Compra ${prod.nombre} de la marca ${prod.marca}. ${prod.descripcion?.substring(0, 100) || 'El mejor cuidado para tu mascota.'} ¡Pídelo online en Chía!`;
+  document.title = titulo;
 
-  // Función ayudante para crear/actualizar metas
-  const setMeta = (name, content, isProperty = false) => {
-    const attr = isProperty ? 'property' : 'name';
-    let meta = document.querySelector(`meta[${attr}="${name}"]`);
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.setAttribute(attr, name);
-      document.head.appendChild(meta);
-    }
-    meta.setAttribute('content', content);
+  const setMeta = (selector, attr, content) => {
+    let el = document.querySelector(selector);
+    if (!el) { el = document.createElement('meta'); document.head.appendChild(el); }
+    el.setAttribute(attr === 'property' ? 'property' : 'name', selector.match(/["']([^"']+)["']/)?.[1] || '');
+    el.setAttribute('content', content);
   };
 
-  // Metas Básicas
-  setMeta('description', descripcionSEO);
-  
-  // Metas para Redes Sociales / WhatsApp (Open Graph)
-  setMeta('og:title', `${prod.nombre} | Pet Station`, true);
-  setMeta('og:description', descripcionSEO, true);
-  setMeta('og:image', prod.fotosUrls?.[0] || '', true);
-  setMeta('og:url', window.location.href, true);
-  setMeta('og:type', 'product', true);
+  // Open Graph
+  document.querySelector('meta[name="description"]')?.setAttribute('content', descripcion);
+  document.querySelector('meta[property="og:title"]')?.setAttribute('content', titulo);
+  document.querySelector('meta[property="og:description"]')?.setAttribute('content', descripcion);
+  document.querySelector('meta[property="og:image"]')?.setAttribute('content', imagen);
+  document.querySelector('meta[property="og:url"]')?.setAttribute('content', url);
+  document.querySelector('meta[property="og:type"]')?.setAttribute('content', 'product');
 
-  // 3. JSON-LD (Rich Snippets para que Google muestre el Precio y Stock)
-  // Primero limpiamos si ya había uno anterior (por si el usuario navega entre sugeridos)
-  const existingScript = document.getElementById('schema-producto');
-  if (existingScript) existingScript.remove();
+  // Twitter Cards
+  document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', titulo);
+  document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', descripcion);
+  document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', imagen);
 
-  // Construimos el objeto que Google lee
-  const schemaData = {
-    "@context": "https://schema.org/",
-    "@type": "Product",
-    "name": prod.nombre,
-    "image": prod.fotosUrls || [],
-    "description": prod.descripcion || descripcionSEO,
-    "sku": prod.id,
-    "brand": {
-      "@type": "Brand",
-      "name": prod.marca
-    },
-    "offers": {
-      "@type": "Offer",
-      "url": window.location.href,
-      "priceCurrency": "COP",
-      "price": prod.precio,
-      "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0], // Válido por 1 año
-      "itemCondition": "https://schema.org/NewCondition",
-      "availability": prod.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      "seller": {
-        "@type": "Organization",
-        "name": "Pet Station"
-      }
+  // Canonical
+  document.querySelector('link[rel="canonical"]')?.setAttribute('href', url);
+
+  // JSON-LD Product schema (Rich Snippets — Google muestra precio y stock)
+  document.getElementById('schema-producto')?.remove();
+  const schema = {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: prod.nombre,
+    image: prod.fotosUrls || [],
+    description: prod.descripcion || descripcion,
+    sku: prod.id,
+    brand: { '@type': 'Brand', name: prod.marca },
+    offers: {
+      '@type': 'Offer',
+      url,
+      priceCurrency: 'COP',
+      price: prod.precio,
+      priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+      itemCondition: 'https://schema.org/NewCondition',
+      availability: prod.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      seller: { '@type': 'Organization', name: 'Pet Station' }
     }
   };
-
-  // Inyectamos el JSON en el head
-  const scriptTag = document.createElement('script');
-  scriptTag.id = 'schema-producto';
-  scriptTag.type = 'application/ld+json';
-  scriptTag.text = JSON.stringify(schemaData);
-  document.head.appendChild(scriptTag);
+  const tag = document.createElement('script');
+  tag.id = 'schema-producto';
+  tag.type = 'application/ld+json';
+  tag.text = JSON.stringify(schema);
+  document.head.appendChild(tag);
 };
 
 // Limpieza cuando el usuario sale del producto
@@ -298,23 +291,18 @@ const fetchData = async (id) => {
     isExpanded.value = false;
     currentImage.value = null;
 
-if (window.dataLayer) {
+    if (window.dataLayer) {
       window.dataLayer.push({
         event: 'view_item',
         ecommerce: {
           currency: 'COP',
           value: data.precio,
-          items: [{
-            item_id: data.id,
-            item_name: data.nombre,
-            item_brand: data.marca,
-            item_category: data.categoria,
-            price: data.precio,
-            quantity: 1
-          }]
+          items: [{ item_id: data.id, item_name: data.nombre, item_brand: data.marca, item_category: data.categoria, price: data.precio, quantity: 1 }]
         }
       });
     }
+    if (window.fbq) window.fbq('track', 'ViewContent', { content_ids: [data.id], content_name: data.nombre, content_type: 'product', value: data.precio, currency: 'COP' });
+
     actualizarSEO(data);
 
     if (productStore.allProducts.length === 0) await productStore.fetchTienda();
@@ -334,6 +322,7 @@ if (window.dataLayer) {
 
 const handleAddToCart = () => {
   cartStore.addToCart(product.value, quantity.value);
+  trackAddToCart({ id: product.value.id, nombre: product.value.nombre, precio: product.value.precio * quantity.value });
   emit('notify', { msg: `¡Añadido: ${product.value.nombre}!`, type: 'success' });
 };
 

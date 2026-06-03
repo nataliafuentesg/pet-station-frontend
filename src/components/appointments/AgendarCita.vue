@@ -4,13 +4,8 @@
     <Transition name="fade">
       <div v-if="loading" class="fixed inset-0 z-[6000] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
         <div class="w-16 h-16 border-4 border-white/20 border-t-[#DE1F27] rounded-full animate-spin mb-8"></div>
-        
-        <h3 class="text-3xl md:text-5xl font-[1000] uppercase italic text-white mb-2 animate-pulse">
-          Agendando Cita...
-        </h3>
-        <p class="text-white/60 font-bold uppercase tracking-widest text-xs">
-          Por favor no cierres esta ventana
-        </p>
+        <h3 class="text-3xl md:text-5xl font-[1000] uppercase italic text-white mb-2 animate-pulse">Agendando Cita...</h3>
+        <p class="text-white/60 font-bold uppercase tracking-widest text-xs">Por favor no cierres esta ventana</p>
       </div>
     </Transition>
 
@@ -55,13 +50,13 @@
               <span class="w-8 h-[2px] bg-[#DE1F27]"></span> 1. Información del Paciente
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <input v-model="form.nombreMascota" placeholder="Nombre de la mascota" required class="input-style" />
+              <input v-model="form.nombreMascota" placeholder="Nombre de la mascota" class="input-style" />
               <select v-model="form.especie" class="input-style">
                 <option value="CANINO">Canino</option>
                 <option value="FELINO">Felino</option>
               </select>
-              <input v-model="form.nombreTutor" placeholder="Tu Nombre" required class="input-style" />
-              <input v-model="form.emailTutor" placeholder="Tu Email" required type="email" class="input-style" />
+              <input v-model="form.nombreTutor" placeholder="Tu Nombre" class="input-style" />
+              <input v-model="form.emailTutor" placeholder="Tu Email" type="email" class="input-style" />
             </div>
           </div>
 
@@ -79,13 +74,19 @@
               </div>
               <div>
                 <label class="label-style">Fecha (Anticipación 24h)</label>
-                <input v-model="tempDate" type="date" :min="minDate" required class="input-style" />
+                <input v-model="tempDate" type="date" :min="minDate" class="input-style" />
               </div>
               <div>
                 <label class="label-style">Turnos Disponibles</label>
-                <select v-model="tempTime" :disabled="!tempDate || filteredHours.length === 0" class="input-style">
-                  <option v-for="h in filteredHours" :key="h" :value="h">
-                    {{ formatHora(h) }}
+                <select v-model="tempTime" :disabled="!tempDate || esDomingo || cargandoHoras" class="input-style">
+                  <option v-if="cargandoHoras" value="" disabled>Verificando...</option>
+                  <option v-else value="" disabled selected>Selecciona una hora</option>
+                  
+                  <option v-for="turno in filteredHours" :key="turno.horaOriginal" 
+                          :value="turno.horaOriginal" 
+                          :disabled="turno.ocupado"
+                          :class="{'text-red-500 opacity-50': turno.ocupado}">
+                    {{ turno.formato }} {{ turno.ocupado ? '(Ocupado)' : '' }}
                   </option>
                 </select>
                 <p v-if="esDomingo" class="text-[9px] text-red-500 font-bold mt-2 uppercase">No abrimos los domingos</p>
@@ -95,12 +96,12 @@
 
           <div class="space-y-2">
             <label class="label-style">Motivo de la cita</label>
-            <textarea v-model="form.motivo" placeholder="Describe brevemente el motivo..." required class="input-style h-28 resize-none p-6"></textarea>
+            <textarea v-model="form.motivo" placeholder="Describe brevemente el motivo..." class="input-style h-28 resize-none p-6"></textarea>
           </div>
 
           <button 
             type="submit"
-            :disabled="loading || (props.tutor && !form.mascotaId)" 
+            :disabled="loading || (props.tutor && !form.mascotaId) || !tempTime" 
             class="w-full bg-[#DE1F27] text-white py-8 rounded-[2.5rem] font-[1000] uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Confirmar Cita
@@ -112,18 +113,23 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '@/api/axios'; 
+import api from '@/api/axios';
+import { useTracking } from '@/composables/useTracking';
+
+const { trackCitaAgendada } = useTracking();
 
 const props = defineProps(['tutor', 'pet', 'availablePets']);
 const emit = defineEmits(['notify']);
 const router = useRouter();
 const loading = ref(false);
+const cargandoHoras = ref(false);
 
 const tempDate = ref('');
-const tempTime = ref('08:00');
+const tempTime = ref(''); // Cambiado para que empiece vacío y obligue a seleccionar
 const TURNOS_PERMITIDOS = ['08:00', '10:00', '12:00', '14:00'];
+const horasOcupadasBackend = ref([]); // Aquí guardaremos las horas que el Back dice que están llenas
 
 const form = reactive({
   mascotaId: null,
@@ -139,7 +145,6 @@ const form = reactive({
   motivo: ''
 });
 
-// ... (TUS COMPUTED minDate, esDomingo, filteredHours y formatHora IGUAL QUE ANTES) ...
 const minDate = computed(() => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -148,19 +153,61 @@ const minDate = computed(() => {
 
 const esDomingo = computed(() => {
   if (!tempDate.value) return false;
-  const date = new Date(tempDate.value + 'T00:00:00');
+  // Truco para evitar problemas de zona horaria al calcular el domingo
+  const date = new Date(`${tempDate.value}T12:00:00`); 
   return date.getDay() === 0;
 });
-
-const filteredHours = computed(() => esDomingo.value ? [] : TURNOS_PERMITIDOS);
 
 const formatHora = (h) => {
   const [hora] = h.split(':');
   const hInt = parseInt(hora);
   const suffix = hInt >= 12 ? 'PM' : 'AM';
-  const displayHora = hInt > 12 ? hInt - 12 : hInt;
+  const displayHora = hInt > 12 ? hInt - 12 : (hInt === 0 ? 12 : hInt);
   return `${displayHora}:00 ${suffix}`;
 };
+
+// NUEVO: Computed inteligente para cruzar las horas permitidas con las ocupadas del backend
+const filteredHours = computed(() => {
+  if (esDomingo.value || !tempDate.value) return [];
+  
+  return TURNOS_PERMITIDOS.map(turno => {
+    const horaNumero = parseInt(turno.split(':')[0]); // Ej: de "08:00" saca el número 8
+    const estaOcupado = horasOcupadasBackend.value.includes(horaNumero);
+    
+    return {
+      horaOriginal: turno,
+      formato: formatHora(turno),
+      ocupado: estaOcupado
+    };
+  });
+});
+
+// NUEVO: Watcher que se dispara cuando cambia la FECHA o el SERVICIO
+watch([tempDate, () => form.servicioTipo], async ([newDate, newService]) => {
+  if (!newDate || esDomingo.value) {
+    horasOcupadasBackend.value = [];
+    tempTime.value = '';
+    return;
+  }
+
+  cargandoHoras.value = true;
+  tempTime.value = ''; // Resetea la hora seleccionada porque cambiaron las condiciones
+
+  try {
+    // Llama al nuevo endpoint del backend
+    const response = await api.get('/citas/ocupadas', {
+      params: { fecha: newDate, servicioTipo: newService }
+    });
+    // El backend nos responde con un array de enteros, ej: [8, 14]
+    horasOcupadasBackend.value = response.data;
+  } catch (error) {
+    console.error("Error al consultar disponibilidad:", error);
+    emit('notify', { msg: 'Error al verificar la disponibilidad de horarios', type: 'error' });
+    horasOcupadasBackend.value = []; 
+  } finally {
+    cargandoHoras.value = false;
+  }
+});
 
 const seleccionarMascota = (m) => {
   form.mascotaId = m.id;
@@ -181,23 +228,60 @@ onMounted(() => {
   }
 });
 
-// 2. LÓGICA DE ENVÍO MEJORADA CON BLOQUEO
 const handleSubmit = async () => {
-  loading.value = true; // Activa el overlay negro
+  // Validaciones explícitas con mensajes amigables
+  if (props.tutor && !form.mascotaId) {
+    emit('notify', { msg: 'Selecciona la mascota para la cita', type: 'warning' });
+    return;
+  }
+
+  if (!props.tutor) {
+    if (!form.nombreMascota.trim()) {
+      emit('notify', { msg: 'Escribe el nombre de la mascota', type: 'warning' });
+      return;
+    }
+    if (!form.nombreTutor.trim()) {
+      emit('notify', { msg: 'Escribe tu nombre', type: 'warning' });
+      return;
+    }
+    if (!form.emailTutor.trim()) {
+      emit('notify', { msg: 'Escribe tu correo electrónico', type: 'warning' });
+      return;
+    }
+  }
+
+  if (!tempDate.value) {
+    emit('notify', { msg: 'Selecciona la fecha de la cita', type: 'warning' });
+    return;
+  }
+
+  if (!tempTime.value) {
+    emit('notify', { msg: 'Selecciona un horario disponible', type: 'warning' });
+    return;
+  }
+
+  if (!form.motivo.trim()) {
+    emit('notify', { msg: 'Describe brevemente el motivo de la cita', type: 'warning' });
+    return;
+  }
+
+  loading.value = true;
   form.fechaHora = `${tempDate.value}T${tempTime.value}:00`;
 
   try {
     await api.post('/citas/agendar', form);
-    if (window.dataLayer) {
-      window.dataLayer.push({
-        event: 'conversion_cita',
-        servicio_tipo: form.servicioTipo,
-        mascota_especie: form.especie,
-        tutor_nombre: form.nombreTutor,
-        metodo: props.tutor ? 'usuario_registrado' : 'usuario_nuevo'
-      });
-    }
+    trackCitaAgendada(
+      form.servicioTipo,
+      form.especie,
+      props.tutor ? 'usuario_registrado' : 'usuario_nuevo'
+    );
     emit('notify', { msg: '¡ÉXITO! TU CITA HA SIDO AGENDADA.', type: 'success' });
+    
+    // Forzamos una actualización de las horas ocupadas por si el usuario se queda en la página
+    horasOcupadasBackend.value.push(parseInt(tempTime.value.split(':')[0]));
+    tempTime.value = '';
+    tempDate.value = '';
+
     setTimeout(() => {
       loading.value = false;
       if (props.tutor) {
@@ -208,7 +292,7 @@ const handleSubmit = async () => {
     }, 1500);
 
   } catch (e) {
-    loading.value = false; // Solo quitamos el loading si hay error
+    loading.value = false;
     const errorMsg = e.response?.data?.message || 'Error al agendar la cita';
     emit('notify', { msg: errorMsg, type: 'error' });
   }
@@ -216,6 +300,7 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
+/* LOS MISMOS ESTILOS DE ANTES */
 .input-style {
   width: 100%;
   background-color: white;
@@ -240,15 +325,6 @@ const handleSubmit = async () => {
   margin-bottom: 0.5rem;
   display: block;
 }
-
-/* ESTILO PARA LA TRANSICIÓN DEL OVERLAY */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

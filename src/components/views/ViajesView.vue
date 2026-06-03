@@ -1,5 +1,7 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useTracking } from '@/composables/useTracking';
+const { trackViewService } = useTracking();
 
 const trackWhatsApp = (posicion) => {
   if (window.dataLayer) {
@@ -124,6 +126,7 @@ const destinos = [
 ];
 
 const destinoActual = ref(destinos[0]);
+onMounted(() => trackViewService('Viajes Internacional Mascotas'));
 
 // --- WHATSAPP ESPECÍFICO PARA VIAJES ---
 const whatsappLink = computed(() => {
@@ -142,7 +145,7 @@ const whatsappLink = computed(() => {
           <router-link to="/servicios" class="text-[#DE1F27] font-[1000] uppercase text-[10px] tracking-[0.3em] inline-flex items-center gap-2 hover:gap-4 transition-all">
             ← Volver a servicios
           </router-link>
-          <h1 class="text-5xl md:text-8xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-[0.85] tracking-tighter">
+          <h1 class="text-3xl md:text-5xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-[0.95] tracking-tighter">
             GLOBAL <br/> <span class="text-[#DE1F27]">TRAVEL.</span>
           </h1>
           <p class="text-slate-600 dark:text-slate-400 font-bold uppercase italic text-[10px] md:text-sm leading-relaxed max-w-md mx-auto md:mx-0">

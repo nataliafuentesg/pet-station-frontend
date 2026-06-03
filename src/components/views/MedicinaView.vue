@@ -1,5 +1,8 @@
 <script setup>
+import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useTracking } from '@/composables/useTracking';
+const { trackViewService } = useTracking();
 
 const router = useRouter();
 const telefonoBase = '573187076798'; // WhatsApp de la clínica
@@ -48,6 +51,7 @@ const servicios = [
     action: "Agendar Limpieza"
   }
 ];
+onMounted(() => trackViewService('Consulta Médica Veterinaria'));
 </script>
 
 <template>
@@ -59,7 +63,7 @@ const servicios = [
             ← Volver a Servicios
         </router-link>
         
-        <h1 class="text-4xl md:text-7xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-[0.9] tracking-tighter">
+        <h1 class="text-3xl md:text-5xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-[0.95] tracking-tighter">
           SALUD & <br/> <span class="text-[#DE1F27]">BIENESTAR ANIMAL.</span>
         </h1>
         

@@ -93,13 +93,29 @@ const emit = defineEmits(['success', 'close', 'goRegister', 'notify']);
 const isDark = computed(() => document.documentElement.classList.contains('dark'));
 
 const handleLogin = async () => {
+  if (!form.email.trim()) {
+    emit('notify', { msg: 'Ingresa tu correo electrónico', type: 'warning' });
+    return;
+  }
+  if (!form.password) {
+    emit('notify', { msg: 'Ingresa tu contraseña', type: 'warning' });
+    return;
+  }
+
   loading.value = true;
   try {
     const { data } = await api.post('/tutores/login', form);
     localStorage.setItem('ps_token', data.token);
     emit('success', data.tutor);
   } catch (e) {
-    emit('notify', { msg: "Credenciales inválidas", type: 'error' });
+    const status = e.response?.status;
+    if (status === 401 || status === 403) {
+      emit('notify', { msg: 'Correo o contraseña incorrectos', type: 'error' });
+    } else if (status === 404) {
+      emit('notify', { msg: 'No encontramos una cuenta con ese correo', type: 'error' });
+    } else {
+      emit('notify', { msg: 'Error al iniciar sesión. Intenta de nuevo', type: 'error' });
+    }
   } finally {
     loading.value = false;
   }
@@ -118,7 +134,7 @@ const handleGoogleLogin = async (response) => {
       emit('success', data.tutor);
     }
   } catch (e) {
-    emit('notify', { msg: "Error con Google", type: 'error' });
+    emit('notify', { msg: 'No pudimos iniciar sesión con Google. Intenta de nuevo', type: 'error' });
   }
 };
 

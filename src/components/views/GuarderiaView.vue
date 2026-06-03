@@ -9,7 +9,7 @@
       <div class="grid lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2 space-y-6">
           <div class="bg-white dark:bg-white/5 rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-12 shadow-xl border border-green-100 dark:border-green-900/20">
-            <h1 class="text-5xl md:text-7xl font-[1000] uppercase italic text-green-800 dark:text-green-400 leading-[0.9] tracking-tighter">
+            <h1 class="text-3xl md:text-5xl font-[1000] uppercase italic text-green-800 dark:text-green-400 leading-[0.95] tracking-tighter">
               FUN & <br/> <span class="text-[#DE1F27]">SAFE.</span>
             </h1>
             <p class="text-green-900/60 dark:text-slate-400 font-bold uppercase text-[10px] md:text-xs mt-6 leading-relaxed max-w-xl">
@@ -70,9 +70,10 @@
             <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
           </div>
 
-          <a href="https://wa.me/573000000000" 
+          <a href="https://wa.me/573053462413?text=Hola%20Pet%20Station!%20Quiero%20información%20sobre%20la%20guardería%20canina."
+            target="_blank"
             class="block w-full text-center py-6 bg-green-600 hover:bg-green-700 text-white rounded-[2rem] font-[1000] uppercase text-xs tracking-[0.2em] shadow-xl transition-all hover:scale-[1.02] active:scale-95">
-            Ver Disponibilidad
+            💬 Ver Disponibilidad
           </a>
         </div>
       </div>
@@ -81,6 +82,11 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue';
+import { useTracking } from '@/composables/useTracking';
+const { trackViewService } = useTracking();
+onMounted(() => trackViewService('Guardería Canina'));
+
 const modalidades = [
   { 
     t: "Pasa Día", 

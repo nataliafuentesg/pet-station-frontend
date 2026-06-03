@@ -4,8 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="shortcut icon" href="/images/logo-pet-station.png" type="image/x-icon">
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
   <meta name="theme-color" content="#152C77" />
 
@@ -15,16 +14,95 @@
   <meta name="keywords"
     content="veterinaria chia, pet shop chia, comida para perros, royal canin chia, bravecto, peluqueria canina, guarderia canina, viaje internacional mascotas" />
   <meta name="author" content="Pet Station" />
+  <meta name="robots" content="index, follow" />
 
+  <!-- Canonical -->
+  <link rel="canonical" href="https://petstationvet.com/" />
+
+  <!-- Preconnect para recursos externos -->
+  <link rel="preconnect" href="https://www.googletagmanager.com" />
+  <link rel="preconnect" href="https://connect.facebook.net" />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="preconnect" href="https://api.petstationvet.com" />
+
+  <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://petstationvet.com/" />
   <meta property="og:title" content="Pet Station | Expertos en Salud Animal en Chía" />
   <meta property="og:description"
     content="Descubre nuestro Pet Shop premium y servicios médicos veterinarios. ¡Todo lo que tu mascota necesita en un solo lugar!" />
   <meta property="og:image" content="https://petstationvet.com/portada-social.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Pet Station - Clínica Veterinaria y Pet Shop en Chía" />
   <meta property="og:site_name" content="Pet Station" />
+  <meta property="og:locale" content="es_CO" />
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Pet Station | Expertos en Salud Animal en Chía" />
+  <meta name="twitter:description"
+    content="Descubre nuestro Pet Shop premium y servicios médicos veterinarios. ¡Todo lo que tu mascota necesita en un solo lugar!" />
+  <meta name="twitter:image" content="https://petstationvet.com/portada-social.jpg" />
+
+  <!-- JSON-LD: LocalBusiness -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VeterinaryCare",
+    "name": "Pet Station",
+    "image": "https://petstationvet.com/images/logo-pet-station.png",
+    "url": "https://petstationvet.com",
+    "telephone": "+573053462413",
+    "priceRange": "$$",
+    "description": "Clínica veterinaria líder en Chía. Medicina interna, cirugía, peluquería canina, tienda de mascotas y trámites de viaje internacional.",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Vía Guaymaral, 2km antes Variante Chía - Cota",
+      "addressLocality": "Chía",
+      "addressRegion": "Cundinamarca",
+      "postalCode": "250001",
+      "addressCountry": "CO"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 4.8611,
+      "longitude": -74.0273
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+        "opens": "08:00",
+        "closes": "18:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Saturday",
+        "opens": "08:00",
+        "closes": "14:00"
+      }
+    ],
+    "sameAs": [],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Servicios Veterinarios",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Consulta Médica Veterinaria" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Peluquería Canina y Spa" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Guardería Canina" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Trámites Viaje Internacional Mascotas" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Farmacia Veterinaria" } }
+      ]
+    }
+  }
+  </script>
+
+  <!-- FontAwesome (non-render-blocking) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
+
+  <!-- Google Tag Manager -->
   <script>(function (w, d, s, l, i) {
       w[l] = w[l] || []; w[l].push({
         'gtm.start':
@@ -33,6 +111,8 @@
         j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
           'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
     })(window, document, 'script', 'dataLayer', 'GTM-PRFFB982');</script>
+
+  <!-- Facebook Pixel -->
   <script>
     !function (f, b, e, v, n, t, s) {
       if (f.fbq) return; n = f.fbq = function () {
