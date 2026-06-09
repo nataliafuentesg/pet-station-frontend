@@ -139,9 +139,33 @@ const routes = [
         description: 'Recibe un 20% o 30% de descuento en grooming para tus peluditos. ¡Agenda tu primera visita hoy!',
       },
 },
-  { 
-    path: '/:pathMatch(.*)*', 
-    redirect: '/' 
+  {
+    path: '/pagar',
+    name: 'PagoBold',
+    component: () => import('@/components/views/PagoBoldView.vue'),
+    meta: { title: 'Pago Seguro | Pet Station' }
+  },
+  {
+    path: '/pago-exitoso',
+    name: 'PagoExito',
+    component: () => import('@/components/views/PagoExitoView.vue'),
+    meta: { title: '¡Pago Confirmado! | Pet Station' }
+  },
+  {
+    path: '/rastrear',
+    name: 'RastrearPedido',
+    component: () => import('@/components/views/RastrearPedidoView.vue'),
+    meta: { title: 'Rastrea tu Pedido | Pet Station' }
+  },
+  {
+    path: '/domiciliario',
+    name: 'Domiciliario',
+    component: () => import('@/components/views/DomiciliarioView.vue'),
+    meta: { title: 'Portal Domiciliario | Pet Station' }
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
   }
 ]
 
@@ -154,6 +178,12 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
+  // Bold a veces redirige a la raíz "/" en vez de "/pago-exitoso".
+  // Si detectamos sus parámetros en cualquier ruta, mandamos a la pantalla de éxito.
+  if (to.query['bold-tx-status'] && to.path !== '/pago-exitoso') {
+    return next({ path: '/pago-exitoso', query: to.query });
+  }
+
   const title = to.meta.title || 'Pet Station - Veterinaria en Chía';
   const description = to.meta.description || 'La mejor clínica veterinaria y tienda de mascotas en Chía. Especialistas en medicina interna, cirugía, peluquería, farmacia y trámites de viaje internacional.';
 

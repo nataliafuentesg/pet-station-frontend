@@ -192,6 +192,10 @@
                 class="w-full text-left px-5 py-4 border rounded-2xl text-[11px] font-black uppercase tracking-widest italic border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 active:scale-95 transition-all">
                 🛍️ Consultar Producto
               </button>
+              <button @click="isSupportSheetOpen = false; router.push('/rastrear')"
+                class="w-full text-left px-5 py-4 border rounded-2xl text-[11px] font-black uppercase tracking-widest italic border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 active:scale-95 transition-all">
+                📦 Rastrear mi Pedido
+              </button>
               <button @click="handleMobileOption('urgencia')"
                 class="w-full text-left px-5 py-4 border rounded-2xl text-[11px] font-black uppercase tracking-widest italic border-[#DE1F27] text-white bg-[#DE1F27] active:scale-95 transition-all mt-4 animate-pulse shadow-lg shadow-red-500/30">
                 🚨 Tengo una Urgencia
@@ -289,7 +293,7 @@
       </div>
     </Transition>
 
-    <main class="w-full pt-24 md:pt-0 pb-24 md:pb-0 relative min-h-[60vh]">
+    <main :class="['w-full relative min-h-[60vh]', isAdminRoute ? '' : 'pt-24 md:pt-0 pb-24 md:pb-0']">
 
       <div v-if="loadingSession && !isPromoRoute"
         class="absolute inset-0 flex flex-col items-center justify-center opacity-50">
@@ -340,7 +344,10 @@ import { useTracking } from '@/composables/useTracking';
 
 const { trackLogin, trackRegistro } = useTracking();
 const route = useRoute();
-const isAdminRoute = computed(() => route.path.startsWith('/admin'));
+// Rutas "fullscreen" sin nav/footer (paneles internos)
+const isAdminRoute = computed(() =>
+  route.path.startsWith('/admin') || route.path.startsWith('/domiciliario')
+);
 const isPromoRoute = computed(() => route.path.toLowerCase().includes('gaita'));
 
 const router = useRouter();

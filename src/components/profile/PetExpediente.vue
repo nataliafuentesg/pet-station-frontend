@@ -176,49 +176,79 @@
 
           <div
             class="bg-slate-50 dark:bg-white/5 rounded-[3rem] p-8 border border-slate-100 dark:border-white/5 shadow-xl animate-in slide-in-from-bottom duration-700">
-            <div class="flex items-center justify-between mb-8 border-b dark:border-white/10 pb-4">
+            <div class="flex items-center justify-between mb-6 border-b dark:border-white/10 pb-4">
               <div class="flex items-center gap-3">
-                <h3 class="text-xl font-black uppercase italic text-ps-blue leading-none">Pedidos</h3>
+                <h3 class="text-xl font-black uppercase italic text-ps-blue leading-none">Mis Pedidos</h3>
                 <span
                   class="bg-ps-blue text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Tienda</span>
               </div>
-              <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{{ orders.length }}
-                Total</span>
+              <router-link to="/rastrear" class="text-[9px] font-black text-ps-red uppercase tracking-tighter hover:underline">
+                Rastrear →
+              </router-link>
             </div>
 
-            <div class="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
-              <div v-if="orders.length === 0" class="text-center py-20">
-                <p class="opacity-30 font-black uppercase text-[10px] italic dark:text-white">Sin compras aún</p>
+            <div v-if="orders.length === 0" class="text-center py-20">
+              <p class="opacity-30 font-black uppercase text-[10px] italic dark:text-white">Sin compras aún</p>
+            </div>
+
+            <div v-else class="space-y-5 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+
+              <!-- ACTIVOS -->
+              <div v-if="ordersActivos.length" class="space-y-3">
+                <p class="text-[8px] font-black uppercase text-green-600 tracking-[0.2em] flex items-center gap-2">
+                  <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Pedidos activos
+                </p>
+                <div v-for="order in ordersActivos" :key="order.id"
+                  class="p-5 bg-white dark:bg-white/10 rounded-[2.5rem] border-2 border-green-500/30 shadow-sm">
+                  <div class="flex justify-between items-start mb-3">
+                    <div>
+                      <p class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ order.codigoPedido || ('#' + order.id) }}</p>
+                      <p class="text-[9px] font-bold text-slate-500 italic">{{ new Date(order.createdAt).toLocaleDateString('es-CO') }}</p>
+                    </div>
+                    <span :class="['text-[7px] font-black px-3 py-1 rounded-full uppercase tracking-widest', claseEstadoPedido(order.estado)]">
+                      {{ iconoEstadoPedido(order.estado) }} {{ labelEstadoPedido(order.estado) }}
+                    </span>
+                  </div>
+                  <div class="space-y-1 mb-4">
+                    <div v-for="item in order.items" :key="item.id"
+                      class="flex justify-between text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                      <span class="truncate pr-4">• {{ item.nombreProducto }}</span>
+                      <span class="text-ps-blue">x{{ item.cantidad }}</span>
+                    </div>
+                  </div>
+                  <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-white/5">
+                    <span class="text-[9px] font-black uppercase text-slate-400">Total</span>
+                    <p class="text-sm font-black text-ps-red tracking-tighter">${{ order.total.toLocaleString() }}</p>
+                  </div>
+                </div>
               </div>
 
-              <div v-for="order in orders" :key="order.id"
-                class="group p-5 bg-white dark:bg-white/10 rounded-[2.5rem] border border-transparent hover:border-ps-blue/30 transition-all duration-300 shadow-sm">
-
-                <div class="flex justify-between items-start mb-3">
-                  <div>
-                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Orden #{{ order.id }}</p>
-                    <p class="text-[9px] font-bold text-slate-500 italic">{{ new
-                      Date(order.createdAt).toLocaleDateString() }}</p>
+              <!-- HISTORIAL -->
+              <div v-if="ordersHistorial.length" class="space-y-3">
+                <p class="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em]">Historial</p>
+                <div v-for="order in ordersHistorial" :key="order.id"
+                  class="p-5 bg-white dark:bg-white/10 rounded-[2.5rem] border border-transparent hover:border-ps-blue/30 transition-all shadow-sm"
+                  :class="order.estado === 'CANCELADO' ? 'opacity-60' : ''">
+                  <div class="flex justify-between items-start mb-3">
+                    <div>
+                      <p class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ order.codigoPedido || ('#' + order.id) }}</p>
+                      <p class="text-[9px] font-bold text-slate-500 italic">{{ new Date(order.createdAt).toLocaleDateString('es-CO') }}</p>
+                    </div>
+                    <span :class="['text-[7px] font-black px-3 py-1 rounded-full uppercase tracking-widest', claseEstadoPedido(order.estado)]">
+                      {{ iconoEstadoPedido(order.estado) }} {{ labelEstadoPedido(order.estado) }}
+                    </span>
                   </div>
-                  <span :class="[
-                    'text-[7px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-sm',
-                    order.estado === 'PENDIENTE' ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'
-                  ]">
-                    {{ order.estado }}
-                  </span>
-                </div>
-
-                <div class="space-y-1 mb-4">
-                  <div v-for="item in order.items" :key="item.id"
-                    class="flex justify-between text-[10px] font-bold text-slate-600 dark:text-slate-300">
-                    <span class="truncate pr-4">• {{ item.nombreProducto }}</span>
-                    <span class="text-ps-blue">x{{ item.cantidad }}</span>
+                  <div class="space-y-1 mb-4">
+                    <div v-for="item in order.items" :key="item.id"
+                      class="flex justify-between text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                      <span class="truncate pr-4">• {{ item.nombreProducto }}</span>
+                      <span class="text-ps-blue">x{{ item.cantidad }}</span>
+                    </div>
                   </div>
-                </div>
-
-                <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-white/5">
-                  <span class="text-[9px] font-black uppercase text-slate-400">Total Pagado</span>
-                  <p class="text-sm font-black text-ps-red tracking-tighter">${{ order.total.toLocaleString() }}</p>
+                  <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-white/5">
+                    <span class="text-[9px] font-black uppercase text-slate-400">Total</span>
+                    <p class="text-sm font-black text-ps-red tracking-tighter">${{ order.total.toLocaleString() }}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -253,6 +283,31 @@ const activeTab = ref('pet');
 const petData = ref(null);
 const appointments = ref([]);
 const orders = ref([]);
+
+// Pedidos activos = en proceso (pagado / en camino). Historial = el resto.
+const ordersActivos = computed(() =>
+  orders.value.filter(o => ['PAGADO', 'EN_CAMINO'].includes(o.estado))
+);
+const ordersHistorial = computed(() =>
+  orders.value.filter(o => !['PAGADO', 'EN_CAMINO'].includes(o.estado))
+);
+
+const iconoEstadoPedido = (e) => ({
+  PENDIENTE: '⏳', PAGADO: '💰', EN_CAMINO: '🚚', ENTREGADO: '🎉', CANCELADO: '❌'
+}[e] || '📦');
+
+const labelEstadoPedido = (e) => ({
+  PENDIENTE: 'Esperando Pago', PAGADO: 'Pagado', EN_CAMINO: 'En Camino',
+  ENTREGADO: 'Entregado', CANCELADO: 'Cancelado'
+}[e] || e);
+
+const claseEstadoPedido = (e) => {
+  if (e === 'PAGADO')    return 'bg-green-600 text-white';
+  if (e === 'EN_CAMINO') return 'bg-blue-100 text-blue-700';
+  if (e === 'ENTREGADO') return 'bg-green-100 text-green-700';
+  if (e === 'CANCELADO') return 'bg-red-100 text-red-600';
+  return 'bg-amber-100 text-amber-600';
+};
 
 // Formulario reactivo para la Mascota
 const form = reactive({

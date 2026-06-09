@@ -64,6 +64,9 @@
             <h3 class="text-sm font-black uppercase tracking-widest text-[#DE1F27] flex items-center gap-3">
               <span class="w-8 h-[2px] bg-[#DE1F27]"></span> 2. Servicio y Horario
             </h3>
+            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-white/30 -mt-3">
+              ⚠️ No atendemos domingos ni festivos
+            </p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label class="label-style">Tipo de Servicio</label>
@@ -78,18 +81,19 @@
               </div>
               <div>
                 <label class="label-style">Turnos Disponibles</label>
-                <select v-model="tempTime" :disabled="!tempDate || esDomingo || cargandoHoras" class="input-style">
+                <select v-model="tempTime" :disabled="!tempDate || diaNoDisponible || cargandoHoras" class="input-style">
                   <option v-if="cargandoHoras" value="" disabled>Verificando...</option>
                   <option v-else value="" disabled selected>Selecciona una hora</option>
-                  
-                  <option v-for="turno in filteredHours" :key="turno.horaOriginal" 
-                          :value="turno.horaOriginal" 
+
+                  <option v-for="turno in filteredHours" :key="turno.horaOriginal"
+                          :value="turno.horaOriginal"
                           :disabled="turno.ocupado"
                           :class="{'text-red-500 opacity-50': turno.ocupado}">
                     {{ turno.formato }} {{ turno.ocupado ? '(Ocupado)' : '' }}
                   </option>
                 </select>
                 <p v-if="esDomingo" class="text-[9px] text-red-500 font-bold mt-2 uppercase">No abrimos los domingos</p>
+                <p v-else-if="esFestivoSeleccionado" class="text-[9px] text-red-500 font-bold mt-2 uppercase">🎉 Día festivo — no hay servicio</p>
               </div>
             </div>
           </div>
@@ -117,8 +121,10 @@ import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/api/axios';
 import { useTracking } from '@/composables/useTracking';
+import { useFestivos } from '@/composables/useFestivos';
 
 const { trackCitaAgendada } = useTracking();
+const { esFestivo } = useFestivos();
 
 const props = defineProps(['tutor', 'pet', 'availablePets']);
 const emit = defineEmits(['notify']);
@@ -158,6 +164,14 @@ const esDomingo = computed(() => {
   return date.getDay() === 0;
 });
 
+const esFestivoSeleccionado = computed(() => {
+  if (!tempDate.value) return false;
+  return esFestivo(tempDate.value);
+});
+
+// No hay atención en domingos ni festivos
+const diaNoDisponible = computed(() => esDomingo.value || esFestivoSeleccionado.value);
+
 const formatHora = (h) => {
   const [hora] = h.split(':');
   const hInt = parseInt(hora);
@@ -168,7 +182,7 @@ const formatHora = (h) => {
 
 // NUEVO: Computed inteligente para cruzar las horas permitidas con las ocupadas del backend
 const filteredHours = computed(() => {
-  if (esDomingo.value || !tempDate.value) return [];
+  if (diaNoDisponible.value || !tempDate.value) return [];
   
   return TURNOS_PERMITIDOS.map(turno => {
     const horaNumero = parseInt(turno.split(':')[0]); // Ej: de "08:00" saca el número 8
@@ -184,7 +198,7 @@ const filteredHours = computed(() => {
 
 // NUEVO: Watcher que se dispara cuando cambia la FECHA o el SERVICIO
 watch([tempDate, () => form.servicioTipo], async ([newDate, newService]) => {
-  if (!newDate || esDomingo.value) {
+  if (!newDate || diaNoDisponible.value) {
     horasOcupadasBackend.value = [];
     tempTime.value = '';
     return;
@@ -229,6 +243,12 @@ onMounted(() => {
 });
 
 const handleSubmit = async () => {
+  // Bloqueo de domingos y festivos
+  if (diaNoDisponible.value) {
+    emit('notify', { msg: 'No atendemos domingos ni festivos. Elige otra fecha.', type: 'warning' });
+    return;
+  }
+
   // Validaciones explícitas con mensajes amigables
   if (props.tutor && !form.mascotaId) {
     emit('notify', { msg: 'Selecciona la mascota para la cita', type: 'warning' });

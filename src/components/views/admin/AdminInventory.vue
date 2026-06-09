@@ -10,7 +10,10 @@
                 </div>
             </div>
         </div>
-        <button @click="abrirModal()" class="btn-add">+ REGISTRAR NUEVO SKU</button>
+        <div class="flex gap-3">
+          <button @click="exportarCSV" class="btn-export">⬇ DESCARGAR CSV</button>
+          <button @click="abrirModal()" class="btn-add">+ REGISTRAR NUEVO SKU</button>
+        </div>
     </div>
 
     <div class="bg-white dark:bg-[#080808] rounded-[2.5rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl">
@@ -225,6 +228,38 @@ const eliminar = async (id) => {
     if (!confirm("¿Eliminar este SKU permanentemente?")) return;
     try { await api.delete(`/admin/productos/${id}`); emit('refresh'); } catch (e) { alert("Error"); }
 };
+
+// Exporta el inventario completo (filtrado) a CSV
+const exportarCSV = () => {
+    const datos = filtered.value;
+    if (!datos.length) { alert('No hay productos para exportar'); return; }
+
+    const headers = ['SKU', 'Nombre', 'Marca', 'Categoria', 'Subcategoria', 'Especie', 'Etapa', 'Presentacion', 'Precio', 'Stock', 'Requiere Receta'];
+
+    // Escapa comillas y comas para CSV válido
+    const esc = (v) => {
+        const s = (v === null || v === undefined) ? '' : String(v);
+        return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+
+    const filas = datos.map(p => [
+        p.sku, p.nombre, p.marca, p.categoria, p.subcategoria,
+        p.especie, p.etapaVida, p.presentacion, p.precio, p.stock,
+        p.requiereReceta ? 'SI' : 'NO'
+    ].map(esc).join(','));
+
+    // BOM para que Excel lea acentos correctamente
+    const csv = '﻿' + headers.join(',') + '\n' + filas.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const fecha = new Date().toISOString().split('T')[0];
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventario-petstation-${fecha}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+};
 </script>
 
 <style scoped>
@@ -232,6 +267,7 @@ const eliminar = async (id) => {
 
 .search-input { @apply w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/10 p-4 pl-12 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:border-ps-blue outline-none transition-all; }
 .btn-add { @apply bg-ps-blue text-white px-8 py-4 rounded-2xl font-[1000] uppercase text-[10px] italic shadow-xl hover:bg-black transition-all whitespace-nowrap; }
+.btn-export { @apply bg-green-600 text-white px-6 py-4 rounded-2xl font-[1000] uppercase text-[10px] italic shadow-xl hover:bg-green-700 transition-all whitespace-nowrap; }
 .stock-pill { @apply px-3 py-1 rounded-lg text-[9px] font-black border uppercase; }
 .tool-btn { @apply w-8 h-8 flex items-center justify-center bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl hover:scale-110 transition-all; }
 .page-btn { @apply px-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-[9px] font-black hover:bg-ps-blue hover:text-white disabled:opacity-30 transition-all; }

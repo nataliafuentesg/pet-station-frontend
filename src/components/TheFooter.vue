@@ -36,6 +36,11 @@
               </p>
             </a>
           </div>
+
+          <router-link to="/rastrear"
+            class="mt-2 inline-flex items-center gap-2 bg-[#152C77] dark:bg-white/10 text-white px-5 py-3 rounded-2xl text-[10px] font-[1000] uppercase tracking-widest hover:bg-[#DE1F27] transition-all">
+            📦 Rastrear mi pedido
+          </router-link>
         </div>
 
         <div class="space-y-6">

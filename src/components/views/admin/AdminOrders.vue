@@ -14,13 +14,17 @@
          :class="statusBorder(order.estado)">
       
       <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 mb-2">
+        <div class="flex items-center gap-2 mb-2 flex-wrap">
             <h3 class="font-[1000] uppercase italic text-base leading-none dark:text-white truncate">
               {{ order.nombre || order.nombreCliente || 'Cliente Sin Nombre' }}
             </h3>
-            <span class="text-[9px] font-black px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 rounded">#{{ order.id }}</span>
+            <span class="text-[9px] font-black px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 rounded">{{ order.codigoPedido || ('#' + order.id) }}</span>
+            <!-- Badge de estado visible -->
+            <span :class="['text-[9px] font-[1000] px-2.5 py-1 rounded-lg uppercase italic flex items-center gap-1', badgeEstado(order.estado)]">
+              {{ iconoEstado(order.estado) }} {{ labelEstado(order.estado) }}
+            </span>
         </div>
-        
+
         <div class="flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-black uppercase opacity-60 italic">
             <span class="truncate max-w-[200px]">📍 {{ order.zona }}: {{ order.direccion || order.direccionEntrega }}</span>
             <a :href="'https://wa.me/' + (order.telefono || order.telefonoWhatsApp)" target="_blank" class="text-green-600 dark:text-green-400">
@@ -29,7 +33,7 @@
             <span class="text-ps-red">💰 ${{ order.total.toLocaleString() }}</span>
         </div>
       </div>
-      
+
       <button @click="abrirModal(order)" class="btn-manage w-full md:w-auto">Gestionar</button>
     </div>
 
@@ -38,7 +42,7 @@
             
             <div class="flex justify-between items-center mb-6 shrink-0">
                 <h2 class="text-2xl font-[1000] uppercase italic dark:text-white leading-none">
-                  ORDEN <span class="text-ps-red">#{{ form.id }}</span>
+                  ORDEN <span class="text-ps-red">{{ form.codigoPedido || ('#' + form.id) }}</span>
                 </h2>
                 <button @click="showModal = false" class="btn-close-circle">✕</button>
             </div>
@@ -64,7 +68,35 @@
                     </div>
                 </div>
 
-                <div class="relative shrink-0">
+                <!-- Detalles de pago -->
+                <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10 space-y-3">
+                    <p class="label !ml-0 mb-0 text-ps-red">💳 Pago</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-black uppercase opacity-50">Estado</span>
+                        <span :class="['px-3 py-1 rounded-lg text-[9px] font-black uppercase italic', badgeEstado(form.estado)]">
+                            {{ iconoEstado(form.estado) }} {{ labelEstado(form.estado) }}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-black uppercase opacity-50">ID Transacción Bold</span>
+                        <span class="text-[10px] font-bold dark:text-white">{{ form.boldPaymentId || 'No registrado' }}</span>
+                    </div>
+                    <div v-if="form.receptorEntrega" class="flex items-center justify-between border-t dark:border-white/5 pt-3">
+                        <span class="text-[9px] font-black uppercase opacity-50">📦 Recibió</span>
+                        <span class="text-[10px] font-black text-green-500 italic">{{ form.receptorEntrega }}</span>
+                    </div>
+                </div>
+
+                <!-- Aviso de orden bloqueada -->
+                <div v-if="!editable" class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-400/20 rounded-2xl p-3 flex items-start gap-2">
+                    <span class="text-sm shrink-0">🔒</span>
+                    <p class="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase leading-relaxed">
+                        Esta orden ya fue pagada. No se pueden modificar los artículos para evitar errores. Solo puedes cambiar el estado.
+                    </p>
+                </div>
+
+                <!-- Agregar producto: solo si está PENDIENTE -->
+                <div v-if="editable" class="relative shrink-0">
                     <label class="label">Agregar Producto</label>
                     <div class="relative">
                         <input v-model="searchProd" placeholder="Buscar por nombre..." class="admin-input-dark" />
@@ -76,7 +108,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="space-y-3">
                     <label class="label">Artículos en la Orden</label>
                     <div v-for="(item, idx) in form.items" :key="idx" class="item-row">
@@ -84,7 +116,8 @@
                             <p class="text-[10px] font-[1000] uppercase italic dark:text-white truncate">{{ item.nombreProducto }}</p>
                             <p class="text-[8px] font-black opacity-40 uppercase tracking-tighter">Unit: ${{ item.precioSnapshot.toLocaleString() }}</p>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <!-- Editable solo si PENDIENTE -->
+                        <div v-if="editable" class="flex items-center gap-3">
                             <div class="qty-controls">
                                 <button @click="item.cantidad > 1 ? item.cantidad-- : null" type="button" class="qty-btn">-</button>
                                 <span class="w-6 text-center text-[10px] font-black dark:text-white">{{ item.cantidad }}</span>
@@ -92,6 +125,8 @@
                             </div>
                             <button @click="form.items.splice(idx, 1)" type="button" class="text-ps-red text-xs p-1">✕</button>
                         </div>
+                        <!-- Solo lectura -->
+                        <span v-else class="text-[11px] font-black dark:text-white shrink-0">x{{ item.cantidad }}</span>
                     </div>
                 </div>
             </div>
@@ -115,6 +150,13 @@
                 </div>
                 <button @click="guardarCambios" class="btn-save-order" :disabled="isSaving">
                     {{ isSaving ? 'ACTUALIZANDO...' : 'GUARDAR CAMBIOS' }}
+                </button>
+
+                <!-- Cancelar y reembolsar: solo en pedidos ya pagados -->
+                <button v-if="form.boldPaymentId && form.estado !== 'CANCELADO'"
+                    @click="cancelarYReembolsar" :disabled="isSaving"
+                    class="w-full mt-3 border-2 border-ps-red text-ps-red py-4 rounded-2xl font-[1000] uppercase italic text-[10px] tracking-widest hover:bg-ps-red hover:text-white active:scale-95 transition-all">
+                    💸 Cancelar y Reembolsar (sin stock físico)
                 </button>
             </div>
         </div>
@@ -157,16 +199,22 @@ const totalCalculado = computed(() => {
     return form.value.items.reduce((acc, i) => acc + (Number(i.precioSnapshot) * Number(i.cantidad)), 0);
 });
 
+// Solo se pueden editar artículos si el pedido sigue PENDIENTE (sin pagar)
+const editable = computed(() => form.value.estado === 'PENDIENTE');
+
 const abrirModal = (order) => {
     // Clonamos el objeto y mapeamos las llaves para que coincidan con lo que el modal espera (tu DTO)
     form.value = {
         id: order.id,
+        codigoPedido: order.codigoPedido,
         nombre: order.nombre || order.nombreCliente || 'Sin Nombre',
         telefono: order.telefono || order.telefonoWhatsApp || '',
         direccion: order.direccion || order.direccionEntrega || '',
         email: order.email || order.emailCliente || '',
         zona: order.zona || 'Chía',
         estado: order.estado,
+        boldPaymentId: order.boldPaymentId || null,
+        receptorEntrega: order.receptorEntrega || null,
         items: (order.items || []).map(item => ({
             id: item.id,
             productoId: item.productoId,
@@ -212,12 +260,52 @@ const guardarCambios = async () => {
     } finally { isSaving.value = false; }
 };
 
+// Cancela un pedido pagado y dispara el flujo de reembolso (email + alerta Telegram)
+const cancelarYReembolsar = async () => {
+    const ok = confirm(
+        `¿Cancelar y reembolsar el pedido ${form.value.codigoPedido}?\n\n` +
+        `Se le avisará al cliente que le devolveremos su dinero y al equipo para procesar el reembolso en Bold. ` +
+        `Esta acción no se puede deshacer.`
+    );
+    if (!ok) return;
+    isSaving.value = true;
+    try {
+        // PATCH estado → CANCELADO (esto envía email de reembolso + alerta Telegram)
+        await api.patch(`/pedidos/admin/${form.value.id}/estado`, 'CANCELADO', {
+            headers: { 'Content-Type': 'application/json' }
+        });
+        showModal.value = false;
+        emit('refresh');
+    } catch (e) {
+        alert("Error al cancelar el pedido.");
+    } finally { isSaving.value = false; }
+};
+
 const statusBorder = (s) => {
     if (s === 'PENDIENTE') return 'border-amber-400';
+    if (s === 'PAGADO') return 'border-green-600';
+    if (s === 'EN_CAMINO') return 'border-blue-500';
     if (s === 'ENTREGADO') return 'border-green-500';
     if (s === 'CANCELADO') return 'border-red-500';
     return 'border-ps-blue';
 };
+
+const badgeEstado = (s) => {
+    if (s === 'PENDIENTE') return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400';
+    if (s === 'PAGADO')    return 'bg-green-600 text-white animate-pulse';
+    if (s === 'EN_CAMINO') return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400';
+    if (s === 'ENTREGADO') return 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400';
+    if (s === 'CANCELADO') return 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400';
+    return 'bg-slate-100 text-slate-500';
+};
+
+const iconoEstado = (s) => ({
+    PENDIENTE: '⏳', PAGADO: '💰', EN_CAMINO: '🚚', ENTREGADO: '✅', CANCELADO: '❌'
+}[s] || '•');
+
+const labelEstado = (s) => ({
+    PENDIENTE: 'Pendiente Pago', PAGADO: '¡Pagado!', EN_CAMINO: 'En Camino', ENTREGADO: 'Entregado', CANCELADO: 'Cancelado'
+}[s] || s);
 </script>
 
 <style scoped>
