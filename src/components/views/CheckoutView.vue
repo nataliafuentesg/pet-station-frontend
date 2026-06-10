@@ -261,6 +261,7 @@ import { ref, reactive, computed, onMounted, nextTick, Transition } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../../stores/cartStore';
 import api from '../../api/axios';
+import Swal from 'sweetalert2';
 import { useConfigStore } from '../../stores/configStore';
 import { useTracking } from '@/composables/useTracking';
 
@@ -523,8 +524,26 @@ const procesarCompra = async () => {
       }))
     };
 
-    // 1. Crear pedido en PENDIENTE
+    // 1. Crear pedido en PENDIENTE (o PENDIENTE_FORMULA si requiere receta)
     const { data: pedidoCreado } = await api.post('/pedidos', payload);
+
+    // Si el pedido quedó en PENDIENTE_FORMULA, redirigir al expediente
+    if (pedidoCreado.estado === 'PENDIENTE_FORMULA') {
+      cartStore.clearCart();
+      await Swal.fire({
+        icon: 'info',
+        title: '🧾 Fórmula médica requerida',
+        html: `Tu pedido <strong>${pedidoCreado.codigoPedido}</strong> fue creado.<br><br>
+               Uno o más productos requieren fórmula médica. <br>
+               Ve a tu expediente y adjunta la foto de la fórmula para que nuestro equipo la revise y apruebe tu pedido.`,
+        confirmButtonText: 'Ir a mi expediente',
+        confirmButtonColor: '#152C77',
+        customClass: { popup: 'rounded-[2rem] font-sans' }
+      });
+      router.push('/seleccionar-perfil');
+      return;
+    }
+
     const totalPedido = cartStore.totalPrice;
 
     // 2. Pedir los datos del botón de Bold
