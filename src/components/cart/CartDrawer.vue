@@ -125,18 +125,18 @@
 import { computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../../stores/cartStore';
+import { useConfigStore } from '../../stores/configStore';
 
 const props = defineProps(['isOpen', 'tutor']);
 const emit = defineEmits(['close', 'notify']);
 
 const cartStore = useCartStore();
+const configStore = useConfigStore();
 const router = useRouter();
 
-const MINIMO = 200000;
-
-const progresoMinimo = computed(() => (cartStore.totalPrice / MINIMO) * 100);
-const alcanzaMinimo  = computed(() => cartStore.totalPrice >= MINIMO);
-const faltanParaMinimo = computed(() => Math.max(0, MINIMO - cartStore.totalPrice));
+const progresoMinimo = computed(() => (cartStore.totalPrice / configStore.pedidoMinimo) * 100);
+const alcanzaMinimo  = computed(() => cartStore.totalPrice >= configStore.pedidoMinimo);
+const faltanParaMinimo = computed(() => Math.max(0, configStore.pedidoMinimo - cartStore.totalPrice));
 
 const irACheckout = () => {
   if (!alcanzaMinimo.value) return;

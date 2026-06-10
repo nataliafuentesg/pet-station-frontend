@@ -261,6 +261,7 @@ import { ref, reactive, computed, onMounted, nextTick, Transition } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../../stores/cartStore';
 import api from '../../api/axios';
+import { useConfigStore } from '../../stores/configStore';
 import { useTracking } from '@/composables/useTracking';
 
 const { trackInicioCheckout, trackCompraCompletada } = useTracking();
@@ -274,7 +275,8 @@ const emit = defineEmits(['notify']);
 const boldListo = ref(false);
 const boldContainer = ref(null);
 
-const MINIMO_DOMICILIO = 200000;
+const configStore = useConfigStore();
+const MINIMO_DOMICILIO = computed(() => configStore.pedidoMinimo);
 
 // Coordenadas exactas de Pet Station (verificadas en Google Maps)
 // https://maps.app.goo.gl/32mULMP2jZE6hgdx9
@@ -446,8 +448,8 @@ const validar = () => {
   errores.zona = '';
   let ok = true;
 
-  if (cartStore.totalPrice < MINIMO_DOMICILIO) {
-    emit('notify', { msg: `El pedido mínimo para domicilio es $${MINIMO_DOMICILIO.toLocaleString()}`, type: 'warning' });
+  if (cartStore.totalPrice < MINIMO_DOMICILIO.value) {
+    emit('notify', { msg: `El pedido mínimo para domicilio es $${MINIMO_DOMICILIO.value.toLocaleString()}`, type: 'warning' });
     return false;
   }
 
