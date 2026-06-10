@@ -355,45 +355,8 @@ const verHistorial = ref(false);
 // ---- Pagar pedido existente ----
 const pagando = ref({});
 
-const irAPagar = async (order) => {
-  pagando.value[order.id] = true;
-  try {
-    const { data: bold } = await api.post('/pagos/bold/datos-boton', { pedidoId: order.id });
-
-    // Crear el script de Bold dinámicamente y añadirlo al body
-    // Bold se abre como overlay sin salir de la página
-    const existing = document.getElementById(`bold-script-${order.id}`);
-    if (existing) existing.remove();
-
-    const script = document.createElement('script');
-    script.id = `bold-script-${order.id}`;
-    script.src = 'https://checkout.bold.co/library/boldPaymentButton.js';
-    script.setAttribute('data-bold-button', '');
-    script.setAttribute('data-order-id', bold.orderId);
-    script.setAttribute('data-currency', bold.currency);
-    script.setAttribute('data-amount', bold.amount);
-    script.setAttribute('data-api-key', bold.apiKey);
-    script.setAttribute('data-integrity-signature', bold.integritySignature);
-    script.setAttribute('data-redirection-url', bold.redirectUrl);
-    script.setAttribute('data-description', `Pedido Pet Station ${order.codigoPedido}`);
-    document.body.appendChild(script);
-
-    // Bold renderiza su botón al cargar el script — simulamos click después de un tick
-    script.onload = () => {
-      setTimeout(() => {
-        const btn = document.querySelector('[data-bold-button] button, bold-button button, .bold-button');
-        if (btn) btn.click();
-        pagando.value[order.id] = false;
-      }, 500);
-    };
-    script.onerror = () => {
-      pagando.value[order.id] = false;
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cargar el botón de pago. Intenta desde el link del email.' });
-    };
-  } catch (e) {
-    pagando.value[order.id] = false;
-    Swal.fire({ icon: 'error', title: 'Error', text: e.response?.data?.error || 'No se pudo iniciar el pago.' });
-  }
+const irAPagar = (order) => {
+  router.push(`/checkout?retomar=${order.codigoPedido}`);
 };
 
 // ---- Subida de fórmula médica ----
