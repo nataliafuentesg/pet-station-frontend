@@ -138,7 +138,6 @@
                         <select v-model="form.estado" class="admin-input-dark !py-3 !text-[10px] font-black italic">
                             <option value="PENDIENTE">⏳ PENDIENTE</option>
                             <option value="PAGADO">💳 PAGADO</option>
-                            <option value="EN_CAMINO">🚚 EN CAMINO</option>
                             <option value="ENTREGADO">✅ ENTREGADO</option>
                             <option value="CANCELADO">❌ CANCELADO</option>
                         </select>
@@ -153,7 +152,7 @@
                 </button>
 
                 <!-- Cancelar y reembolsar: solo en pedidos ya pagados -->
-                <button v-if="form.boldPaymentId && form.estado !== 'CANCELADO'"
+                <button v-if="['PAGADO', 'EN_CAMINO'].includes(form.estado)"
                     @click="cancelarYReembolsar" :disabled="isSaving"
                     class="w-full mt-3 border-2 border-ps-red text-ps-red py-4 rounded-2xl font-[1000] uppercase italic text-[10px] tracking-widest hover:bg-ps-red hover:text-white active:scale-95 transition-all">
                     💸 Cancelar y Reembolsar (sin stock físico)
@@ -240,6 +239,7 @@ const addProd = (p) => {
 const guardarCambios = async () => {
     isSaving.value = true;
     try {
+        // 1. Guardar items y estructura del pedido
         const payload = {
             id: form.value.id,
             estado: form.value.estado,
@@ -253,6 +253,15 @@ const guardarCambios = async () => {
             }))
         };
         await api.put(`/pedidos/admin/${form.value.id}`, payload);
+
+        // 2. Si el estado cambió, usar PATCH para que dispare emails y Telegram
+        const estadoOriginal = props.orders.find(o => o.id === form.value.id)?.estado;
+        if (estadoOriginal && estadoOriginal !== form.value.estado) {
+            await api.patch(`/pedidos/admin/${form.value.id}/estado`, form.value.estado, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
         showModal.value = false;
         emit('refresh');
     } catch (e) {

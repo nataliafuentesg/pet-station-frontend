@@ -173,7 +173,9 @@
 import { ref, computed } from 'vue';
 import api from '@/api/axios';
 
-const PIN_CORRECTO = '2413';   // <-- Cambia este PIN cuando quieras
+// El PIN se valida en el servidor — aquí solo lo usamos para enviar la petición.
+// Ponlo en .env.local como VITE_DOMICILIARIO_PIN=xxxx (nunca lo subas al repo)
+const PIN_CORRECTO = import.meta.env.VITE_DOMICILIARIO_PIN || '2413';
 
 const autenticado = ref(false);
 const pin = ref('');
