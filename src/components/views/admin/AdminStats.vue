@@ -25,6 +25,20 @@
       </div>
     </div>
 
+    <!-- Ventas perdidas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="stat-card border-2 border-dashed border-red-200 dark:border-red-900/40 bg-red-50/50 dark:bg-red-900/10">
+        <p class="label-kpi text-red-400">Ventas Perdidas</p>
+        <h2 class="number-kpi text-red-500">${{ formatCurrency(stats.ventasPerdidasMonto) }}</h2>
+        <div class="growth-indicator text-red-400 mt-2">{{ stats.ventasPerdidasCount || 0 }} pedidos pagados y cancelados</div>
+      </div>
+      <div class="stat-card border-2 border-dashed border-amber-200 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-900/10">
+        <p class="label-kpi text-amber-500">Carritos Abandonados</p>
+        <h2 class="number-kpi text-amber-500">${{ formatCurrency(stats.carritosAbandonadosMonto) }}</h2>
+        <div class="growth-indicator text-amber-400 mt-2">{{ stats.carritosAbandonadosCount || 0 }} pedidos que nunca pagaron</div>
+      </div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       
       <div class="admin-card">

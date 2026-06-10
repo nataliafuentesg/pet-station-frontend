@@ -143,7 +143,7 @@ import api from '@/api/axios';
 const props = defineProps(['citas', 'searchQuery']);
 const emit = defineEmits(['cita-eliminada']);
 
-const filtroActivo = ref('hoy');
+const filtroActivo = ref('proximas');
 const showModal = ref(false);
 const citaActual = ref(null);
 const cancelando = ref(false);

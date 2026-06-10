@@ -160,7 +160,7 @@
                 <div>
                   <p class="text-[8px] font-black text-slate-400 uppercase mb-2 tracking-widest">{{ formatDate(cita.fechaHora) }}</p>
                   <h4 class="font-black text-ps-blue dark:text-white uppercase text-xs italic">{{ cita.servicioTipo }}</h4>
-                  <p class="text-[10px] text-slate-500 mt-2 italic leading-relaxed line-clamp-2">"{{ cita.motivo }}"</p>
+                  <p v-if="cita.motivo" class="text-[10px] text-slate-500 mt-2 italic leading-relaxed line-clamp-2">"{{ cita.motivo }}"</p>
                 </div>
 
                 <button @click="cancelarCita(cita.id)" title="Cancelar Cita"
