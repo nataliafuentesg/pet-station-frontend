@@ -317,7 +317,7 @@
 
     <Transition name="fade">
       <div v-if="isLoginOpen || isOnboardingOpen"
-        class="fixed inset-0 z-[4000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        class="fixed inset-0 z-[4000] flex items-start sm:items-center justify-center p-4 pt-6 sm:pt-4 bg-black/80 backdrop-blur-md overflow-y-auto">
         <LoginModal v-if="isLoginOpen" @success="handleLoginSuccess"
           @goRegister="isLoginOpen = false; isOnboardingOpen = true" @close="isLoginOpen = false" @notify="addNotify" />
         <PetOnboarding v-if="isOnboardingOpen" :tutorExistente="tutorData" @finalizado="handleOnboardingFinish"

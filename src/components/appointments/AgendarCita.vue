@@ -151,10 +151,20 @@ const form = reactive({
   motivo: ''
 });
 
+// Fecha mínima = hoy + 24h en hora local (evita desfase UTC en Colombia)
 const minDate = computed(() => {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow.toISOString().split('T')[0];
+  const en24h = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const y = en24h.getFullYear();
+  const m = String(en24h.getMonth() + 1).padStart(2, '0');
+  const d = String(en24h.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+});
+
+// Hora mínima válida si la fecha seleccionada es exactamente el día mínimo
+// Ej: si son las 10am, en 24h serán las 10am del día siguiente → slots de 8am quedan fuera
+const horaMinSiEsDiaMinimo = computed(() => {
+  const en24h = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  return en24h.getHours(); // ej: 10 → solo horas >= 10 son válidas ese día
 });
 
 const esDomingo = computed(() => {
@@ -183,15 +193,19 @@ const formatHora = (h) => {
 // NUEVO: Computed inteligente para cruzar las horas permitidas con las ocupadas del backend
 const filteredHours = computed(() => {
   if (diaNoDisponible.value || !tempDate.value) return [];
-  
+
+  const esDiaMinimo = tempDate.value === minDate.value;
+
   return TURNOS_PERMITIDOS.map(turno => {
-    const horaNumero = parseInt(turno.split(':')[0]); // Ej: de "08:00" saca el número 8
-    const estaOcupado = horasOcupadasBackend.value.includes(horaNumero);
-    
+    const horaNumero = parseInt(turno.split(':')[0]);
+    const ocupadoBackend = horasOcupadasBackend.value.includes(horaNumero);
+    // Si es el día mínimo, también bloquear horas que no cumplen las 24h
+    const fueraDe24h = esDiaMinimo && horaNumero < horaMinSiEsDiaMinimo.value;
+
     return {
       horaOriginal: turno,
       formato: formatHora(turno),
-      ocupado: estaOcupado
+      ocupado: ocupadoBackend || fueraDe24h
     };
   });
 });

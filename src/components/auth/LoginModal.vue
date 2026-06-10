@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full max-w-md bg-white dark:bg-ps-black rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 shadow-2xl border border-slate-200 dark:border-white/5 animate-in zoom-in duration-300 mx-4">
+  <div class="relative w-full max-w-md bg-white dark:bg-ps-black rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 shadow-2xl border border-slate-200 dark:border-white/5 animate-in zoom-in duration-300 mx-4 max-h-[90vh] overflow-y-auto">
     
     <button @click="$emit('close')"
       class="absolute top-4 right-4 md:top-6 md:right-6 z-[120] w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-ps-red text-white rounded-lg md:rounded-xl shadow-lg hover:rotate-90 transition-all cursor-pointer">✕</button>
