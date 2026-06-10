@@ -7,6 +7,7 @@ import AdminPets from './AdminPets.vue';
 import AdminCitas from './AdminCitas.vue';
 import AdminUsers from './AdminUsers.vue';
 import AdminInventory from './AdminInventory.vue';
+import AdminFormulas from './AdminFormulas.vue';
 
 const currentTab = ref('stats');
 const searchQuery = ref('');
@@ -18,13 +19,15 @@ const data = reactive({
     mascotas: [],
     citas: [],
     productos: [],
-    usuarios: []
+    usuarios: [],
+    formulas: []
 });
 
 // Definimos los tabs con íconos para que se vean bien en el celular
 const tabs = [
     { id: 'stats', label: 'Resumen', icon: '📊' },
     { id: 'pedidos', label: 'Ventas', icon: '🛍️' },
+    { id: 'formulas', label: 'Fórmulas', icon: '🧾' },
     { id: 'mascotas', label: 'Pacientes', icon: '🐾' },
     { id: 'citas', label: 'Agenda', icon: '📅' },
     { id: 'usuarios', label: 'Clientes', icon: '👥' },
@@ -62,6 +65,9 @@ const fetchData = async () => {
         } else if (currentTab.value === 'citas') {
             const { data: c } = await api.get('/admin/citas/todas');
             data.citas = c || [];
+        } else if (currentTab.value === 'formulas') {
+            const { data: f } = await api.get('/formulas/pendientes');
+            data.formulas = f || [];
         }
     } catch (e) {
         console.error("Error en Dashboard:", e);
@@ -154,6 +160,7 @@ const doLogout = () => {
                         <AdminCitas v-if="currentTab === 'citas'" :citas="data.citas" :searchQuery="searchQuery" />
                         <AdminUsers v-if="currentTab === 'usuarios'" :usuarios="data.usuarios" :searchQuery="searchQuery" />
                         <AdminInventory v-if="currentTab === 'inventario'" :productos="data.productos" :searchQuery="searchQuery" @refresh="fetchData" />
+                        <AdminFormulas v-if="currentTab === 'formulas'" :formulas="data.formulas" @refresh="fetchData" />
                     </div>
                 </Transition>
             </template>

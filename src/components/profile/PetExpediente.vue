@@ -199,7 +199,7 @@
                   <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Pedidos activos
                 </p>
                 <div v-for="order in ordersActivos" :key="order.id"
-                  class="p-5 bg-white dark:bg-white/10 rounded-[2.5rem] border-2 border-green-500/30 shadow-sm">
+                  :class="['p-5 bg-white dark:bg-white/10 rounded-[2.5rem] shadow-sm border-2', order.estado === 'PENDIENTE_FORMULA' ? 'border-purple-400/40' : 'border-green-500/30']">
                   <div class="flex justify-between items-start mb-3">
                     <div>
                       <p class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ order.codigoPedido || ('#' + order.id) }}</p>
@@ -216,6 +216,33 @@
                       <span class="text-ps-blue">x{{ item.cantidad }}</span>
                     </div>
                   </div>
+
+                  <!-- Bloque de subida de fórmula -->
+                  <div v-if="order.estado === 'PENDIENTE_FORMULA'"
+                    class="my-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-500/30 rounded-2xl p-4 space-y-3">
+                    <p class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-400 tracking-widest">🧾 Fórmula médica requerida</p>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      Uno o más productos de este pedido requieren fórmula médica. Adjunta una foto clara de la fórmula para que nuestro equipo la revise y apruebe tu pedido.
+                    </p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      :ref="el => { if (el) formulaRefs.value[order.id] = el }"
+                      @change="handleFormulaUpload(order.id, $event)"
+                    />
+                    <button
+                      @click="formulaRefs.value[order.id]?.click()"
+                      :disabled="subiendoFormula[order.id]"
+                      class="w-full py-3 rounded-xl bg-purple-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-purple-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                      <span v-if="subiendoFormula[order.id]">
+                        <span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></span>
+                        Subiendo...
+                      </span>
+                      <span v-else>📎 Adjuntar fórmula</span>
+                    </button>
+                  </div>
+
                   <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-white/5">
                     <span class="text-[9px] font-black uppercase text-slate-400">Total</span>
                     <p class="text-sm font-black text-ps-red tracking-tighter">${{ order.total.toLocaleString() }}</p>
@@ -284,29 +311,77 @@ const petData = ref(null);
 const appointments = ref([]);
 const orders = ref([]);
 
-// Pedidos activos = en proceso (pagado / en camino). Historial = el resto.
+// Pedidos activos = en proceso (pagado / en camino / pendiente fórmula). Historial = el resto.
 const ordersActivos = computed(() =>
-  orders.value.filter(o => ['PAGADO', 'EN_CAMINO'].includes(o.estado))
+  orders.value.filter(o => ['PAGADO', 'EN_CAMINO', 'PENDIENTE_FORMULA'].includes(o.estado))
 );
 const ordersHistorial = computed(() =>
-  orders.value.filter(o => !['PAGADO', 'EN_CAMINO'].includes(o.estado))
+  orders.value.filter(o => !['PAGADO', 'EN_CAMINO', 'PENDIENTE_FORMULA'].includes(o.estado))
 );
 
 const iconoEstadoPedido = (e) => ({
-  PENDIENTE: '⏳', PAGADO: '💰', EN_CAMINO: '🚚', ENTREGADO: '🎉', CANCELADO: '❌'
+  PENDIENTE: '⏳', PENDIENTE_FORMULA: '🧾', PAGADO: '💰', EN_CAMINO: '🚚', ENTREGADO: '🎉', CANCELADO: '❌'
 }[e] || '📦');
 
 const labelEstadoPedido = (e) => ({
-  PENDIENTE: 'Esperando Pago', PAGADO: 'Pagado', EN_CAMINO: 'En Camino',
-  ENTREGADO: 'Entregado', CANCELADO: 'Cancelado'
+  PENDIENTE: 'Esperando Pago', PENDIENTE_FORMULA: 'Fórmula Requerida', PAGADO: 'Pagado',
+  EN_CAMINO: 'En Camino', ENTREGADO: 'Entregado', CANCELADO: 'Cancelado'
 }[e] || e);
 
 const claseEstadoPedido = (e) => {
-  if (e === 'PAGADO')    return 'bg-green-600 text-white';
-  if (e === 'EN_CAMINO') return 'bg-blue-100 text-blue-700';
-  if (e === 'ENTREGADO') return 'bg-green-100 text-green-700';
-  if (e === 'CANCELADO') return 'bg-red-100 text-red-600';
+  if (e === 'PAGADO')            return 'bg-green-600 text-white';
+  if (e === 'EN_CAMINO')         return 'bg-blue-100 text-blue-700';
+  if (e === 'ENTREGADO')         return 'bg-green-100 text-green-700';
+  if (e === 'CANCELADO')         return 'bg-red-100 text-red-600';
+  if (e === 'PENDIENTE_FORMULA') return 'bg-purple-100 text-purple-700';
   return 'bg-amber-100 text-amber-600';
+};
+
+// ---- Subida de fórmula médica ----
+const subiendoFormula = ref({});   // { [pedidoId]: true/false }
+const formulaRefs = ref({});       // refs dinámicos para los inputs file
+
+const handleFormulaUpload = (pedidoId, event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  subiendoFormula.value[pedidoId] = true;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.src = e.target.result;
+    img.onload = async () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const base64 = canvas.toDataURL('image/jpeg', 0.75);
+
+      try {
+        await api.post('/formulas/subir', { pedidoId, imagenUrl: base64 });
+        // Refrescar pedidos para que salga del estado PENDIENTE_FORMULA
+        const resO = props.tutor?.id
+          ? await api.get(`/pedidos/tutor/${props.tutor.id}`)
+          : { data: [] };
+        orders.value = (resO.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        Swal.fire({
+          icon: 'success',
+          title: '¡Fórmula enviada!',
+          text: 'Nuestro equipo la revisará y te notificaremos por email.',
+          timer: 3000,
+          showConfirmButton: false
+        });
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.error || 'No se pudo subir la fórmula. Intenta de nuevo.' });
+      } finally {
+        subiendoFormula.value[pedidoId] = false;
+      }
+    };
+  };
+  reader.readAsDataURL(file);
 };
 
 // Formulario reactivo para la Mascota
