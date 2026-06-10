@@ -191,106 +191,102 @@
               <p class="opacity-30 font-black uppercase text-[10px] italic dark:text-white">Sin compras aún</p>
             </div>
 
-            <div v-else class="space-y-5 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+            <div v-else class="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
+
+              <!-- Sin pedidos activos -->
+              <div v-if="!ordersActivos.length" class="text-center py-10">
+                <p class="opacity-30 font-black uppercase text-[10px] italic dark:text-white">Sin compras activas</p>
+              </div>
 
               <!-- ACTIVOS -->
-              <div v-if="ordersActivos.length" class="space-y-3">
-                <p class="text-[8px] font-black uppercase text-green-600 tracking-[0.2em] flex items-center gap-2">
-                  <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Pedidos activos
-                </p>
-                <div v-for="order in ordersActivos" :key="order.id"
-                  :class="['p-5 bg-white dark:bg-white/10 rounded-[2.5rem] shadow-sm border-2', order.estado === 'PENDIENTE_FORMULA' ? 'border-purple-400/40' : 'border-green-500/30']">
-                  <div class="flex justify-between items-start mb-3">
-                    <div>
-                      <p class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ order.codigoPedido || ('#' + order.id) }}</p>
-                      <p class="text-[9px] font-bold text-slate-500 italic">{{ new Date(order.createdAt).toLocaleDateString('es-CO') }}</p>
-                    </div>
-                    <span :class="['text-[7px] font-black px-3 py-1 rounded-full uppercase tracking-widest', claseEstadoPedido(order.estado)]">
-                      {{ iconoEstadoPedido(order.estado) }} {{ labelEstadoPedido(order.estado) }}
-                    </span>
-                  </div>
-                  <div class="space-y-1 mb-4">
-                    <div v-for="item in order.items" :key="item.id"
-                      class="flex justify-between text-[10px] font-bold text-slate-600 dark:text-slate-300">
-                      <span class="truncate pr-4">• {{ item.nombreProducto }}</span>
-                      <span class="text-ps-blue">x{{ item.cantidad }}</span>
-                    </div>
-                  </div>
+              <div v-for="order in ordersActivos" :key="order.id"
+                :class="['p-5 bg-white dark:bg-white/10 rounded-[2.5rem] shadow-sm border-2',
+                  order.estado === 'PENDIENTE_FORMULA' ? 'border-purple-400/40' :
+                  order.estado === 'PAGADO' ? 'border-green-500/50' :
+                  order.estado === 'EN_CAMINO' ? 'border-blue-400/50' : 'border-amber-400/40']">
 
-                  <!-- Bloque de subida de fórmula -->
-                  <div v-if="order.estado === 'PENDIENTE_FORMULA'"
-                    class="my-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-500/30 rounded-2xl p-4 space-y-3">
-                    <p class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-400 tracking-widest">🧾 Fórmula médica requerida</p>
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                      Uno o más productos de este pedido requieren fórmula médica. Adjunta una foto clara de la fórmula para que nuestro equipo la revise y apruebe tu pedido.
-                    </p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      class="hidden"
-                      :ref="el => { if (el) formulaRefs[order.id] = el }"
-                      @change="handleFormulaUpload(order.id, $event)"
-                    />
-                    <button
-                      @click="formulaRefs[order.id]?.click()"
-                      :disabled="subiendoFormula[order.id]"
-                      class="w-full py-3 rounded-xl bg-purple-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-purple-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                      <span v-if="subiendoFormula[order.id]" class="flex items-center gap-1">
-                        <span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></span>
-                        Subiendo...
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ order.codigoPedido || ('#' + order.id) }}</p>
+                    <p class="text-[9px] font-bold text-slate-500 italic">{{ new Date(order.createdAt).toLocaleDateString('es-CO') }}</p>
+                  </div>
+                  <span :class="['text-[7px] font-black px-3 py-1 rounded-full uppercase tracking-widest', claseEstadoPedido(order.estado)]">
+                    {{ iconoEstadoPedido(order.estado) }} {{ labelEstadoPedido(order.estado) }}
+                  </span>
+                </div>
+
+                <div class="space-y-1 mb-3">
+                  <div v-for="item in order.items" :key="item.id"
+                    class="flex justify-between text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                    <span class="truncate pr-4">• {{ item.nombreProducto }}</span>
+                    <span class="text-ps-blue">x{{ item.cantidad }}</span>
+                  </div>
+                </div>
+
+                <!-- Subir fórmula -->
+                <div v-if="order.estado === 'PENDIENTE_FORMULA'"
+                  class="my-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-500/30 rounded-2xl p-4 space-y-3">
+                  <p class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-400 tracking-widest">🧾 Adjunta tu fórmula médica</p>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Nuestro equipo la revisará y te notificará por email para completar el pago.
+                  </p>
+                  <input type="file" accept="image/*" class="hidden"
+                    :ref="el => { if (el) formulaRefs[order.id] = el }"
+                    @change="handleFormulaUpload(order.id, $event)" />
+                  <button @click="formulaRefs[order.id]?.click()" :disabled="subiendoFormula[order.id]"
+                    class="w-full py-3 rounded-xl bg-purple-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-purple-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    <span v-if="subiendoFormula[order.id]" class="flex items-center gap-1">
+                      <span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></span>Subiendo...
+                    </span>
+                    <span v-else>📎 Adjuntar fórmula</span>
+                  </button>
+                </div>
+
+                <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-white/5">
+                  <span class="text-[9px] font-black uppercase text-slate-400">Total</span>
+                  <p class="text-sm font-black text-ps-red tracking-tighter">${{ order.total.toLocaleString() }}</p>
+                </div>
+
+                <!-- Acciones: pagar o cancelar -->
+                <div v-if="['PENDIENTE', 'PENDIENTE_FORMULA'].includes(order.estado)" class="flex gap-2 mt-3">
+                  <button v-if="order.estado === 'PENDIENTE'"
+                    @click="irAPagar(order)"
+                    :disabled="pagando[order.id]"
+                    class="flex-1 py-2.5 rounded-xl bg-ps-blue text-white text-[9px] font-black uppercase tracking-widest hover:bg-ps-red transition-all disabled:opacity-50">
+                    <span v-if="pagando[order.id]">⏳ Cargando...</span>
+                    <span v-else>💳 Ir a pagar</span>
+                  </button>
+                  <button @click="cancelarPedidoCliente(order.id)"
+                    class="flex-1 py-2.5 rounded-xl border border-red-300 dark:border-red-500/30 text-red-500 text-[9px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+                    ✕ Cancelar
+                  </button>
+                </div>
+              </div>
+
+              <!-- HISTORIAL colapsable -->
+              <div v-if="ordersHistorial.length" class="pt-2">
+                <button @click="verHistorial = !verHistorial"
+                  class="w-full text-[8px] font-black uppercase tracking-widest text-slate-400 hover:text-ps-blue transition-colors flex items-center justify-center gap-2 py-2">
+                  <span>{{ verHistorial ? '▲' : '▼' }}</span>
+                  Ver historial ({{ ordersHistorial.length }})
+                </button>
+                <div v-if="verHistorial" class="space-y-3 mt-2">
+                  <div v-for="order in ordersHistorial" :key="order.id"
+                    class="p-4 bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 opacity-70">
+                    <div class="flex justify-between items-center">
+                      <div>
+                        <p class="text-[8px] font-black text-slate-400 uppercase">{{ order.codigoPedido || ('#' + order.id) }}</p>
+                        <p class="text-[9px] font-bold text-slate-500 italic">{{ new Date(order.createdAt).toLocaleDateString('es-CO') }}</p>
+                      </div>
+                      <span :class="['text-[7px] font-black px-2 py-1 rounded-full uppercase', claseEstadoPedido(order.estado)]">
+                        {{ iconoEstadoPedido(order.estado) }} {{ labelEstadoPedido(order.estado) }}
                       </span>
-                      <span v-else>📎 Adjuntar fórmula</span>
-                    </button>
-                  </div>
-
-                  <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-white/5">
-                    <span class="text-[9px] font-black uppercase text-slate-400">Total</span>
-                    <p class="text-sm font-black text-ps-red tracking-tighter">${{ order.total.toLocaleString() }}</p>
-                  </div>
-
-                  <!-- Acciones cliente: pagar o cancelar -->
-                  <div v-if="['PENDIENTE', 'PENDIENTE_FORMULA'].includes(order.estado)" class="flex gap-2 mt-3">
-                    <router-link v-if="order.estado === 'PENDIENTE'"
-                      :to="`/checkout?retomar=${order.codigoPedido}`"
-                      class="flex-1 text-center py-2.5 rounded-xl bg-ps-blue text-white text-[9px] font-black uppercase tracking-widest hover:bg-ps-red transition-all">
-                      💳 Ir a pagar
-                    </router-link>
-                    <button @click="cancelarPedidoCliente(order.id)"
-                      class="flex-1 py-2.5 rounded-xl border border-red-300 dark:border-red-500/30 text-red-500 text-[9px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
-                      ✕ Cancelar
-                    </button>
+                    </div>
+                    <p class="text-[9px] font-black text-ps-red mt-2">${{ order.total.toLocaleString() }}</p>
                   </div>
                 </div>
               </div>
 
-              <!-- HISTORIAL -->
-              <div v-if="ordersHistorial.length" class="space-y-3">
-                <p class="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em]">Historial</p>
-                <div v-for="order in ordersHistorial" :key="order.id"
-                  class="p-5 bg-white dark:bg-white/10 rounded-[2.5rem] border border-transparent hover:border-ps-blue/30 transition-all shadow-sm"
-                  :class="order.estado === 'CANCELADO' ? 'opacity-60' : ''">
-                  <div class="flex justify-between items-start mb-3">
-                    <div>
-                      <p class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ order.codigoPedido || ('#' + order.id) }}</p>
-                      <p class="text-[9px] font-bold text-slate-500 italic">{{ new Date(order.createdAt).toLocaleDateString('es-CO') }}</p>
-                    </div>
-                    <span :class="['text-[7px] font-black px-3 py-1 rounded-full uppercase tracking-widest', claseEstadoPedido(order.estado)]">
-                      {{ iconoEstadoPedido(order.estado) }} {{ labelEstadoPedido(order.estado) }}
-                    </span>
-                  </div>
-                  <div class="space-y-1 mb-4">
-                    <div v-for="item in order.items" :key="item.id"
-                      class="flex justify-between text-[10px] font-bold text-slate-600 dark:text-slate-300">
-                      <span class="truncate pr-4">• {{ item.nombreProducto }}</span>
-                      <span class="text-ps-blue">x{{ item.cantidad }}</span>
-                    </div>
-                  </div>
-                  <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-white/5">
-                    <span class="text-[9px] font-black uppercase text-slate-400">Total</span>
-                    <p class="text-sm font-black text-ps-red tracking-tighter">${{ order.total.toLocaleString() }}</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -348,6 +344,53 @@ const claseEstadoPedido = (e) => {
   if (e === 'CANCELADO')         return 'bg-red-100 text-red-600';
   if (e === 'PENDIENTE_FORMULA') return 'bg-purple-100 text-purple-700';
   return 'bg-amber-100 text-amber-600';
+};
+
+// ---- Historial colapsable ----
+const verHistorial = ref(false);
+
+// ---- Pagar pedido existente ----
+const pagando = ref({});
+
+const irAPagar = async (order) => {
+  pagando.value[order.id] = true;
+  try {
+    const { data: bold } = await api.post('/pagos/bold/datos-boton', { pedidoId: order.id });
+
+    // Crear el script de Bold dinámicamente y añadirlo al body
+    // Bold se abre como overlay sin salir de la página
+    const existing = document.getElementById(`bold-script-${order.id}`);
+    if (existing) existing.remove();
+
+    const script = document.createElement('script');
+    script.id = `bold-script-${order.id}`;
+    script.src = 'https://checkout.bold.co/library/boldPaymentButton.js';
+    script.setAttribute('data-bold-button', '');
+    script.setAttribute('data-order-id', bold.orderId);
+    script.setAttribute('data-currency', bold.currency);
+    script.setAttribute('data-amount', bold.amount);
+    script.setAttribute('data-api-key', bold.apiKey);
+    script.setAttribute('data-integrity-signature', bold.integritySignature);
+    script.setAttribute('data-redirection-url', bold.redirectUrl);
+    script.setAttribute('data-description', `Pedido Pet Station ${order.codigoPedido}`);
+    document.body.appendChild(script);
+
+    // Bold renderiza su botón al cargar el script — simulamos click después de un tick
+    script.onload = () => {
+      setTimeout(() => {
+        const btn = document.querySelector('[data-bold-button] button, bold-button button, .bold-button');
+        if (btn) btn.click();
+        pagando.value[order.id] = false;
+      }, 500);
+    };
+    script.onerror = () => {
+      pagando.value[order.id] = false;
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cargar el botón de pago. Intenta desde el link del email.' });
+    };
+  } catch (e) {
+    pagando.value[order.id] = false;
+    Swal.fire({ icon: 'error', title: 'Error', text: e.response?.data?.error || 'No se pudo iniciar el pago.' });
+  }
 };
 
 // ---- Subida de fórmula médica ----
