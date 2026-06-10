@@ -182,7 +182,7 @@ const form = ref({ items: [] });
 const itemsFiltrados = computed(() => {
     let list = props.orders || [];
     if (filtroPrincipal.value === 'EN PROCESO') {
-        list = list.filter(o => ['PENDIENTE', 'PAGADO', 'EN_CAMINO'].includes(o.estado));
+        list = list.filter(o => ['PENDIENTE', 'PENDIENTE_FORMULA', 'PAGADO', 'EN_CAMINO'].includes(o.estado));
     } else if (filtroPrincipal.value === 'COMPLETADOS') {
         list = list.filter(o => o.estado === 'ENTREGADO');
     } else {
@@ -294,29 +294,32 @@ const cancelarYReembolsar = async () => {
 };
 
 const statusBorder = (s) => {
-    if (s === 'PENDIENTE') return 'border-amber-400';
-    if (s === 'PAGADO') return 'border-green-600';
-    if (s === 'EN_CAMINO') return 'border-blue-500';
-    if (s === 'ENTREGADO') return 'border-green-500';
-    if (s === 'CANCELADO') return 'border-red-500';
+    if (s === 'PENDIENTE')         return 'border-amber-400';
+    if (s === 'PENDIENTE_FORMULA') return 'border-purple-400';
+    if (s === 'PAGADO')            return 'border-green-600';
+    if (s === 'EN_CAMINO')         return 'border-blue-500';
+    if (s === 'ENTREGADO')         return 'border-green-500';
+    if (s === 'CANCELADO')         return 'border-red-500';
     return 'border-ps-blue';
 };
 
 const badgeEstado = (s) => {
-    if (s === 'PENDIENTE') return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400';
-    if (s === 'PAGADO')    return 'bg-green-600 text-white animate-pulse';
-    if (s === 'EN_CAMINO') return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400';
-    if (s === 'ENTREGADO') return 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400';
-    if (s === 'CANCELADO') return 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400';
+    if (s === 'PENDIENTE')         return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400';
+    if (s === 'PENDIENTE_FORMULA') return 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400';
+    if (s === 'PAGADO')            return 'bg-green-600 text-white animate-pulse';
+    if (s === 'EN_CAMINO')         return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400';
+    if (s === 'ENTREGADO')         return 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400';
+    if (s === 'CANCELADO')         return 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400';
     return 'bg-slate-100 text-slate-500';
 };
 
 const iconoEstado = (s) => ({
-    PENDIENTE: '⏳', PAGADO: '💰', EN_CAMINO: '🚚', ENTREGADO: '✅', CANCELADO: '❌'
+    PENDIENTE: '⏳', PENDIENTE_FORMULA: '🧾', PAGADO: '💰', EN_CAMINO: '🚚', ENTREGADO: '✅', CANCELADO: '❌'
 }[s] || '•');
 
 const labelEstado = (s) => ({
-    PENDIENTE: 'Pendiente Pago', PAGADO: '¡Pagado!', EN_CAMINO: 'En Camino', ENTREGADO: 'Entregado', CANCELADO: 'Cancelado'
+    PENDIENTE: 'Pendiente Pago', PENDIENTE_FORMULA: 'Fórmula Requerida',
+    PAGADO: '¡Pagado!', EN_CAMINO: 'En Camino', ENTREGADO: 'Entregado', CANCELADO: 'Cancelado'
 }[s] || s);
 </script>
 

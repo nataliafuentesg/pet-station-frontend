@@ -247,6 +247,19 @@
                     <span class="text-[9px] font-black uppercase text-slate-400">Total</span>
                     <p class="text-sm font-black text-ps-red tracking-tighter">${{ order.total.toLocaleString() }}</p>
                   </div>
+
+                  <!-- Acciones cliente: pagar o cancelar -->
+                  <div v-if="['PENDIENTE', 'PENDIENTE_FORMULA'].includes(order.estado)" class="flex gap-2 mt-3">
+                    <router-link v-if="order.estado === 'PENDIENTE'"
+                      :to="`/checkout?retomar=${order.codigoPedido}`"
+                      class="flex-1 text-center py-2.5 rounded-xl bg-ps-blue text-white text-[9px] font-black uppercase tracking-widest hover:bg-ps-red transition-all">
+                      💳 Ir a pagar
+                    </router-link>
+                    <button @click="cancelarPedidoCliente(order.id)"
+                      class="flex-1 py-2.5 rounded-xl border border-red-300 dark:border-red-500/30 text-red-500 text-[9px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+                      ✕ Cancelar
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -574,6 +587,33 @@ watch(() => props.pet?.id, (newVal) => {
 watch(() => props.tutor?.id, (newVal) => {
   if (newVal) loadAllData();
 });
+
+// CANCELAR PEDIDO (cliente)
+const cancelarPedidoCliente = async (pedidoId) => {
+  const result = await Swal.fire({
+    title: '¿Cancelar pedido?',
+    text: 'Se cancelará el pedido. Esta acción no se puede deshacer.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#DE1F27',
+    cancelButtonColor: '#152C77',
+    confirmButtonText: 'Sí, cancelar',
+    cancelButtonText: 'Volver',
+    customClass: { popup: 'rounded-[2rem] font-sans' }
+  });
+  if (!result.isConfirmed) return;
+  try {
+    await api.patch(`/pedidos/admin/${pedidoId}/estado`, 'CANCELADO', {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    orders.value = orders.value.map(o =>
+      o.id === pedidoId ? { ...o, estado: 'CANCELADO' } : o
+    );
+    Swal.fire({ icon: 'success', title: 'Pedido cancelado', timer: 2000, showConfirmButton: false });
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cancelar el pedido.' });
+  }
+};
 
 // LÓGICA PARA CANCELAR LA CITA
 const cancelarCita = async (citaId) => {

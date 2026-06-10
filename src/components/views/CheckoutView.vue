@@ -258,7 +258,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick, Transition } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useCartStore } from '../../stores/cartStore';
 import api from '../../api/axios';
 import Swal from 'sweetalert2';
@@ -269,6 +269,7 @@ const { trackInicioCheckout, trackCompraCompletada } = useTracking();
 
 const cartStore = useCartStore();
 const router = useRouter();
+const route = useRoute();
 const loading = ref(false);
 const emit = defineEmits(['notify']);
 
@@ -429,14 +430,59 @@ const prellenarDatos = () => {
 };
 
 onMounted(async () => {
+  // Modo "retomar pedido existente" — viene del email de fórmula aprobada
+  const codigoRetomar = route.query.retomar;
+  if (codigoRetomar) {
+    loading.value = true;
+    try {
+      // Buscar el pedido por código
+      const sessionStr = localStorage.getItem('ps_session');
+      const session = sessionStr ? JSON.parse(sessionStr) : null;
+      const tutorId = session?.tutor?.id || session?.id || null;
+
+      let pedidoId = null;
+      if (tutorId) {
+        const { data: pedidos } = await api.get(`/pedidos/tutor/${tutorId}`);
+        const pedido = pedidos.find(p => p.codigoPedido === codigoRetomar && p.estado === 'PENDIENTE');
+        if (pedido) pedidoId = pedido.id;
+      }
+
+      if (!pedidoId) {
+        Swal.fire({ icon: 'warning', title: 'Pedido no encontrado', text: 'No encontramos un pedido pendiente con ese código. Puede que ya haya sido pagado o cancelado.', customClass: { popup: 'rounded-[2rem] font-sans' } });
+        loading.value = false;
+        return;
+      }
+
+      // Ir directo al botón Bold sin crear nuevo pedido
+      const { data: bold } = await api.post('/pagos/bold/datos-boton', { pedidoId });
+      boldListo.value = true;
+      await nextTick();
+      const script = document.createElement('script');
+      script.src = 'https://checkout.bold.co/library/boldPaymentButton.js';
+      script.setAttribute('data-bold-button', '');
+      script.setAttribute('data-order-id', bold.orderId);
+      script.setAttribute('data-currency', bold.currency);
+      script.setAttribute('data-amount', bold.amount);
+      script.setAttribute('data-api-key', bold.apiKey);
+      script.setAttribute('data-integrity-signature', bold.integritySignature);
+      script.setAttribute('data-redirection-url', bold.redirectUrl);
+      script.setAttribute('data-description', `Pedido Pet Station ${codigoRetomar}`);
+      boldContainer.value.appendChild(script);
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cargar el pago. Intenta de nuevo.' });
+    } finally {
+      loading.value = false;
+    }
+    return; // no continuar con el flujo normal
+  }
+
   trackInicioCheckout(cartStore.totalPrice, cartStore.items.length);
   prellenarDatos();
-  // El back calcula la entrega con festivos colombianos incluidos
   try {
     const { data } = await api.get('/pedidos/info-entrega');
     mensajeEntrega.value = data.mensajeEntrega || mensajeEntregaLocal();
   } catch (e) {
-    mensajeEntrega.value = mensajeEntregaLocal(); // respaldo local
+    mensajeEntrega.value = mensajeEntregaLocal();
   }
 });
 
