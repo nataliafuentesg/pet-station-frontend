@@ -232,10 +232,10 @@
                       @change="handleFormulaUpload(order.id, $event)"
                     />
                     <button
-                      @click="formulaRefs.value[order.id]?.click()"
+                      @click="formulaRefs[order.id]?.click()"
                       :disabled="subiendoFormula[order.id]"
                       class="w-full py-3 rounded-xl bg-purple-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-purple-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                      <span v-if="subiendoFormula[order.id]">
+                      <span v-if="subiendoFormula[order.id]" class="flex items-center gap-1">
                         <span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></span>
                         Subiendo...
                       </span>
