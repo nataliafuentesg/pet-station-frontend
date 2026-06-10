@@ -228,7 +228,7 @@
                       type="file"
                       accept="image/*"
                       class="hidden"
-                      :ref="el => { if (el) formulaRefs.value[order.id] = el }"
+                      :ref="el => { if (el) formulaRefs[order.id] = el }"
                       @change="handleFormulaUpload(order.id, $event)"
                     />
                     <button
