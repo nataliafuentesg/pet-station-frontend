@@ -37,7 +37,9 @@
       <div class="flex gap-2 items-center shrink-0">
         <span :class="[
           'px-3 py-1.5 rounded-xl text-[8px] font-black uppercase italic tracking-widest hidden sm:inline',
-          cita.estado === 'CANCELADA' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+          cita.estado === 'CANCELADA'   ? 'bg-red-100 text-red-600' :
+          cita.estado === 'COMPLETADA'  ? 'bg-blue-100 text-blue-600' :
+                                          'bg-green-100 text-green-600'
         ]">{{ cita.estado || 'CONFIRMADA' }}</span>
 
         <button @click="abrirGestionar(cita)"
@@ -94,8 +96,23 @@
             <span class="text-[8px] font-black uppercase opacity-40 tracking-widest">Estado:</span>
             <span :class="[
               'px-4 py-2 rounded-xl text-[9px] font-black uppercase italic',
-              citaActual?.estado === 'CANCELADA' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+              citaActual?.estado === 'CANCELADA'  ? 'bg-red-100 text-red-600' :
+              citaActual?.estado === 'COMPLETADA' ? 'bg-blue-100 text-blue-600' :
+                                                    'bg-green-100 text-green-600'
             ]">{{ citaActual?.estado || 'CONFIRMADA' }}</span>
+          </div>
+
+          <!-- Reagendar -->
+          <div v-if="citaActual?.estado !== 'CANCELADA' && citaActual?.estado !== 'COMPLETADA'" class="mb-4">
+            <p class="text-[8px] font-black uppercase opacity-40 tracking-widest mb-2">Reagendar</p>
+            <div class="flex gap-2">
+              <input v-model="nuevaFechaHora" type="datetime-local"
+                class="flex-1 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold dark:text-white focus:outline-none focus:ring-2 focus:ring-ps-blue" />
+              <button @click="reagendarCita" :disabled="!nuevaFechaHora || reagendando"
+                class="bg-ps-blue text-white px-4 py-2.5 rounded-xl text-[9px] font-black uppercase italic hover:bg-ps-red transition-all disabled:opacity-40">
+                {{ reagendando ? '...' : '📅 Ok' }}
+              </button>
+            </div>
           </div>
 
           <!-- Acciones -->
@@ -105,7 +122,7 @@
               💬 Contactar al Tutor por WhatsApp
             </a>
 
-            <button v-if="citaActual?.estado !== 'CANCELADA'" @click="cancelarCita"
+            <button v-if="citaActual?.estado !== 'CANCELADA' && citaActual?.estado !== 'COMPLETADA'" @click="cancelarCita"
               :disabled="cancelando"
               class="w-full border-2 border-ps-red text-ps-red py-4 rounded-2xl font-[1000] uppercase text-[10px] tracking-widest hover:bg-ps-red hover:text-white active:scale-95 transition-all disabled:opacity-50">
               {{ cancelando ? 'Cancelando...' : '✕ Cancelar esta Cita' }}
@@ -130,6 +147,8 @@ const filtroActivo = ref('hoy');
 const showModal = ref(false);
 const citaActual = ref(null);
 const cancelando = ref(false);
+const reagendando = ref(false);
+const nuevaFechaHora = ref('');
 
 const filtrosFecha = [
   { id: 'hoy',    label: 'Hoy' },
@@ -183,6 +202,7 @@ const waLink = computed(() => {
 
 const abrirGestionar = (cita) => {
   citaActual.value = cita;
+  nuevaFechaHora.value = '';
   showModal.value = true;
 };
 
@@ -198,6 +218,23 @@ const cancelarCita = async () => {
     Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cancelar la cita.' });
   } finally {
     cancelando.value = false;
+  }
+};
+
+const reagendarCita = async () => {
+  if (!nuevaFechaHora.value) return;
+  reagendando.value = true;
+  try {
+    await api.put(`/citas/${citaActual.value.id}/reagendar`, {
+      fechaHora: nuevaFechaHora.value
+    });
+    emit('cita-eliminada', null); // refresca la lista
+    Swal.fire({ icon: 'success', title: 'Cita reagendada', text: 'El cliente recibirá un email de confirmación.', timer: 2000, showConfirmButton: false });
+    showModal.value = false;
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: e.response?.data?.message || 'No se pudo reagendar.' });
+  } finally {
+    reagendando.value = false;
   }
 };
 
