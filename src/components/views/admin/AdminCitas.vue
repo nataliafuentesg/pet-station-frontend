@@ -117,10 +117,13 @@
 
           <!-- Acciones -->
           <div class="space-y-3">
-            <a :href="waLink" target="_blank"
+            <a v-if="citaActual?.tutorTelefono" :href="waLink" target="_blank"
               class="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white py-4 rounded-2xl font-[1000] uppercase text-[10px] tracking-widest hover:bg-green-600 active:scale-95 transition-all">
               💬 Contactar al Tutor por WhatsApp
             </a>
+            <div v-else class="w-full bg-slate-100 dark:bg-white/5 text-slate-400 py-4 rounded-2xl font-[1000] uppercase text-[10px] tracking-widest text-center">
+              📵 Sin teléfono registrado
+            </div>
 
             <button v-if="citaActual?.estado !== 'CANCELADA' && citaActual?.estado !== 'COMPLETADA'" @click="cancelarCita"
               :disabled="cancelando"
@@ -197,7 +200,10 @@ const formatDate = (ds) => ds
 const waLink = computed(() => {
   if (!citaActual.value) return '#';
   const msg = `Hola! Le contactamos de Pet Station sobre la cita de *${citaActual.value.mascotaNombre}* del ${formatDate(citaActual.value.fechaHora)}.`;
-  return `https://wa.me/57?text=${encodeURIComponent(msg)}`;
+  const tel = citaActual.value.tutorTelefono
+    ? `57${citaActual.value.tutorTelefono.replace(/\D/g, '')}` // quita caracteres no numéricos
+    : '57';
+  return `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`;
 });
 
 const abrirGestionar = (cita) => {
