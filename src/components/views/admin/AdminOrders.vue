@@ -114,7 +114,10 @@
                     <div v-for="(item, idx) in form.items" :key="idx" class="item-row">
                         <div class="flex-1 min-w-0">
                             <p class="text-[10px] font-[1000] uppercase italic dark:text-white truncate">{{ item.nombreProducto }}</p>
-                            <p class="text-[8px] font-black opacity-40 uppercase tracking-tighter">Unit: ${{ item.precioSnapshot.toLocaleString() }}</p>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span v-if="item.skuSnapshot" class="text-[8px] font-black text-ps-blue dark:text-blue-400 uppercase tracking-tighter">SKU: {{ item.skuSnapshot }}</span>
+                                <span class="text-[8px] font-black opacity-40 uppercase tracking-tighter">Unit: ${{ item.precioSnapshot.toLocaleString() }}</span>
+                            </div>
                         </div>
                         <!-- Editable solo si PENDIENTE -->
                         <div v-if="editable" class="flex items-center gap-3">
