@@ -268,7 +268,7 @@
                 <button @click="verHistorial = !verHistorial"
                   class="w-full text-[8px] font-black uppercase tracking-widest text-slate-400 hover:text-ps-blue transition-colors flex items-center justify-center gap-2 py-2">
                   <span>{{ verHistorial ? '▲' : '▼' }}</span>
-                  Ver historial ({{ ordersHistorial.length }})
+                  {{ verHistorial ? 'Ocultar historial' : `Ver últimos ${ordersHistorial.length} pedidos` }}
                 </button>
                 <div v-if="verHistorial" class="space-y-3 mt-2">
                   <div v-for="order in ordersHistorial" :key="order.id"
@@ -320,12 +320,15 @@ const petData = ref(null);
 const appointments = ref([]);
 const orders = ref([]);
 
-// Pedidos activos = en proceso (pagado / en camino / pendiente fórmula). Historial = el resto.
+// Pedidos activos = todos los que están en curso (sin pagar, pagados, en camino, fórmula pendiente)
 const ordersActivos = computed(() =>
-  orders.value.filter(o => ['PAGADO', 'EN_CAMINO', 'PENDIENTE_FORMULA'].includes(o.estado))
+  orders.value.filter(o => ['PENDIENTE', 'PENDIENTE_FORMULA', 'PAGADO', 'EN_CAMINO'].includes(o.estado))
 );
+// Historial = entregados y cancelados, máximo 5 más recientes
 const ordersHistorial = computed(() =>
-  orders.value.filter(o => !['PAGADO', 'EN_CAMINO', 'PENDIENTE_FORMULA'].includes(o.estado))
+  orders.value
+    .filter(o => ['ENTREGADO', 'CANCELADO'].includes(o.estado))
+    .slice(0, 5)
 );
 
 const iconoEstadoPedido = (e) => ({
