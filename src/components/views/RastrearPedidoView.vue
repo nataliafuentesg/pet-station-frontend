@@ -46,6 +46,41 @@
             <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mt-1">{{ pedido.codigoPedido }}</p>
           </div>
 
+          <!-- Pendiente de fórmula médica -->
+          <div v-if="pedido.estado === 'PENDIENTE_FORMULA'" class="bg-purple-50 dark:bg-purple-500/10 border-2 border-purple-300 dark:border-purple-400/30 rounded-2xl p-5 mb-6 space-y-4">
+            <p class="text-[11px] font-black uppercase text-purple-700 dark:text-purple-400 text-center">
+              💊 Este pedido requiere fórmula médica
+            </p>
+            <p class="text-[10px] font-bold text-slate-600 dark:text-slate-400 text-center">
+              Sube una foto de tu fórmula para que podamos procesarlo.
+            </p>
+
+            <div v-if="!formulaSubida">
+              <!-- Preview imagen -->
+              <div v-if="formulaPreview" class="rounded-xl overflow-hidden mb-3 border border-purple-200 dark:border-purple-400/20">
+                <img :src="formulaPreview" class="w-full max-h-48 object-contain bg-black/5" />
+              </div>
+
+              <input ref="formulaInput" type="file" accept="image/*" class="hidden" @change="onFormulaSeleccionada" />
+
+              <button @click="formulaInput.click()"
+                class="w-full border-2 border-dashed border-purple-300 dark:border-purple-400/40 rounded-2xl py-4 text-[10px] font-black uppercase text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-all">
+                {{ formulaPreview ? '📷 Cambiar foto' : '📷 Seleccionar foto de fórmula' }}
+              </button>
+
+              <button v-if="formulaPreview" @click="subirFormula" :disabled="subiendoFormula"
+                class="w-full mt-3 bg-purple-600 text-white py-4 rounded-2xl font-[1000] uppercase text-[10px] tracking-widest hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50">
+                {{ subiendoFormula ? 'Enviando...' : '✅ Enviar fórmula' }}
+              </button>
+            </div>
+
+            <div v-else class="text-center space-y-1">
+              <p class="text-2xl">✅</p>
+              <p class="text-[11px] font-black uppercase text-green-600 dark:text-green-400">¡Fórmula recibida!</p>
+              <p class="text-[10px] font-bold text-slate-500">Nuestro equipo la revisará pronto y te avisaremos.</p>
+            </div>
+          </div>
+
           <!-- Pendiente de pago: botón para pagar -->
           <div v-if="pedido.estado === 'PENDIENTE'" class="bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-300 dark:border-amber-400/30 rounded-2xl p-5 mb-6 text-center space-y-3">
             <p class="text-[11px] font-black uppercase text-amber-700 dark:text-amber-400">
@@ -175,17 +210,64 @@ const pasoActivo = computed(() => {
   if (e === 'ENTREGADO') return 2;
   if (e === 'EN_CAMINO') return 1;
   if (e === 'PAGADO') return 0;
-  return -1; // PENDIENTE o CANCELADO
+  return -1; // PENDIENTE, PENDIENTE_FORMULA o CANCELADO
 });
 
 const iconoEstado = (e) => ({
-  PENDIENTE: '⏳', PAGADO: '💰', EN_CAMINO: '🚚', ENTREGADO: '🎉', CANCELADO: '❌'
+  PENDIENTE: '⏳', PENDIENTE_FORMULA: '💊', PAGADO: '💰', EN_CAMINO: '🚚', ENTREGADO: '🎉', CANCELADO: '❌'
 }[e] || '📦');
 
 const labelEstado = (e) => ({
-  PENDIENTE: 'Esperando Pago', PAGADO: '¡Pago Confirmado!', EN_CAMINO: 'En Camino',
-  ENTREGADO: '¡Entregado!', CANCELADO: 'Cancelado'
+  PENDIENTE: 'Esperando Pago', PENDIENTE_FORMULA: 'Fórmula Requerida', PAGADO: '¡Pago Confirmado!',
+  EN_CAMINO: 'En Camino', ENTREGADO: '¡Entregado!', CANCELADO: 'Cancelado'
 }[e] || e);
+
+// Subir fórmula
+const formulaInput = ref(null);
+const formulaPreview = ref('');
+const subiendoFormula = ref(false);
+const formulaSubida = ref(false);
+
+const onFormulaSeleccionada = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1200;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        const ratio = Math.min(MAX / width, MAX / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      formulaPreview.value = canvas.toDataURL('image/jpeg', 0.75);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+const subirFormula = async () => {
+  if (!formulaPreview.value || !pedido.value) return;
+  subiendoFormula.value = true;
+  try {
+    await api.post('/formulas/subir', {
+      pedidoId: pedido.value.id,
+      imagenUrl: formulaPreview.value,
+    });
+    formulaSubida.value = true;
+  } catch (e) {
+    error.value = e.response?.data?.error || 'Error al enviar la fórmula. Intenta de nuevo.';
+  } finally {
+    subiendoFormula.value = false;
+  }
+};
 
 const rastrear = async () => {
   if (!codigo.value.trim() || !contacto.value.trim()) {
