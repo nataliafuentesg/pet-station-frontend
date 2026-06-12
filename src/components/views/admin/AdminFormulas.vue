@@ -1,4 +1,14 @@
 <template>
+  <!-- Lightbox modal -->
+  <div v-if="lightboxUrl" @click="lightboxUrl = null"
+    class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 cursor-zoom-out">
+    <img :src="lightboxUrl" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" @click.stop />
+    <button @click="lightboxUrl = null"
+      class="absolute top-4 right-4 text-white text-2xl font-black bg-white/10 hover:bg-white/20 rounded-full w-10 h-10 flex items-center justify-center transition-all">
+      ×
+    </button>
+  </div>
+
   <div class="space-y-4 animate-in slide-in-from-bottom duration-300">
 
     <div v-if="!formulas.length" class="text-center py-16 space-y-3">
@@ -30,11 +40,11 @@
       </div>
 
       <!-- Foto de la fórmula -->
-      <a :href="f.imagenUrl" target="_blank"
-        class="block rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 hover:opacity-90 transition-opacity">
+      <div @click="lightboxUrl = f.imagenUrl"
+        class="block rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 hover:opacity-90 transition-opacity cursor-zoom-in">
         <img :src="f.imagenUrl" alt="Fórmula médica"
           class="w-full max-h-64 object-contain bg-slate-50 dark:bg-white/5" />
-      </a>
+      </div>
       <p class="text-[9px] text-center text-slate-400 -mt-2">Clic en la imagen para verla completa</p>
 
       <!-- Productos del pedido con checkboxes -->
@@ -96,6 +106,7 @@ const emit = defineEmits(['refresh']);
 const aprobados = ref({});
 const motivos = ref({});
 const guardando = ref({});
+const lightboxUrl = ref(null);
 
 // Inicializar checkboxes con todos marcados por defecto
 onMounted(() => {
