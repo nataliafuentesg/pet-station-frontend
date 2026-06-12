@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import api from '../api/axios';
 
 export const useConfigStore = defineStore('config', () => {
-  const pedidoMinimo = ref(200000); // valor fallback mientras carga
+  const pedidoMinimo = ref(70000); // valor fallback mientras carga
   const cargado = ref(false);
 
   async function cargarConfig() {

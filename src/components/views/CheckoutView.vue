@@ -10,7 +10,7 @@
       <div v-if="cartStore.totalPrice < MINIMO_DOMICILIO" class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-400/20 rounded-2xl p-4 mb-8 flex items-start gap-3">
         <span class="text-xl shrink-0">⚠️</span>
         <div>
-          <p class="text-[11px] font-black uppercase text-amber-700 dark:text-amber-400">Pedido mínimo para domicilio: ${{ MINIMO_DOMICILIO.toLocaleString() }}</p>
+          <p class="text-[11px] font-black uppercase text-amber-700 dark:text-amber-400">Pedido mínimo: ${{ MINIMO_DOMICILIO.toLocaleString() }}</p>
           <p class="text-[10px] font-bold text-amber-600 dark:text-amber-300 mt-0.5">
             Te faltan ${{ (MINIMO_DOMICILIO - cartStore.totalPrice).toLocaleString() }} · <router-link to="/tienda" class="underline">Seguir comprando</router-link>
           </p>
@@ -21,8 +21,8 @@
       <div class="bg-[#152C77]/5 dark:bg-white/5 border border-[#152C77]/10 dark:border-white/10 rounded-2xl p-4 mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
         <div>
           <p class="text-lg">🚚</p>
-          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Envío gratis</p>
-          <p class="text-[8px] font-bold text-slate-400">en pedidos desde $200.000</p>
+          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Envío gratis desde $200.000</p>
+          <p class="text-[8px] font-bold text-slate-400">Chía $5.000 · Cajicá/Bogotá $10.000</p>
         </div>
         <div>
           <p class="text-lg">⏰</p>
@@ -225,11 +225,15 @@
               </div>
               <div class="flex justify-between text-sm font-bold opacity-60">
                 <span>Envío</span>
-                <span class="text-green-400 uppercase">Gratis</span>
+                <span v-if="costoEnvio === 0" class="text-green-400 uppercase">Gratis</span>
+                <span v-else>${{ costoEnvio.toLocaleString() }}</span>
+              </div>
+              <div v-if="costoEnvio > 0 && !ciudadSeleccionada" class="text-[9px] font-bold text-white/40 -mt-2">
+                El envío se calcula al seleccionar tu zona
               </div>
               <div class="flex justify-between items-end pt-4">
                 <span class="text-xl font-[1000] uppercase italic">Total</span>
-                <span class="text-4xl font-[1000] italic text-[#DE1F27]">${{ cartStore.totalPrice.toLocaleString() }}</span>
+                <span class="text-4xl font-[1000] italic text-[#DE1F27]">${{ totalConEnvio.toLocaleString() }}</span>
               </div>
             </div>
 
@@ -279,6 +283,13 @@ const boldContainer = ref(null);
 
 const configStore = useConfigStore();
 const MINIMO_DOMICILIO = computed(() => configStore.pedidoMinimo);
+
+const ENVIO_GRATIS_DESDE = 200000;
+const costoEnvio = computed(() => {
+  if (cartStore.totalPrice >= ENVIO_GRATIS_DESDE) return 0;
+  return ciudadSeleccionada.value === 'Chía' ? 5000 : 10000;
+});
+const totalConEnvio = computed(() => cartStore.totalPrice + costoEnvio.value);
 
 // Coordenadas exactas de Pet Station (verificadas en Google Maps)
 // https://maps.app.goo.gl/32mULMP2jZE6hgdx9
@@ -590,7 +601,7 @@ const procesarCompra = async () => {
       return;
     }
 
-    const totalPedido = cartStore.totalPrice;
+    const totalPedido = pedidoCreado.total;
 
     // 2. Pedir los datos del botón de Bold
     const { data: bold } = await api.post('/pagos/bold/datos-boton', {
