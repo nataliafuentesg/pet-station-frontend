@@ -100,6 +100,10 @@
             <router-link to="/terms" class="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-[#DE1F27] transition-colors">
               Términos
             </router-link>
+            <span class="text-[9px] text-slate-300">•</span>
+            <router-link to="/politicas" class="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-[#DE1F27] transition-colors">
+              Envíos y Devoluciones
+            </router-link>
           </div>
         </div>
 

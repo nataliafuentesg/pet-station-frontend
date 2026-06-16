@@ -130,6 +130,12 @@ const routes = [
     meta: { title: 'Términos y Condiciones | Pet Station' }
   },
   {
+    path: '/politicas',
+    name: 'Politicas',
+    component: () => import('../components/views/legal/PoliticasView.vue'),
+    meta: { title: 'Envíos y Devoluciones | Pet Station' }
+  },
+  {
   path: '/promo-gaita',
   alias: '/promo-gaita/',
   name: 'GaitaPromo',

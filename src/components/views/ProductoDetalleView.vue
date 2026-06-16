@@ -130,6 +130,20 @@
                 💬
               </a>
             </div>
+
+            <!-- Info rápida de envío y devoluciones -->
+            <div class="mt-4 bg-slate-50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/10 space-y-2">
+              <div class="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 dark:text-slate-400">
+                <span>🚚</span>
+                <span>Chía $5.000 · Cajicá/Bogotá $10.000 · <strong class="text-[#152C77] dark:text-white">Gratis desde $200.000</strong></span>
+              </div>
+              <div class="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 dark:text-slate-400">
+                <span>🔄</span>
+                <span>Cambios en accesorios y alimentos sellados ·
+                  <router-link to="/politicas" class="text-[#DE1F27] underline underline-offset-2">Ver política completa</router-link>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
