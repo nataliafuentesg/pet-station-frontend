@@ -31,6 +31,10 @@
               📱 {{ order.telefono || order.telefonoWhatsApp }}
             </a>
             <span class="text-ps-red">💰 ${{ order.total.toLocaleString() }}</span>
+            <span v-if="order.franjaEntrega" class="text-[#152C77] dark:text-blue-300">
+              {{ order.franjaEntrega === 'MANANA' ? '🌅 Mañana 8-12' : '🌇 Tarde 1-5' }}
+              <template v-if="order.fechaEntrega"> · {{ order.fechaEntrega }}</template>
+            </span>
         </div>
       </div>
 

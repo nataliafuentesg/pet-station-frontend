@@ -177,6 +177,34 @@
 
                 <p v-if="errores.zona" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.zona }}</p>
               </div>
+
+              <!-- Franja de entrega -->
+              <div class="space-y-3 pt-2">
+                <label class="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">
+                  Franja de entrega
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                  <button type="button" @click="form.franja = 'MANANA'"
+                    :class="form.franja === 'MANANA'
+                      ? 'border-[#152C77] bg-[#152C77] text-white'
+                      : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-white/70'"
+                    class="rounded-2xl border-2 p-4 flex flex-col items-center gap-1 transition-all hover:border-[#152C77]">
+                    <span class="text-xl">🌅</span>
+                    <span class="text-[10px] font-black uppercase">Mañana</span>
+                    <span class="text-[8px] font-bold opacity-70">8am – 12pm</span>
+                  </button>
+                  <button type="button" @click="form.franja = 'TARDE'"
+                    :class="form.franja === 'TARDE'
+                      ? 'border-[#152C77] bg-[#152C77] text-white'
+                      : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-white/70'"
+                    class="rounded-2xl border-2 p-4 flex flex-col items-center gap-1 transition-all hover:border-[#152C77]">
+                    <span class="text-xl">🌇</span>
+                    <span class="text-[10px] font-black uppercase">Tarde</span>
+                    <span class="text-[8px] font-bold opacity-70">1pm – 5pm</span>
+                  </button>
+                </div>
+                <p v-if="errores.franja" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.franja }}</p>
+              </div>
             </div>
           </div>
 
@@ -421,9 +449,10 @@ const form = reactive({
   email: '',
   emailConfirm: '',
   zona: '',
+  franja: '',
 });
 
-const errores = reactive({ nombre: '', telefono: '', direccion: '', email: '', emailConfirm: '', zona: '' });
+const errores = reactive({ nombre: '', telefono: '', direccion: '', email: '', emailConfirm: '', zona: '', franja: '' });
 
 // Pre-llena el formulario con los datos del usuario logueado (editable)
 const prellenarDatos = () => {
@@ -504,6 +533,7 @@ const validar = () => {
   errores.email = '';
   errores.emailConfirm = '';
   errores.zona = '';
+  errores.franja = '';
   let ok = true;
 
   if (cartStore.totalPrice < MINIMO_DOMICILIO.value) {
@@ -549,6 +579,11 @@ const validar = () => {
     ok = false;
   }
 
+  if (!form.franja) {
+    errores.franja = 'Selecciona la franja de entrega';
+    ok = false;
+  }
+
   return ok;
 };
 
@@ -571,6 +606,7 @@ const procesarCompra = async () => {
       direccion: form.direccion.trim(),
       email: form.email.trim() || null,
       zona: form.zona.trim() || null,
+      franjaEntrega: form.franja || null,
       tutorId,
       items: cartStore.items.map(item => ({
         productoId: item.id,
