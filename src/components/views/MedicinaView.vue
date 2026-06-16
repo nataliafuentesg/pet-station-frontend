@@ -14,41 +14,49 @@ const getWspLink = (servicio) => {
 };
 
 const servicios = [
-  { 
-    titulo: "Consulta Veterinaria", 
-    desc: "Valoración clínica completa, medicina preventiva, desparasitación y control de peso. El primer paso para la salud de tu mascota.", 
+  {
+    titulo: "Consulta Veterinaria",
+    desc: "Valoración clínica completa, medicina preventiva, desparasitación y control de peso. El primer paso para la salud de tu mascota.",
     icon: "🩺",
-    action: "Agendar Consulta"
+    action: "Agendar Consulta",
+    tipo: "agendar",
+    link: "/agendar?servicio=CONSULTA"
   },
-  { 
-    titulo: "Cirugía Programada", 
-    desc: "Realizamos procedimientos de tejidos blandos y esterilizaciones en un quirófano equipado con anestesia segura y monitoreo.", 
-    icon: "⚔️", // O el ícono del bisturí
-    action: "Cotizar Cirugía"
+  {
+    titulo: "Cirugía Programada",
+    desc: "Realizamos procedimientos de tejidos blandos y esterilizaciones en un quirófano equipado con anestesia segura y monitoreo.",
+    icon: "⚔️",
+    action: "Cotizar Cirugía",
+    tipo: "wsp"
   },
-  { 
-    titulo: "Vacunación", 
-    desc: "Esquemas completos para cachorros y refuerzos anuales (Rabia, Triple, Tos de Perreras) con biológicos certificados.", 
+  {
+    titulo: "Vacunación",
+    desc: "Esquemas completos para cachorros y refuerzos anuales (Rabia, Triple, Tos de Perreras) con biológicos certificados.",
     icon: "💉",
-    action: "Ver Esquemas"
+    action: "Agendar Vacunación",
+    tipo: "agendar",
+    link: "/agendar?servicio=CONSULTA"
   },
-  { 
-    titulo: "Laboratorio Clínico", 
-    desc: "Apoyo diagnóstico fundamental. Realizamos cuadros hemáticos y químicas sanguíneas para evaluar la salud interna.", 
+  {
+    titulo: "Laboratorio Clínico",
+    desc: "Apoyo diagnóstico fundamental. Realizamos cuadros hemáticos y químicas sanguíneas para evaluar la salud interna.",
     icon: "🔬",
-    action: "Consultar Exámenes"
+    action: "Consultar Exámenes",
+    tipo: "wsp"
   },
-  { 
-    titulo: "Rayos X y Ecografía", 
-    desc: "Ayudas diagnósticas esenciales para evaluar huesos, órganos internos o gestación. (Servicio sujeto a agenda).", 
+  {
+    titulo: "Rayos X y Ecografía",
+    desc: "Ayudas diagnósticas esenciales para evaluar huesos, órganos internos o gestación. (Servicio sujeto a agenda).",
     icon: "🦴",
-    action: "Preguntar Disponibilidad"
+    action: "Preguntar Disponibilidad",
+    tipo: "wsp"
   },
-  { 
-    titulo: "Odontología", 
-    desc: "Profilaxis dental con ultrasonido para retirar el cálculo (sarro), mejorar el aliento y prevenir la pérdida de dientes.", 
+  {
+    titulo: "Odontología",
+    desc: "Profilaxis dental con ultrasonido para retirar el cálculo (sarro), mejorar el aliento y prevenir la pérdida de dientes.",
     icon: "🦷",
-    action: "Agendar Limpieza"
+    action: "Preguntar Disponibilidad",
+    tipo: "wsp"
   }
 ];
 onMounted(() => trackViewService('Consulta Médica Veterinaria'));
@@ -88,7 +96,11 @@ onMounted(() => trackViewService('Consulta Médica Veterinaria'));
             {{ s.desc }}
           </p>
           
-          <a :href="getWspLink(s.titulo)" target="_blank"
+          <router-link v-if="s.tipo === 'agendar'" :to="s.link"
+            class="w-full py-3 flex items-center justify-center gap-2 bg-[#152C77] text-white rounded-xl font-[1000] uppercase text-[9px] tracking-widest hover:bg-[#DE1F27] transition-colors">
+            <span>📅</span> {{ s.action }}
+          </router-link>
+          <a v-else :href="getWspLink(s.titulo)" target="_blank"
             class="w-full py-3 flex items-center justify-center gap-2 bg-[#152C77] text-white rounded-xl font-[1000] uppercase text-[9px] tracking-widest hover:bg-[#DE1F27] transition-colors">
             <span>💬</span> {{ s.action }}
           </a>
