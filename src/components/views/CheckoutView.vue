@@ -22,7 +22,7 @@
         <div>
           <p class="text-lg">🚚</p>
           <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Envío gratis desde $200.000</p>
-          <p class="text-[8px] font-bold text-slate-400">Chía $7.000 · Cajicá/Bogotá $15.000</p>
+          <p class="text-[8px] font-bold text-slate-400">Chía $8.500 · Cajicá/Bogotá $15.000</p>
         </div>
         <div>
           <p class="text-lg">⏰</p>
@@ -315,7 +315,7 @@ const MINIMO_DOMICILIO = computed(() => configStore.pedidoMinimo);
 const ENVIO_GRATIS_DESDE = 200000;
 const costoEnvio = computed(() => {
   if (cartStore.totalPrice >= ENVIO_GRATIS_DESDE) return 0;
-  return ciudadSeleccionada.value === 'Chía' ? 7000 : 15000;
+  return ciudadSeleccionada.value === 'Chía' ? 8500 : 15000;
 });
 const totalConEnvio = computed(() => cartStore.totalPrice + costoEnvio.value);
 

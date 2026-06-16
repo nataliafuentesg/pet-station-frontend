@@ -135,7 +135,7 @@
             <div class="mt-4 bg-slate-50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/10 space-y-2">
               <div class="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 dark:text-slate-400">
                 <span>🚚</span>
-                <span>Chía $7.000 · Cajicá/Bogotá $15.000 · <strong class="text-[#152C77] dark:text-white">Gratis desde $200.000</strong></span>
+                <span>Chía $8.500 · Cajicá/Bogotá $15.000 · <strong class="text-[#152C77] dark:text-white">Gratis desde $200.000</strong></span>
               </div>
               <div class="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 dark:text-slate-400">
                 <span>🔄</span>
