@@ -40,8 +40,8 @@
           <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10">
             <p class="text-[#152C77] dark:text-white font-black mb-2">Costos de envío</p>
             <ul class="space-y-1">
-              <li>📦 Chía: <strong>$5.000</strong></li>
-              <li>📦 Cajicá / Bogotá norte: <strong>$10.000</strong></li>
+              <li>📦 Chía: <strong>$7.000</strong></li>
+              <li>📦 Cajicá / Bogotá norte: <strong>$15.000</strong></li>
               <li>🎁 <strong>Envío gratis</strong> en pedidos desde <strong>$200.000</strong></li>
             </ul>
           </div>
