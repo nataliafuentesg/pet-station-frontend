@@ -57,6 +57,7 @@
               </select>
               <input v-model="form.nombreTutor" placeholder="Tu Nombre" class="input-style" />
               <input v-model="form.emailTutor" placeholder="Tu Email" type="email" class="input-style" />
+              <input v-model="form.telefonoTutor" placeholder="Tu Teléfono (10 dígitos)" type="tel" class="input-style" />
             </div>
           </div>
 
@@ -280,6 +281,14 @@ const handleSubmit = async () => {
     }
     if (!form.emailTutor.trim()) {
       emit('notify', { msg: 'Escribe tu correo electrónico', type: 'warning' });
+      return;
+    }
+    if (!form.telefonoTutor.trim()) {
+      emit('notify', { msg: 'Escribe tu número de teléfono', type: 'warning' });
+      return;
+    }
+    if (!/^\d{10}$/.test(form.telefonoTutor.replace(/\s/g, ''))) {
+      emit('notify', { msg: 'El teléfono debe tener 10 dígitos', type: 'warning' });
       return;
     }
   }
