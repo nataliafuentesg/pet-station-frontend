@@ -75,7 +75,7 @@
                 <span class="text-[9px] font-black uppercase text-slate-400 tracking-widest">
                   {{ alcanzaMinimo ? '✅ Pedido mínimo alcanzado' : `Faltan $${faltanParaMinimo.toLocaleString()} para el mínimo` }}
                 </span>
-                <span class="text-[9px] font-black uppercase text-slate-400">$200.000</span>
+                <span class="text-[9px] font-black uppercase text-slate-400">$70.000</span>
               </div>
               <div class="w-full h-2 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
                 <div
@@ -85,7 +85,10 @@
                 </div>
               </div>
               <p v-if="!alcanzaMinimo" class="text-[8px] font-bold text-slate-400 uppercase">
-                🚚 Domicilio gratis en pedidos desde $200.000 · Chía, Cajicá y Bogotá norte
+                🚚 Mínimo $70.000 con domicilio · Gratis desde $200.000
+              </p>
+              <p v-else class="text-[8px] font-bold text-slate-400 uppercase">
+                🎁 Envío gratis desde $200.000 · {{ cartStore.totalPrice >= 200000 ? '¡Lo tienes!' : `Faltan $${(200000 - cartStore.totalPrice).toLocaleString()}` }}
               </p>
             </div>
 

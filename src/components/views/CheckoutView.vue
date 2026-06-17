@@ -26,8 +26,8 @@
         </div>
         <div>
           <p class="text-lg">⏰</p>
-          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Pagas antes de 2PM = mismo día</p>
-          <p class="text-[8px] font-bold text-slate-400">después de las 2PM, al día siguiente</p>
+          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Elige tu franja: mañana o tarde</p>
+          <p class="text-[8px] font-bold text-slate-400">coordinamos la ruta y te avisamos antes de salir</p>
         </div>
         <div>
           <p class="text-lg">📅</p>
@@ -628,12 +628,12 @@ const procesarCompra = async () => {
         title: '🧾 Fórmula médica requerida',
         html: `Tu pedido <strong>${pedidoCreado.codigoPedido}</strong> fue creado.<br><br>
                Uno o más productos requieren fórmula médica. <br>
-               Ve a tu expediente y adjunta la foto de la fórmula para que nuestro equipo la revise y apruebe tu pedido.`,
-        confirmButtonText: 'Ir a mi expediente',
+               Adjunta la foto de la fórmula para que nuestro equipo la revise y apruebe tu pedido.`,
+        confirmButtonText: 'Subir fórmula ahora',
         confirmButtonColor: '#152C77',
         customClass: { popup: 'rounded-[2rem] font-sans' }
       });
-      router.push('/seleccionar-perfil');
+      router.push(`/rastrear?codigo=${pedidoCreado.codigoPedido}`);
       return;
     }
 
