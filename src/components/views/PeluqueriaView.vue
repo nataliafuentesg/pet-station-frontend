@@ -178,9 +178,8 @@ const seleccionada = ref(preciosPeluqueria[1]);
 
 const promoActiva = (() => {
   const hoy = new Date();
-  const inicio = new Date('2026-06-22');
-  const fin    = new Date('2026-06-27T23:59:59');
-  return hoy >= inicio && hoy <= fin;
+  const fin = new Date('2026-06-27T23:59:59');
+  return hoy <= fin;
 })();
 
 const seleccionarTalla = (p) => {

@@ -154,8 +154,14 @@ const horasOcupadasBackend = ref([]); // Aquí guardaremos las horas que el Back
 
 const promoActiva = (() => {
   const hoy = new Date();
-  return hoy >= new Date('2026-06-22') && hoy <= new Date('2026-06-27T23:59:59');
+  return hoy <= new Date('2026-06-27T23:59:59');
 })();
+
+const fechaEnPromo = (fechaStr) => {
+  if (!fechaStr) return false;
+  const f = new Date(fechaStr);
+  return f >= new Date('2026-06-22') && f <= new Date('2026-06-27T23:59:59');
+};
 
 const form = reactive({
   mascotaId: null,
@@ -330,7 +336,7 @@ const handleSubmit = async () => {
 
   loading.value = true;
   form.fechaHora = `${tempDate.value}T${tempTime.value}:00`;
-  if (form.tieneVoto && form.servicioTipo === 'PELUQUERIA') {
+  if (form.tieneVoto && form.servicioTipo === 'PELUQUERIA' && fechaEnPromo(tempDate.value)) {
     form.motivo = `[PROMO-VOTO] ${form.motivo}`;
   }
 
