@@ -77,7 +77,7 @@
                 </select>
               </div>
               <div>
-                <label class="label-style">Fecha (Anticipación 24h)</label>
+                <label class="label-style">Fecha (mín. 6 horas de anticipación)</label>
                 <input v-model="tempDate" type="date" :min="minDate" class="input-style" />
               </div>
               <div>
@@ -178,20 +178,19 @@ const form = reactive({
   tieneVoto: false
 });
 
-// Fecha mínima = hoy + 24h en hora local (evita desfase UTC en Colombia)
+// Fecha mínima = hoy + 4h (si son las 10pm, el mínimo sigue siendo hoy → muestra mañana igualmente)
 const minDate = computed(() => {
-  const en24h = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const y = en24h.getFullYear();
-  const m = String(en24h.getMonth() + 1).padStart(2, '0');
-  const d = String(en24h.getDate()).padStart(2, '0');
+  const en4h = new Date(Date.now() + 6 * 60 * 60 * 1000);
+  const y = en4h.getFullYear();
+  const m = String(en4h.getMonth() + 1).padStart(2, '0');
+  const d = String(en4h.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 });
 
 // Hora mínima válida si la fecha seleccionada es exactamente el día mínimo
-// Ej: si son las 10am, en 24h serán las 10am del día siguiente → slots de 8am quedan fuera
 const horaMinSiEsDiaMinimo = computed(() => {
-  const en24h = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  return en24h.getHours(); // ej: 10 → solo horas >= 10 son válidas ese día
+  const en4h = new Date(Date.now() + 6 * 60 * 60 * 1000);
+  return en4h.getHours();
 });
 
 const esDomingo = computed(() => {
