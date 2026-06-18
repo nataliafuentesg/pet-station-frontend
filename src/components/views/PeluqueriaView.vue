@@ -20,6 +20,20 @@
             de cada paciente.
           </p>
 
+          <!-- Banner promo certificado electoral 22-27 jun -->
+          <div v-if="promoActiva" class="flex items-start gap-3 bg-[#152C77] text-white rounded-2xl p-4 max-w-md mx-auto lg:mx-0">
+            <span class="text-2xl shrink-0">🗳️</span>
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-widest mb-1">¡Promo semana electoral!</p>
+              <p class="text-[11px] font-bold leading-relaxed opacity-90">
+                <strong>30% de descuento</strong> en peluquería del 22 al 27 de junio. Muéstranos tu certificado de votación al llegar y aplicamos el descuento.
+              </p>
+              <router-link to="/agendar?servicio=PELUQUERIA" class="inline-block mt-2 bg-[#DE1F27] text-white px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-transform">
+                Agendar con descuento →
+              </router-link>
+            </div>
+          </div>
+
           <!-- Aviso política de bienestar — destacado en el hero -->
           <div class="flex items-start gap-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-400/20 rounded-2xl p-4 max-w-md mx-auto lg:mx-0">
             <span class="text-xl shrink-0 mt-0.5">🛑</span>
@@ -161,6 +175,13 @@ const preciosPeluqueria = [
 ];
 
 const seleccionada = ref(preciosPeluqueria[1]);
+
+const promoActiva = (() => {
+  const hoy = new Date();
+  const inicio = new Date('2026-06-22');
+  const fin    = new Date('2026-06-27T23:59:59');
+  return hoy >= inicio && hoy <= fin;
+})();
 
 const seleccionarTalla = (p) => {
   seleccionada.value = p;

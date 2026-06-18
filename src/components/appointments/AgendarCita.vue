@@ -99,6 +99,20 @@
             </div>
           </div>
 
+          <!-- Promo certificado electoral 22-27 jun -->
+          <div v-if="promoActiva && form.servicioTipo === 'PELUQUERIA'"
+            class="flex items-start gap-3 bg-[#152C77] text-white rounded-2xl p-4 cursor-pointer select-none"
+            @click="form.tieneVoto = !form.tieneVoto">
+            <div class="w-5 h-5 mt-0.5 shrink-0 rounded-md border-2 flex items-center justify-center transition-all"
+              :class="form.tieneVoto ? 'bg-[#DE1F27] border-[#DE1F27]' : 'border-white/50'">
+              <span v-if="form.tieneVoto" class="text-[10px] font-black">✓</span>
+            </div>
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-widest">🗳️ Tengo certificado electoral</p>
+              <p class="text-[9px] opacity-80 font-bold mt-0.5">30% off — lo verificamos al llegar (22–27 jun)</p>
+            </div>
+          </div>
+
           <div class="space-y-2">
             <label class="label-style">Motivo de la cita</label>
             <textarea v-model="form.motivo" placeholder="Describe brevemente el motivo..." class="input-style h-28 resize-none p-6"></textarea>
@@ -138,6 +152,11 @@ const tempTime = ref(''); // Cambiado para que empiece vacío y obligue a selecc
 const TURNOS_PERMITIDOS = ['08:00', '10:00', '12:00', '14:00'];
 const horasOcupadasBackend = ref([]); // Aquí guardaremos las horas que el Back dice que están llenas
 
+const promoActiva = (() => {
+  const hoy = new Date();
+  return hoy >= new Date('2026-06-22') && hoy <= new Date('2026-06-27T23:59:59');
+})();
+
 const form = reactive({
   mascotaId: null,
   nombreTutor: '',
@@ -149,7 +168,8 @@ const form = reactive({
   especie: 'CANINO',
   servicioTipo: 'CONSULTA',
   fechaHora: '',
-  motivo: ''
+  motivo: '',
+  tieneVoto: false
 });
 
 // Fecha mínima = hoy + 24h en hora local (evita desfase UTC en Colombia)
@@ -310,6 +330,9 @@ const handleSubmit = async () => {
 
   loading.value = true;
   form.fechaHora = `${tempDate.value}T${tempTime.value}:00`;
+  if (form.tieneVoto && form.servicioTipo === 'PELUQUERIA') {
+    form.motivo = `[PROMO-VOTO] ${form.motivo}`;
+  }
 
   try {
     await api.post('/citas/agendar', form);
