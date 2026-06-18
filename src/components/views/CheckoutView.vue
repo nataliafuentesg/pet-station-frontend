@@ -208,8 +208,55 @@
             </div>
           </div>
 
+          <!-- Factura electrónica -->
+          <div class="bg-slate-50 dark:bg-white/5 rounded-[2.5rem] p-8 border border-slate-100 dark:border-white/5 space-y-5">
+            <div class="flex items-center justify-between">
+              <h2 class="text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white">2. Factura</h2>
+              <button type="button" @click="form.quiereFactura = !form.quiereFactura"
+                class="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest transition-colors"
+                :class="form.quiereFactura ? 'text-[#152C77] dark:text-white' : 'text-slate-400'">
+                <div class="w-10 h-5 rounded-full transition-colors relative"
+                  :class="form.quiereFactura ? 'bg-[#152C77]' : 'bg-slate-200 dark:bg-white/10'">
+                  <div class="w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all shadow"
+                    :class="form.quiereFactura ? 'left-5' : 'left-0.5'"></div>
+                </div>
+                {{ form.quiereFactura ? 'Sí, quiero factura' : 'No, consumidor final' }}
+              </button>
+            </div>
+
+            <p class="text-[9px] font-bold text-slate-400 uppercase">
+              Si no solicitas factura, tu compra se registra a <strong>Consumidor Final</strong>. Guarda tu factura — la necesitarás para cambios o devoluciones.
+            </p>
+
+            <div v-if="form.quiereFactura" class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-1">Cédula o NIT *</label>
+                  <input v-model="form.factCedula" type="text" placeholder="Ej: 1234567890 o 900123456-1"
+                    class="w-full bg-white dark:bg-black border rounded-2xl p-4 text-sm font-bold dark:text-white outline-none transition-all"
+                    :class="errores.factCedula ? 'border-[#DE1F27]' : 'border-slate-200 dark:border-white/10 focus:border-[#152C77]'" />
+                  <p v-if="errores.factCedula" class="text-[10px] text-[#DE1F27] font-bold mt-1">{{ errores.factCedula }}</p>
+                </div>
+                <div>
+                  <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-1">Nombre o Razón Social *</label>
+                  <input v-model="form.factNombre" type="text" placeholder="Ej: Juan Pérez o Mi Empresa S.A.S"
+                    class="w-full bg-white dark:bg-black border rounded-2xl p-4 text-sm font-bold dark:text-white outline-none transition-all"
+                    :class="errores.factNombre ? 'border-[#DE1F27]' : 'border-slate-200 dark:border-white/10 focus:border-[#152C77]'" />
+                  <p v-if="errores.factNombre" class="text-[10px] text-[#DE1F27] font-bold mt-1">{{ errores.factNombre }}</p>
+                </div>
+              </div>
+              <div>
+                <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-1">Correo para recibir la factura *</label>
+                <input v-model="form.factEmail" type="email" placeholder="facturacion@correo.com"
+                  class="w-full bg-white dark:bg-black border rounded-2xl p-4 text-sm font-bold dark:text-white outline-none transition-all"
+                  :class="errores.factEmail ? 'border-[#DE1F27]' : 'border-slate-200 dark:border-white/10 focus:border-[#152C77]'" />
+                <p v-if="errores.factEmail" class="text-[10px] text-[#DE1F27] font-bold mt-1">{{ errores.factEmail }}</p>
+              </div>
+            </div>
+          </div>
+
           <div class="bg-slate-50 dark:bg-white/5 rounded-[2.5rem] p-8 border border-slate-100 dark:border-white/5 space-y-4">
-            <h2 class="text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white">2. Pago</h2>
+            <h2 class="text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white">3. Pago</h2>
 
             <!-- Bold — único método en la web -->
             <div class="bg-white dark:bg-white/5 rounded-2xl p-5 border-2 border-[#152C77] flex items-center gap-4">
@@ -450,9 +497,13 @@ const form = reactive({
   emailConfirm: '',
   zona: '',
   franja: '',
+  quiereFactura: false,
+  factCedula: '',
+  factNombre: '',
+  factEmail: '',
 });
 
-const errores = reactive({ nombre: '', telefono: '', direccion: '', email: '', emailConfirm: '', zona: '', franja: '' });
+const errores = reactive({ nombre: '', telefono: '', direccion: '', email: '', emailConfirm: '', zona: '', franja: '', factCedula: '', factNombre: '', factEmail: '' });
 
 // Pre-llena el formulario con los datos del usuario logueado (editable)
 const prellenarDatos = () => {
@@ -534,6 +585,9 @@ const validar = () => {
   errores.emailConfirm = '';
   errores.zona = '';
   errores.franja = '';
+  errores.factCedula = '';
+  errores.factNombre = '';
+  errores.factEmail = '';
   let ok = true;
 
   if (cartStore.totalPrice < MINIMO_DOMICILIO.value) {
@@ -584,6 +638,13 @@ const validar = () => {
     ok = false;
   }
 
+  if (form.quiereFactura) {
+    if (!form.factCedula.trim()) { errores.factCedula = 'Ingresa tu cédula o NIT'; ok = false; }
+    if (!form.factNombre.trim()) { errores.factNombre = 'Ingresa el nombre o razón social'; ok = false; }
+    if (!form.factEmail.trim()) { errores.factEmail = 'Ingresa el correo para la factura'; ok = false; }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.factEmail.trim())) { errores.factEmail = 'Correo inválido'; ok = false; }
+  }
+
   return ok;
 };
 
@@ -607,6 +668,10 @@ const procesarCompra = async () => {
       email: form.email.trim() || null,
       zona: form.zona.trim() || null,
       franjaEntrega: form.franja || null,
+      quiereFactura: form.quiereFactura,
+      factCedula: form.quiereFactura ? form.factCedula.trim() : null,
+      factNombre: form.quiereFactura ? form.factNombre.trim() : null,
+      factEmail: form.quiereFactura ? form.factEmail.trim() : null,
       tutorId,
       items: cartStore.items.map(item => ({
         productoId: item.id,

@@ -35,6 +35,9 @@
               {{ order.franjaEntrega === 'MANANA' ? '🌅 Mañana 8-12' : '🌇 Tarde 1-5' }}
               <template v-if="order.fechaEntrega"> · {{ order.fechaEntrega }}</template>
             </span>
+            <span v-if="order.quiereFactura" class="text-amber-600 dark:text-amber-400">
+              🧾 Factura · {{ order.factCedula }} · {{ order.factNombre }}
+            </span>
         </div>
       </div>
 
