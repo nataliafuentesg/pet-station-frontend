@@ -238,7 +238,18 @@ const filteredHours = computed(() => {
 
 // NUEVO: Watcher que se dispara cuando cambia la FECHA o el SERVICIO
 watch([tempDate, () => form.servicioTipo], async ([newDate, newService]) => {
-  if (!newDate || diaNoDisponible.value) {
+  if (!newDate) return;
+
+  // Validar que la fecha no sea anterior al mínimo permitido (fix para móvil que ignora :min)
+  const fechaElegida = new Date(`${newDate}T12:00:00`);
+  const fechaMinima = new Date(`${minDate.value}T12:00:00`);
+  if (fechaElegida < fechaMinima) {
+    tempDate.value = minDate.value;
+    tempTime.value = '';
+    return;
+  }
+
+  if (diaNoDisponible.value) {
     horasOcupadasBackend.value = [];
     tempTime.value = '';
     return;
