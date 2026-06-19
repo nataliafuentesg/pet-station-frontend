@@ -648,6 +648,11 @@ const validar = () => {
   return ok;
 };
 
+const getCookie = (name) => {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+};
+
 const procesarCompra = async () => {
   if (!validar()) {
     emit('notify', { msg: 'Por favor completa los campos obligatorios', type: 'warning' });
@@ -668,6 +673,8 @@ const procesarCompra = async () => {
       email: form.email.trim() || null,
       zona: form.zona.trim() || null,
       franjaEntrega: form.franja || null,
+      fbp: getCookie('_fbp'),
+      fbc: getCookie('_fbc'),
       quiereFactura: form.quiereFactura,
       factCedula: form.quiereFactura ? form.factCedula.trim() : null,
       factNombre: form.quiereFactura ? form.factNombre.trim() : null,
