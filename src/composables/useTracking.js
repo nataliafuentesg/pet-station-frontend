@@ -11,21 +11,16 @@ export function useTracking() {
     }
   };
 
-  const pushMeta = (eventName, params = {}) => {
+  const pushMeta = (eventName, params = {}, eventID = null) => {
     if (window.fbq) {
-      window.fbq('track', eventName, params);
+      const options = eventID ? { eventID } : {};
+      window.fbq('track', eventName, params, options);
     }
   };
 
-  /**
-   * Evento genérico: GTM + Meta Pixel al mismo tiempo.
-   * @param {string} gtmEvent   - Nombre del evento en GTM (snake_case)
-   * @param {string} metaEvent  - Nombre del evento estándar de Meta (PascalCase)
-   * @param {object} params     - Parámetros compartidos (value, currency, etc.)
-   */
-  const track = (gtmEvent, metaEvent, params = {}) => {
+  const track = (gtmEvent, metaEvent, params = {}, eventID = null) => {
     pushGTM(gtmEvent, params);
-    if (metaEvent) pushMeta(metaEvent, params);
+    if (metaEvent) pushMeta(metaEvent, params, eventID);
   };
 
   // ─────────────────────────────────────────
@@ -66,12 +61,14 @@ export function useTracking() {
     });
   };
 
-  const trackCompraCompletada = (total, items) => {
+  const trackCompraCompletada = (total, items, codigoPedido = null) => {
+    // eventID = mismo que manda el servidor ("Purchase-PED-123") para deduplicar
+    const eventID = codigoPedido ? `Purchase-PED-${codigoPedido.replace('PS-2026-', '')}` : null;
     track('purchase', 'Purchase', {
       value: total,
       currency: 'COP',
       num_items: items,
-    });
+    }, eventID);
   };
 
   const trackRegistro = (metodo = 'email') => {
