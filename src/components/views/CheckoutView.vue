@@ -717,8 +717,6 @@ const procesarCompra = async () => {
       total: totalPedido
     });
 
-    trackCompraCompletada(totalPedido, cartStore.items.length, pedidoCreado.id);
-
     // 3. Mostrar el botón de Bold en la misma página
     boldListo.value = true;
     await nextTick();

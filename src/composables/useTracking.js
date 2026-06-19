@@ -61,14 +61,12 @@ export function useTracking() {
     });
   };
 
-  const trackCompraCompletada = (total, items, codigoPedido = null) => {
-    // eventID = mismo que manda el servidor ("Purchase-PED-123") para deduplicar
-    const eventID = codigoPedido ? `Purchase-PED-${codigoPedido.replace('PS-2026-', '')}` : null;
-    track('purchase', 'Purchase', {
-      value: total,
-      currency: 'COP',
-      num_items: items,
-    }, eventID);
+  const trackCompraCompletada = (total = null, items = null, numericId = null) => {
+    const eventID = numericId ? `Purchase-PED-${numericId}` : null;
+    const params = { currency: 'COP' };
+    if (total) params.value = total;
+    if (items) params.num_items = items;
+    track('purchase', 'Purchase', params, eventID);
   };
 
   const trackRegistro = (metodo = 'email') => {

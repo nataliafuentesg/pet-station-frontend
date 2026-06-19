@@ -29,7 +29,7 @@
           <div class="flex items-start gap-3">
             <span class="text-lg shrink-0">🚚</span>
             <p class="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-              Tu pedido será entregado al <strong class="text-[#152C77] dark:text-white">día siguiente hábil</strong> si el pago se confirmó antes de las 2:00 PM.
+              Tu pedido será entregado en la <strong class="text-[#152C77] dark:text-white">franja que elegiste</strong>. Te escribimos al WhatsApp antes de salir.
             </p>
           </div>
           <div class="flex items-start gap-3">
@@ -95,12 +95,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useTracking } from '@/composables/useTracking';
 
 const route = useRoute();
-// Bold redirige con: ?bold-order-id=PS-2026-0006&bold-tx-status=approved
-// El bold-order-id ya viene con el formato bonito, lo mostramos tal cual.
+const { trackCompraCompletada } = useTracking();
+
 const pedidoId = computed(() => {
   const boldOrder = route.query['bold-order-id'];
   if (boldOrder) return String(boldOrder);
@@ -108,6 +109,13 @@ const pedidoId = computed(() => {
 });
 const estadoPago = computed(() => route.query['bold-tx-status'] || 'approved');
 const aprobado = computed(() => estadoPago.value === 'approved');
+
+onMounted(() => {
+  if (!aprobado.value || !pedidoId.value) return;
+  // Extraer el ID numérico de "PS-2026-0006" → 6 para que coincida con el event_id del servidor
+  const numericId = parseInt(pedidoId.value.split('-').pop());
+  trackCompraCompletada(null, null, numericId);
+});
 </script>
 
 <style scoped>
