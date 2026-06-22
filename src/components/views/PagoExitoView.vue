@@ -112,9 +112,10 @@ const aprobado = computed(() => estadoPago.value === 'approved');
 
 onMounted(() => {
   if (!aprobado.value || !pedidoId.value) return;
-  // Extraer el ID numérico de "PS-2026-0006" → 6 para que coincida con el event_id del servidor
   const numericId = parseInt(pedidoId.value.split('-').pop());
-  trackCompraCompletada(null, null, numericId);
+  const total = parseFloat(sessionStorage.getItem('ps_last_order_total')) || null;
+  sessionStorage.removeItem('ps_last_order_total');
+  trackCompraCompletada(total, null, numericId);
 });
 </script>
 
