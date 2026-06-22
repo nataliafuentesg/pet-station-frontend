@@ -350,8 +350,17 @@ const handleSubmit = async () => {
     form.motivo = `[PROMO-VOTO] ${form.motivo}`;
   }
 
+  const getCookie = (name) => {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : null;
+  };
+
   try {
-    await api.post('/citas/agendar', form);
+    await api.post('/citas/agendar', {
+      ...form,
+      fbp: getCookie('_fbp'),
+      fbc: getCookie('_fbc'),
+    });
     trackCitaAgendada(
       form.servicioTipo,
       form.especie,
