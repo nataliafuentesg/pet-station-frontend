@@ -89,6 +89,14 @@
                 <p class="font-bold uppercase dark:text-white">{{ formatDate(citaActual?.fechaHora) }}</p>
               </div>
             </div>
+            <div v-if="citaActual?.motivo">
+              <p class="font-black uppercase opacity-40 tracking-widest text-[8px] mb-1">Motivo</p>
+              <p v-if="citaActual.motivo.startsWith('[PROMO-VOTO]')"
+                class="text-[10px] font-black text-green-600 dark:text-green-400">
+                🗳️ PROMO ELECTORAL · {{ citaActual.motivo.replace('[PROMO-VOTO] ', '') }}
+              </p>
+              <p v-else class="text-[10px] font-bold dark:text-white/70">{{ citaActual.motivo }}</p>
+            </div>
           </div>
 
           <!-- Estado actual -->
