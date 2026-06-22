@@ -212,11 +212,13 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import { useProductStore } from '../../stores/productStore';
 import { useCartStore } from '../../stores/cartStore';
 import { useRouter, onBeforeRouteLeave } from 'vue-router'; // 🚀 IMPORTANTE AQUÍ
+import { useTracking } from '@/composables/useTracking';
 
 const productStore = useProductStore();
 const cartStore = useCartStore();
 const router = useRouter();
 const emit = defineEmits(['notify']);
+const { trackAddToCart } = useTracking();
 
 const pasilloSeleccionado = ref(false);
 const showMobileFilters = ref(false);
@@ -447,6 +449,7 @@ const onAddToCart = (p) => {
   if (window.dataLayer) {
     window.dataLayer.push({ event: 'add_to_cart', ecommerce: { currency: 'COP', value: p.precio, items: [{ item_id: p.id, item_name: p.nombre, price: p.precio, quantity: 1, item_category: p.categoria }] } });
   }
+  trackAddToCart({ id: p.id, nombre: p.nombre, precio: p.precio });
   emit('notify', { msg: `${p.nombre} añadido`, type: 'success' });
 };
 
