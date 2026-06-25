@@ -121,13 +121,23 @@
               </div>
             </div>
 
-            <div class="flex gap-4">
+            <div class="flex gap-4" v-if="TIENDA_ACTIVA">
               <button @click="handleAddToCart" :disabled="product.stock <= 0"
                 class="flex-1 bg-ps-red hover:scale-[1.02] disabled:bg-slate-500 text-white py-6 rounded-2xl font-[1000] uppercase italic transition-all shadow-xl flex items-center justify-center gap-3">
                 {{ product.stock > 0 ? 'Añadir a la Bolsa' : 'Agotado' }} 🛍️
               </button>
               <a :href="whatsappUrl" target="_blank" class="w-20 h-20 flex items-center justify-center rounded-2xl bg-white/10 hover:bg-green-500 transition-all border border-white/10 text-2xl">
                 💬
+              </a>
+            </div>
+            <div v-else class="space-y-3">
+              <div class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-400/20 rounded-2xl p-4 text-center">
+                <p class="text-[11px] font-black uppercase text-amber-700 dark:text-amber-400">🚧 Tienda temporalmente pausada</p>
+                <p class="text-[10px] font-bold text-amber-600 dark:text-amber-500 mt-1">Pronto habilitaremos las compras en línea.</p>
+              </div>
+              <a :href="whatsappUrl" target="_blank"
+                class="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white py-5 rounded-2xl font-[1000] uppercase text-[10px] tracking-widest hover:bg-green-600 active:scale-95 transition-all">
+                💬 Pedir por WhatsApp
               </a>
             </div>
 
@@ -186,6 +196,7 @@ import { useCartStore } from '../../stores/cartStore';
 import { useProductStore } from '../../stores/productStore';
 import { useTracking } from '@/composables/useTracking';
 import api from '@/api/axios';
+import { TIENDA_ACTIVA } from '@/config';
 
 const { trackAddToCart } = useTracking();
 

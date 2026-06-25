@@ -141,7 +141,8 @@
                   
                   <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/10">
                     <span class="text-3xl font-[1000] dark:text-white italic text-[#152C77] tracking-tighter">${{ p.precio.toLocaleString() }}</span>
-                    <button v-if="p.stock > 0" @click="onAddToCart(p)" class="pointer-events-auto w-12 h-12 bg-[#152C77] hover:bg-[#DE1F27] text-white rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all font-bold">🛒</button>
+                    <button v-if="p.stock > 0 && TIENDA_ACTIVA" @click="onAddToCart(p)" class="pointer-events-auto w-12 h-12 bg-[#152C77] hover:bg-[#DE1F27] text-white rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all font-bold">🛒</button>
+                    <span v-else-if="!TIENDA_ACTIVA" class="text-2xl opacity-30">🚧</span>
                     <span v-else class="text-2xl opacity-30">🚫</span>
                   </div>
                 </div>
@@ -213,6 +214,7 @@ import { useProductStore } from '../../stores/productStore';
 import { useCartStore } from '../../stores/cartStore';
 import { useRouter, onBeforeRouteLeave } from 'vue-router'; // 🚀 IMPORTANTE AQUÍ
 import { useTracking } from '@/composables/useTracking';
+import { TIENDA_ACTIVA } from '@/config';
 
 const productStore = useProductStore();
 const cartStore = useCartStore();

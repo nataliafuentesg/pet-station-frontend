@@ -101,16 +101,28 @@
             </div>
 
             <!-- Botón -->
-            <button @click="irACheckout"
-              :disabled="!alcanzaMinimo"
-              :class="[
-                'w-full py-5 rounded-[2rem] font-[1000] uppercase italic shadow-xl transition-all active:scale-95',
-                alcanzaMinimo
-                  ? 'bg-[#152C77] hover:bg-[#DE1F27] text-white'
-                  : 'bg-slate-200 dark:bg-white/10 text-slate-400 dark:text-white/30 cursor-not-allowed'
-              ]">
-              {{ alcanzaMinimo ? 'Ir a pagar →' : `Faltan $${faltanParaMinimo.toLocaleString()}` }}
-            </button>
+            <template v-if="TIENDA_ACTIVA">
+              <button @click="irACheckout"
+                :disabled="!alcanzaMinimo"
+                :class="[
+                  'w-full py-5 rounded-[2rem] font-[1000] uppercase italic shadow-xl transition-all active:scale-95',
+                  alcanzaMinimo
+                    ? 'bg-[#152C77] hover:bg-[#DE1F27] text-white'
+                    : 'bg-slate-200 dark:bg-white/10 text-slate-400 dark:text-white/30 cursor-not-allowed'
+                ]">
+                {{ alcanzaMinimo ? 'Ir a pagar →' : `Faltan $${faltanParaMinimo.toLocaleString()}` }}
+              </button>
+            </template>
+            <template v-else>
+              <div class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-400/20 rounded-2xl p-3 text-center">
+                <p class="text-[10px] font-black uppercase text-amber-700 dark:text-amber-400">🚧 Tienda temporalmente pausada</p>
+                <p class="text-[9px] font-bold text-amber-600 dark:text-amber-500 mt-0.5">Pronto habilitaremos las compras en línea.</p>
+              </div>
+              <a href="https://wa.me/573053462413?text=Hola%20Pet%20Station!%20Quiero%20hacer%20un%20pedido." target="_blank"
+                class="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white py-5 rounded-[2rem] font-[1000] uppercase text-[10px] tracking-widest hover:bg-green-600 active:scale-95 transition-all">
+                💬 Pedir por WhatsApp
+              </a>
+            </template>
 
             <router-link to="/tienda" @click="$emit('close')"
               class="block text-center text-[9px] font-black uppercase text-slate-400 hover:text-[#DE1F27] tracking-widest transition-all">
@@ -129,6 +141,7 @@ import { computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../../stores/cartStore';
 import { useConfigStore } from '../../stores/configStore';
+import { TIENDA_ACTIVA } from '@/config';
 
 const props = defineProps(['isOpen', 'tutor']);
 const emit = defineEmits(['close', 'notify']);
