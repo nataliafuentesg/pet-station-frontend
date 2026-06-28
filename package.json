@@ -12,6 +12,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
+    "firebase": "^12.15.0",
     "lucide-vue-next": "^0.562.0",
     "pinia": "^3.0.4",
     "sweetalert2": "^11.26.18",

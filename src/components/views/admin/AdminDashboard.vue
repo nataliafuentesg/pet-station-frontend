@@ -8,6 +8,17 @@ import AdminCitas from './AdminCitas.vue';
 import AdminUsers from './AdminUsers.vue';
 import AdminInventory from './AdminInventory.vue';
 import AdminFormulas from './AdminFormulas.vue';
+import { suscribirNotificaciones } from '@/composables/usePushNotifications';
+
+const notifActivas = ref(Notification.permission === 'granted');
+const activandoNotif = ref(false);
+
+const activarNotificaciones = async () => {
+  activandoNotif.value = true;
+  const ok = await suscribirNotificaciones();
+  notifActivas.value = ok;
+  activandoNotif.value = false;
+};
 
 const currentTab = ref('stats');
 const searchQuery = ref('');
@@ -140,9 +151,20 @@ const doLogout = () => {
                     <h1 class="text-4xl md:text-5xl font-[1000] uppercase italic leading-none text-[#152C77] dark:text-white">{{ tabTitle }}</h1>
                     <p class="text-xs font-bold opacity-50 uppercase tracking-widest mt-2 text-[#DE1F27]">Torre de control PetStation</p>
                 </div>
-                <div class="relative w-full lg:w-80">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 opacity-50">🔍</span>
-                    <input v-model="searchQuery" placeholder="BUSCAR..." class="admin-input-header" />
+                <div class="flex gap-3 items-center w-full lg:w-auto">
+                    <button @click="activarNotificaciones" :disabled="notifActivas || activandoNotif"
+                        :class="[
+                            'px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all',
+                            notifActivas
+                                ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400 cursor-default'
+                                : 'bg-[#152C77] text-white hover:bg-[#DE1F27] active:scale-95'
+                        ]">
+                        {{ notifActivas ? '🔔 Notificaciones activas' : activandoNotif ? '...' : '🔔 Activar notificaciones' }}
+                    </button>
+                    <div class="relative w-full lg:w-80">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 opacity-50">🔍</span>
+                        <input v-model="searchQuery" placeholder="BUSCAR..." class="admin-input-header" />
+                    </div>
                 </div>
             </header>
 
