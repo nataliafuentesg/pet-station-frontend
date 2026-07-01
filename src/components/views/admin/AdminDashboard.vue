@@ -67,8 +67,8 @@ const fetchData = async () => {
                 data.productos = pr;
             }
         } else if (currentTab.value === 'mascotas') {
-            const { data: m } = await api.get('/admin/dashboard/completo');
-            data.mascotas = m.flatMap(t => (t.mascotas || []).map(p => ({ ...p, tutorNombre: `${t.nombre} ${t.apellido}` })));
+            const { data: m } = await api.get('/admin/mascotas/todas', { params: { size: 60 } });
+            data.mascotas = m.mascotas || [];
         } else if (currentTab.value === 'usuarios') {
             const { data: u } = await api.get('/admin/dashboard/completo');
             data.usuarios = u || [];
