@@ -15,6 +15,22 @@
       </div>
     </div>
 
+    <!-- Campañas de email -->
+    <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5">
+      <p class="text-[8px] font-black uppercase opacity-40 tracking-widest mb-4">📧 Campañas de Email</p>
+      <div class="flex flex-wrap gap-3 items-center">
+        <button @click="enviarCampana('bienvenida')" :disabled="enviando"
+          class="px-5 py-3 bg-[#152C77] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#DE1F27] transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95">
+          {{ enviando ? '⏳ Enviando...' : '📬 Enviar bienvenida a todos' }}
+        </button>
+        <p class="text-[9px] font-bold text-slate-400">Correo de presentación de Pet Station · Se enviará a todos los clientes suscritos</p>
+      </div>
+      <div v-if="mensajeCampana" class="mt-3 px-4 py-3 rounded-xl text-[10px] font-bold"
+        :class="mensajeCampana.ok ? 'bg-green-50 text-green-700 dark:bg-green-500/10' : 'bg-red-50 text-red-700 dark:bg-red-500/10'">
+        {{ mensajeCampana.texto }}
+      </div>
+    </div>
+
     <!-- Buscador -->
     <div class="flex gap-3">
       <div class="relative flex-1">
@@ -89,6 +105,8 @@ const registrados = ref(0);
 const page = ref(0);
 const q = ref('');
 const loading = ref(false);
+const enviando = ref(false);
+const mensajeCampana = ref(null);
 let debounceTimer = null;
 
 const cargar = async () => {
@@ -109,6 +127,20 @@ const cargar = async () => {
 const buscar = () => {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => { page.value = 0; cargar(); }, 400);
+};
+
+const enviarCampana = async (tipo) => {
+  if (!confirm(`¿Confirmas enviar la campaña "${tipo}" a todos los clientes suscritos? Esta acción no se puede deshacer.`)) return;
+  enviando.value = true;
+  mensajeCampana.value = null;
+  try {
+    const { data } = await api.post(`/admin/marketing/campana-${tipo}`);
+    mensajeCampana.value = { ok: true, texto: `✅ Campaña iniciada — se enviará a ${data.destinatarios.toLocaleString()} contactos en segundo plano.` };
+  } catch (e) {
+    mensajeCampana.value = { ok: false, texto: '❌ Error iniciando la campaña. Revisa los logs del servidor.' };
+  } finally {
+    enviando.value = false;
+  }
 };
 
 onMounted(cargar);
