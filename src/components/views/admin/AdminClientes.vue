@@ -23,7 +23,11 @@
           class="px-5 py-3 bg-[#152C77] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#DE1F27] transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95">
           {{ enviando ? '⏳ Enviando...' : '📬 Enviar bienvenida a todos' }}
         </button>
-        <p class="text-[9px] font-bold text-slate-400">Correo de presentación de Pet Station · Se enviará a todos los clientes suscritos</p>
+        <button @click="enviarCampana('activacion')" :disabled="enviando"
+          class="px-5 py-3 bg-[#DE1F27] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#152C77] transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95">
+          {{ enviando ? '⏳ Enviando...' : '🔑 Activar cuentas Aliaddo' }}
+        </button>
+        <p class="text-[9px] font-bold text-slate-400">Invita a los clientes importados a crear su contraseña y acceder al perfil de su mascota</p>
       </div>
       <div v-if="mensajeCampana" class="mt-3 px-4 py-3 rounded-xl text-[10px] font-bold"
         :class="mensajeCampana.ok ? 'bg-green-50 text-green-700 dark:bg-green-500/10' : 'bg-red-50 text-red-700 dark:bg-red-500/10'">

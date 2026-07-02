@@ -118,6 +118,12 @@ const routes = [
     meta: { title: 'Recuperar Contraseña | Pet Station' }
   },
   {
+    path: '/activar',
+    name: 'ActivarCuenta',
+    component: () => import('@/components/views/ActivarCuentaView.vue'),
+    meta: { title: 'Activa tu Cuenta | Pet Station' }
+  },
+  {
     path: '/privacy',
     name: 'Privacy',
     component: PrivacyView,
