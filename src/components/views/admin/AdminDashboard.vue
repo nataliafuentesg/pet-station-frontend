@@ -67,11 +67,9 @@ const fetchData = async () => {
                 data.productos = pr;
             }
         } else if (currentTab.value === 'mascotas') {
-            const { data: m } = await api.get('/admin/mascotas/todas', { params: { size: 60 } });
-            data.mascotas = m.mascotas || [];
+            // AdminPets maneja su propia carga y paginación
         } else if (currentTab.value === 'usuarios') {
-            const { data: u } = await api.get('/admin/dashboard/completo');
-            data.usuarios = u || [];
+            // AdminUsers maneja su propia carga y paginación
         } else if (currentTab.value === 'inventario') {
             const { data: pr } = await api.get('/admin/productos');
             data.productos = pr || [];
