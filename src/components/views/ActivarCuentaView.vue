@@ -21,7 +21,7 @@
           <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">
             Este enlace ya fue usado o venció. Escríbenos y te enviamos uno nuevo.
           </p>
-          <a href="https://wa.me/573144497104?text=Hola,%20necesito%20activar%20mi%20cuenta%20en%20Pet%20Station"
+          <a href="https://wa.me/573053462413?text=Hola,%20necesito%20activar%20mi%20cuenta%20en%20Pet%20Station"
             target="_blank"
             class="inline-block bg-[#152C77] text-white font-black uppercase text-[11px] tracking-widest px-6 py-3 rounded-2xl">
             Contactar por WhatsApp
@@ -70,6 +70,15 @@
                   required />
               </div>
 
+              <!-- Consentimiento para recordatorios automáticos -->
+              <label class="flex items-start gap-3 cursor-pointer group">
+                <input type="checkbox" v-model="recibeNotificaciones"
+                  class="mt-0.5 w-4 h-4 rounded accent-[#152C77] shrink-0 cursor-pointer" />
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Quiero recibir recordatorios de vacunas y baños de mis mascotas por email
+                </span>
+              </label>
+
               <p v-if="error" class="text-[11px] font-bold text-[#DE1F27]">{{ error }}</p>
 
               <button type="submit" :disabled="cargando"
@@ -107,6 +116,7 @@ const cargando = ref(false);
 const error = ref('');
 const activado = ref(false);
 const tokenInvalido = ref(false);
+const recibeNotificaciones = ref(false);
 
 onMounted(async () => {
   token.value = route.query.token || '';
@@ -133,6 +143,7 @@ const activar = async () => {
     const { data } = await api.post('/auth/activar-cuenta', {
       token: token.value,
       password: password.value,
+      recibeNotificaciones: recibeNotificaciones.value,
     });
     localStorage.setItem('ps_token', data.token);
     localStorage.setItem('ps_session', JSON.stringify({ tutor: { nombre: data.nombre, email: data.email } }));

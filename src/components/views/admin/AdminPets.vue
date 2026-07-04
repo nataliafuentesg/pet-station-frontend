@@ -13,17 +13,22 @@
       <div class="w-8 h-8 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
     </div>
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div v-for="m in mascotas" :key="m.id" class="pet-card group">
+      <div v-for="m in mascotas" :key="m.id" class="pet-card group" :class="m.fallecida ? 'opacity-40' : ''">
         <div class="flex items-center gap-4">
           <div class="avatar">
             <img v-if="m.fotoUrl" :src="m.fotoUrl" class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full flex items-center justify-center text-2xl">🐾</div>
+            <div v-else class="w-full h-full flex items-center justify-center text-2xl">{{ m.fallecida ? '🌈' : '🐾' }}</div>
           </div>
-          <div class="min-w-0">
+          <div class="min-w-0 flex-1">
             <h3 class="pet-name">{{ m.nombre }}</h3>
             <p class="pet-breed">{{ m.especie }} | {{ m.raza }}</p>
             <p class="pet-tutor">Tutor: {{ m.tutorNombre }}</p>
           </div>
+          <button @click="toggleFallecida(m)"
+            :title="m.fallecida ? 'Reactivar mascota' : 'Marcar como fallecida'"
+            class="text-lg opacity-0 group-hover:opacity-40 hover:!opacity-100 transition-all shrink-0">
+            {{ m.fallecida ? '↩️' : '🌈' }}
+          </button>
         </div>
         <div class="pet-stats">
           <div class="stat-box">
@@ -90,6 +95,17 @@ const cargar = async () => {
 const buscar = () => {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => { page.value = 0; cargar(); }, 400);
+};
+
+const toggleFallecida = async (m) => {
+  const nuevo = !m.fallecida;
+  if (nuevo && !confirm(`¿Marcar a ${m.nombre} como fallecida? Ya no recibirá recordatorios.`)) return;
+  try {
+    await api.patch(`/admin/mascotas/${m.id}/fallecida`, { fallecida: nuevo });
+    m.fallecida = nuevo;
+  } catch (e) {
+    alert('No se pudo actualizar.');
+  }
 };
 
 onMounted(cargar);

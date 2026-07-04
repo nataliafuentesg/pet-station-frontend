@@ -9,6 +9,7 @@ import AdminUsers from './AdminUsers.vue';
 import AdminInventory from './AdminInventory.vue';
 import AdminFormulas from './AdminFormulas.vue';
 import AdminClientes from './AdminClientes.vue';
+import AdminRecordatorios from './AdminRecordatorios.vue';
 import { suscribirNotificaciones } from '@/composables/usePushNotifications';
 
 const notifActivas = ref(Notification.permission === 'granted');
@@ -44,7 +45,8 @@ const tabs = [
     { id: 'citas', label: 'Agenda', icon: '📅' },
     { id: 'usuarios', label: 'Usuarios', icon: '👥' },
     { id: 'clientes', label: 'Base Clientes', icon: '🗂️' },
-    { id: 'inventario', label: 'Inventario', icon: '📦' }
+    { id: 'inventario', label: 'Inventario', icon: '📦' },
+    { id: 'recordatorios', label: 'Recordatorios', icon: '🔔' }
 ];
 
 const tabTitle = computed(() => {
@@ -184,6 +186,7 @@ const doLogout = () => {
                         <AdminInventory v-if="currentTab === 'inventario'" :productos="data.productos" :searchQuery="searchQuery" @refresh="fetchData" />
                         <AdminFormulas v-if="currentTab === 'formulas'" :formulas="data.formulas" @refresh="fetchData" />
                         <AdminClientes v-if="currentTab === 'clientes'" />
+                        <AdminRecordatorios v-if="currentTab === 'recordatorios'" />
                     </div>
                 </Transition>
             </template>
