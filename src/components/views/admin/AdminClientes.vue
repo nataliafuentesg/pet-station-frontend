@@ -6,7 +6,7 @@
       <div class="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10">
         <p class="text-[8px] font-black uppercase opacity-40 tracking-widest mb-1">Total clientes</p>
         <p class="text-3xl font-[1000] italic text-[#152C77] dark:text-white">{{ total.toLocaleString() }}</p>
-        <p class="text-[9px] font-bold text-slate-400 mt-1">importados de Aliaddo</p>
+        <p class="text-[9px] font-bold text-slate-400 mt-1">en base de clientes</p>
       </div>
       <div class="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10">
         <p class="text-[8px] font-black uppercase opacity-40 tracking-widest mb-1">Con cuenta activa</p>
@@ -25,9 +25,9 @@
         </button>
         <button @click="enviarCampana('activacion')" :disabled="enviando"
           class="px-5 py-3 bg-[#DE1F27] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#152C77] transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95">
-          {{ enviando ? '⏳ Enviando...' : '🔑 Activar cuentas Aliaddo' }}
+          {{ enviando ? '⏳ Enviando...' : '🔑 Activar cuentas' }}
         </button>
-        <p class="text-[9px] font-bold text-slate-400">Invita a los clientes importados a crear su contraseña y acceder al perfil de su mascota</p>
+        <p class="text-[9px] font-bold text-slate-400">Invita a los clientes a crear su contraseña y acceder al perfil de su mascota</p>
       </div>
       <div v-if="mensajeCampana" class="mt-3 px-4 py-3 rounded-xl text-[10px] font-bold"
         :class="mensajeCampana.ok ? 'bg-green-50 text-green-700 dark:bg-green-500/10' : 'bg-red-50 text-red-700 dark:bg-red-500/10'">
