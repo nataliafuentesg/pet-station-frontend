@@ -6,6 +6,24 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "natalia-portfolio-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/nataliafuentes/Documents/Git Projects/natalia-portfolio", "run", "dev", "--", "--port", "5174"],
+      "port": 5174
+    },
+    {
+      "name": "realestate-node-server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/nataliafuentes/Documents/Git Projects/realestate-node/server", "run", "dev"],
+      "port": 4000
+    },
+    {
+      "name": "realestate-node-client",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/nataliafuentes/Documents/Git Projects/realestate-node/client", "run", "dev", "--", "--port", "5175"],
+      "port": 5175
     }
   ]
 }
