@@ -100,71 +100,68 @@
       </div>
     </section>
 
-    <!-- TIENDA: PERROS Y GATOS -->
-    <section class="py-6 px-3 md:px-6">
-      <div class="max-w-[1400px] mx-auto">
-
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 md:mb-10">
+    <!-- TIENDA: CARRUSEL CONVEYOR BELT -->
+    <section class="py-6">
+      <div class="max-w-[1400px] mx-auto px-3 md:px-6 mb-6 md:mb-10">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <p class="text-[#DE1F27] font-black uppercase text-[9px] md:text-xs tracking-[0.4em] mb-2">Pet Shop</p>
             <h2 class="text-3xl md:text-5xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-[0.9]">
               LO MEJOR <br/><span class="text-[#DE1F27]">PARA ELLOS.</span>
             </h2>
           </div>
-          <!-- Toggle especie -->
           <div class="flex gap-2 bg-slate-100 dark:bg-white/5 rounded-2xl p-1.5 self-start md:self-auto border border-slate-200 dark:border-white/10">
             <button v-for="esp in especies" :key="esp.key"
               @click="especieActiva = esp.key"
-              :class="especieActiva === esp.key
-                ? 'bg-[#152C77] text-white shadow-lg'
-                : 'text-slate-500 dark:text-slate-400 hover:text-[#152C77] dark:hover:text-white'"
+              :class="especieActiva === esp.key ? 'bg-[#152C77] text-white shadow-lg' : 'text-slate-500 dark:text-slate-400 hover:text-[#152C77] dark:hover:text-white'"
               class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-[1000] uppercase text-[10px] tracking-wider transition-all">
               <span>{{ esp.emoji }}</span> {{ esp.label }}
             </button>
           </div>
         </div>
+      </div>
 
-        <!-- Loading -->
-        <div v-if="loadingProductos" class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-          <div v-for="i in 8" :key="i" class="bg-slate-100 dark:bg-white/5 rounded-[1.5rem] md:rounded-[2rem] h-64 animate-pulse"></div>
-        </div>
+      <!-- Loading skeleton -->
+      <div v-if="loadingProductos" class="flex gap-4 px-6 overflow-hidden">
+        <div v-for="i in 6" :key="i" class="flex-shrink-0 w-48 md:w-64 bg-slate-100 dark:bg-white/5 rounded-[1.5rem] h-72 animate-pulse"></div>
+      </div>
 
-        <!-- Productos -->
-        <div v-else-if="productosFiltrados.length" class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-          <div v-for="p in productosFiltrados" :key="p.id"
-            @click="router.push('/tienda/' + p.id)"
-            class="group bg-white dark:bg-white/5 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 dark:border-white/10 hover:border-[#DE1F27] transition-all cursor-pointer overflow-hidden flex flex-col">
-            <!-- Imagen -->
-            <div class="aspect-square bg-slate-50 dark:bg-white/5 overflow-hidden">
+      <!-- Conveyor belt -->
+      <div v-else-if="productosFiltrados.length" class="relative overflow-hidden">
+        <!-- Fade izquierda -->
+        <div class="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-white dark:from-[#050505] to-transparent z-10 pointer-events-none"></div>
+        <!-- Fade derecha -->
+        <div class="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-white dark:from-[#050505] to-transparent z-10 pointer-events-none"></div>
+
+        <div class="conveyor-track flex gap-4 py-4">
+          <!-- Duplicamos para loop infinito -->
+          <div v-for="p in [...productosFiltrados, ...productosFiltrados]" :key="p.id + Math.random()"
+            @click="router.push('/tienda/producto/' + p.id)"
+            class="conveyor-card flex-shrink-0 w-48 md:w-64 group bg-white dark:bg-white/5 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 dark:border-white/10 hover:border-[#DE1F27] transition-all cursor-pointer overflow-hidden flex flex-col">
+            <div class="w-full aspect-square bg-slate-50 dark:bg-white/5 overflow-hidden">
               <img v-if="p.fotosUrls && p.fotosUrls[0]" :src="p.fotosUrls[0]" :alt="p.nombre"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               <div v-else class="w-full h-full flex items-center justify-center text-5xl">
                 {{ especieActiva === 'CANINO' ? '🐕' : '🐈' }}
               </div>
             </div>
-            <!-- Info -->
-            <div class="p-4 md:p-5 flex flex-col flex-1 justify-between gap-2">
-              <p class="text-[#152C77] dark:text-white font-[1000] uppercase italic text-[10px] md:text-xs leading-tight line-clamp-2">{{ p.nombre }}</p>
-              <div class="flex items-center justify-between">
-                <span class="text-[#DE1F27] font-[1000] text-sm md:text-base">${{ Number(p.precio).toLocaleString('es-CO') }}</span>
-                <span class="bg-[#152C77] text-white text-[8px] font-black uppercase px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all">Ver →</span>
-              </div>
+            <div class="p-4 flex flex-col flex-1 justify-between gap-2">
+              <p class="text-[#152C77] dark:text-white font-[1000] uppercase italic text-[9px] md:text-[10px] leading-tight line-clamp-2">{{ p.nombre }}</p>
+              <span class="text-[#DE1F27] font-[1000] text-sm">${{ Number(p.precio).toLocaleString('es-CO') }}</span>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Sin productos -->
-        <div v-else class="text-center py-16">
-          <p class="text-4xl mb-4">{{ especieActiva === 'CANINO' ? '🐕' : '🐈' }}</p>
-          <p class="text-slate-400 font-bold uppercase text-sm">Estamos cargando los mejores productos</p>
-        </div>
+      <div v-else class="text-center py-16 px-6">
+        <p class="text-4xl mb-4">{{ especieActiva === 'CANINO' ? '🐕' : '🐈' }}</p>
+        <p class="text-slate-400 font-bold uppercase text-sm">Estamos cargando los mejores productos</p>
+      </div>
 
-        <div class="text-center mt-8">
-          <button @click="router.push('/tienda')" class="bg-[#152C77] text-white px-10 py-4 rounded-2xl font-[1000] uppercase text-[10px] md:text-sm tracking-widest hover:bg-[#DE1F27] transition-all">
-            Ver toda la tienda →
-          </button>
-        </div>
-
+      <div class="text-center mt-6 px-3">
+        <button @click="router.push('/tienda')" class="bg-[#152C77] text-white px-10 py-4 rounded-2xl font-[1000] uppercase text-[10px] md:text-sm tracking-widest hover:bg-[#DE1F27] transition-all">
+          Ver toda la tienda →
+        </button>
       </div>
     </section>
 
@@ -319,4 +316,18 @@ onMounted(async () => {
 
 <style scoped>
 @reference "../../style.css";
+
+.conveyor-track {
+  animation: conveyor 30s linear infinite;
+  width: max-content;
+}
+
+.conveyor-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes conveyor {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
 </style>
