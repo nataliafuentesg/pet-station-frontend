@@ -173,9 +173,7 @@
 import { ref, computed } from 'vue';
 import api from '@/api/axios';
 
-// El PIN se valida en el servidor — aquí solo lo usamos para enviar la petición.
-// Ponlo en .env.local como VITE_DOMICILIARIO_PIN=xxxx (nunca lo subas al repo)
-const PIN_CORRECTO = import.meta.env.VITE_DOMICILIARIO_PIN || '2413';
+const PIN_CORRECTO = import.meta.env.VITE_DOMICILIARIO_PIN || '';
 
 const autenticado = ref(false);
 const pin = ref('');
@@ -232,12 +230,15 @@ const entregadosHoy = computed(() => {
 const countPagado = computed(() => pedidos.value.filter(p => p.estado === 'PAGADO').length);
 const countCamino = computed(() => pedidos.value.filter(p => p.estado === 'EN_CAMINO').length);
 
-const verificarPin = () => {
-  if (pin.value === PIN_CORRECTO) {
+const pinHeaders = () => ({ headers: { 'X-Delivery-Pin': pin.value } });
+
+const verificarPin = async () => {
+  try {
+    await api.get('/domiciliario/pedidos', pinHeaders());
     autenticado.value = true;
     pinError.value = '';
     cargarPedidos();
-  } else {
+  } catch (e) {
     pinError.value = 'PIN incorrecto. Intenta de nuevo.';
     pin.value = '';
   }
@@ -246,7 +247,7 @@ const verificarPin = () => {
 const cargarPedidos = async () => {
   cargando.value = true;
   try {
-    const { data } = await api.get('/domiciliario/pedidos', { params: { pin: PIN_CORRECTO } });
+    const { data } = await api.get('/domiciliario/pedidos', pinHeaders());
     pedidos.value = Array.isArray(data) ? data : (data.content || []);
   } catch (e) {
     console.error('Error cargando pedidos:', e);
@@ -257,7 +258,7 @@ const cargarPedidos = async () => {
 
 const cambiarEstado = async (pedido, nuevoEstado) => {
   try {
-    await api.patch(`/domiciliario/pedidos/${pedido.id}/camino`, null, { params: { pin: PIN_CORRECTO } });
+    await api.patch(`/domiciliario/pedidos/${pedido.id}/camino`, null, pinHeaders());
     pedido.estado = nuevoEstado;
   } catch (e) {
     alert('Error al actualizar el estado.');
@@ -269,7 +270,8 @@ const marcarEntregado = async (pedido) => {
   if (!receptor) return;
   try {
     await api.patch(`/domiciliario/pedidos/${pedido.id}/entregado`, null, {
-      params: { pin: PIN_CORRECTO, receptor }
+      ...pinHeaders(),
+      params: { receptor }
     });
     pedido.estado = 'ENTREGADO';
     pedido.receptorEntrega = receptor;

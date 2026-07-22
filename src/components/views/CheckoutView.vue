@@ -178,29 +178,31 @@
                 <p v-if="errores.zona" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.zona }}</p>
               </div>
 
-              <!-- Franja de entrega -->
+              <!-- Franja de entrega con cupos -->
               <div class="space-y-3 pt-2">
-                <label class="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">
-                  Franja de entrega
-                </label>
+                <div class="flex items-center justify-between">
+                  <label class="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">
+                    Franja de entrega
+                  </label>
+                  <span v-if="cargandoCupos" class="text-[8px] font-bold opacity-40 uppercase">Consultando disponibilidad...</span>
+                </div>
                 <div class="grid grid-cols-2 gap-3">
-                  <button type="button" @click="form.franja = 'MANANA'"
-                    :class="form.franja === 'MANANA'
-                      ? 'border-[#152C77] bg-[#152C77] text-white'
-                      : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-white/70'"
-                    class="rounded-2xl border-2 p-4 flex flex-col items-center gap-1 transition-all hover:border-[#152C77]">
-                    <span class="text-xl">🌅</span>
-                    <span class="text-[10px] font-black uppercase">Mañana</span>
-                    <span class="text-[8px] font-bold opacity-70">8am – 12pm</span>
-                  </button>
-                  <button type="button" @click="form.franja = 'TARDE'"
-                    :class="form.franja === 'TARDE'
-                      ? 'border-[#152C77] bg-[#152C77] text-white'
-                      : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-white/70'"
-                    class="rounded-2xl border-2 p-4 flex flex-col items-center gap-1 transition-all hover:border-[#152C77]">
-                    <span class="text-xl">🌇</span>
-                    <span class="text-[10px] font-black uppercase">Tarde</span>
-                    <span class="text-[8px] font-bold opacity-70">1pm – 5pm</span>
+                  <button v-for="franja in franjasDisponibles" :key="franja.key" type="button"
+                    @click="!franja.lleno && (form.franja = franja.key)"
+                    :disabled="franja.lleno"
+                    :class="[
+                      form.franja === franja.key ? 'border-[#152C77] bg-[#152C77] text-white' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-white/70',
+                      franja.lleno ? 'opacity-40 cursor-not-allowed' : 'hover:border-[#152C77]'
+                    ]"
+                    class="rounded-2xl border-2 p-4 flex flex-col items-center gap-1 transition-all">
+                    <span class="text-xl">{{ franja.emoji }}</span>
+                    <span class="text-[10px] font-black uppercase">{{ franja.label }}</span>
+                    <span class="text-[8px] font-bold opacity-70">{{ franja.hora }}</span>
+                    <span v-if="!franja.lleno && franja.fecha !== hoyStr" class="text-[7px] font-black text-amber-500 uppercase">
+                      {{ franja.fechaLabel }}
+                    </span>
+                    <span v-if="franja.lleno" class="text-[7px] font-black text-red-400 uppercase">Cupo lleno</span>
+                    <span v-else class="text-[7px] font-bold opacity-50">{{ franja.disponibles }} cupos</span>
                   </button>
                 </div>
                 <p v-if="errores.franja" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.franja }}</p>
@@ -489,6 +491,53 @@ const mensajeEntregaLocal = () => {
 };
 
 
+// Cupos de domicilio
+const cargandoCupos = ref(false);
+const cuposData = ref([]);
+const hoyStr = new Date().toISOString().split('T')[0];
+
+const franjasDisponibles = computed(() => {
+  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const visto = new Set();
+  const result = [];
+  for (const c of cuposData.value) {
+    const key = c.franja === 'MANANA' ? `${c.fecha}_MANANA` : `${c.fecha}_TARDE`;
+    if (visto.has(key)) continue;
+    visto.add(key);
+    const d = new Date(c.fecha + 'T12:00:00');
+    const fechaLabel = c.fecha === hoyStr ? 'Hoy' : `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
+    result.push({
+      key: c.franja,
+      fecha: c.fecha,
+      fechaLabel,
+      emoji: c.franja === 'MANANA' ? '🌅' : '🌇',
+      label: c.franja === 'MANANA' ? 'Mañana' : 'Tarde',
+      hora: c.franja === 'MANANA' ? '8am – 12pm' : '12pm – 6pm',
+      disponibles: c.disponibles,
+      lleno: c.lleno,
+    });
+    if (result.length >= 4) break; // máximo 4 opciones visibles
+  }
+  return result;
+});
+
+const cargarCupos = async () => {
+  cargandoCupos.value = true;
+  try {
+    const { data } = await api.get('/domicilios/cupos/disponibilidad');
+    cuposData.value = data.filter(c => !c.lleno || true); // mostrar todos, lleno se deshabilita
+  } catch {
+    // Si falla, mostrar las dos franjas sin info de cupos
+    cuposData.value = [
+      { franja: 'MANANA', fecha: hoyStr, disponibles: 10, lleno: false },
+      { franja: 'TARDE', fecha: hoyStr, disponibles: 10, lleno: false },
+    ];
+  } finally {
+    cargandoCupos.value = false;
+  }
+};
+
 const form = reactive({
   nombre: '',
   telefono: '',
@@ -569,6 +618,7 @@ onMounted(async () => {
 
   trackInicioCheckout(cartStore.totalPrice, cartStore.items.length);
   prellenarDatos();
+  cargarCupos();
   try {
     const { data } = await api.get('/pedidos/info-entrega');
     mensajeEntrega.value = data.mensajeEntrega || mensajeEntregaLocal();
