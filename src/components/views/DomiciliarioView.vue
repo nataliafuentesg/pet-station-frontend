@@ -230,7 +230,7 @@ const entregadosHoy = computed(() => {
 const countPagado = computed(() => pedidos.value.filter(p => p.estado === 'PAGADO').length);
 const countCamino = computed(() => pedidos.value.filter(p => p.estado === 'EN_CAMINO').length);
 
-const pinHeaders = () => ({ headers: { 'X-Delivery-Pin': pin.value } });
+const pinHeaders = () => ({ headers: { 'Authorization': `Pin ${pin.value}` } });
 
 const verificarPin = async () => {
   try {
