@@ -165,7 +165,12 @@
                     <h3 class="text-xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight mb-4 h-12 line-clamp-2">{{ p.nombre }}</h3>
                   </router-link>
                   <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/10">
-                    <span class="text-3xl font-[1000] dark:text-white italic text-[#152C77] tracking-tighter">${{ p.precio.toLocaleString() }}</span>
+                    <div>
+                      <span class="text-3xl font-[1000] dark:text-white italic text-[#152C77] tracking-tighter">${{ p.precio.toLocaleString() }}</span>
+                      <p v-if="p.stock > 10" class="text-[9px] font-black uppercase tracking-widest text-green-500 mt-0.5">● {{ p.stock }} disponibles</p>
+                      <p v-else-if="p.stock > 0" class="text-[9px] font-black uppercase tracking-widest text-amber-500 mt-0.5">● Quedan {{ p.stock }}</p>
+                      <p v-else class="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-0.5">● Agotado</p>
+                    </div>
                     <button v-if="p.stock > 0 && TIENDA_ACTIVA" @click="onAddToCart(p)" class="pointer-events-auto w-12 h-12 bg-[#152C77] hover:bg-[#DE1F27] text-white rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all font-bold">🛒</button>
                     <span v-else-if="!TIENDA_ACTIVA" class="text-2xl opacity-30">🚧</span>
                     <span v-else class="text-2xl opacity-30">🚫</span>
