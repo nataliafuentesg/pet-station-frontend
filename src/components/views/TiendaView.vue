@@ -119,8 +119,8 @@
               </span>
             </div>
 
-            <div class="mb-12 flex justify-between items-end">
-              <h2 class="text-4xl md:text-7xl font-[1000] uppercase italic dark:text-white tracking-tighter leading-none">{{ dynamicTitle }}</h2>
+            <div class="mb-12">
+              <h2 class="text-4xl md:text-7xl font-[1000] uppercase italic dark:text-white tracking-tighter leading-none mb-4">{{ dynamicTitle }}</h2>
               <!-- Botones móvil -->
               <div class="flex gap-2 lg:hidden">
                 <button v-if="filterByMascota || pasilloSeleccionado" @click="resetTienda"
