@@ -23,10 +23,10 @@
             </p>
 
             <div class="flex gap-3 md:gap-6 pt-2 md:pt-6">
-              <button @click="router.push('/agendar')" class="flex-1 md:flex-none bg-[#DE1F27] text-white px-6 py-4 md:px-12 md:py-6 rounded-xl md:rounded-2xl font-[1000] uppercase text-[10px] md:text-sm tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl">
+              <button @click="router.push('/agendar')" class="flex-1 md:flex-none bg-[#DE1F27] text-white px-6 py-4 md:px-12 md:py-6 rounded-xl md:rounded-2xl font-[1000] uppercase text-[10px] md:text-sm tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl whitespace-nowrap">
                 Agendar Cita
               </button>
-              <button @click="router.push('/tienda')" class="flex-1 md:flex-none bg-white/10 backdrop-blur-md text-white px-6 py-4 md:px-12 md:py-6 rounded-xl md:rounded-2xl font-[1000] uppercase text-[10px] md:text-sm tracking-widest border border-white/20 hover:bg-white hover:text-[#152C77] transition-all">
+              <button @click="router.push('/tienda')" class="flex-1 md:flex-none bg-white/10 backdrop-blur-md text-white px-6 py-4 md:px-12 md:py-6 rounded-xl md:rounded-2xl font-[1000] uppercase text-[10px] md:text-sm tracking-widest border border-white/20 hover:bg-white hover:text-[#152C77] transition-all whitespace-nowrap">
                 Tienda
               </button>
             </div>
@@ -35,9 +35,9 @@
         </div>
 
         <div class="lg:col-span-4 grid grid-cols-1 gap-3 md:gap-6">
-          <div class="h-40 md:h-full bg-slate-100 dark:bg-white/5 rounded-[1.8rem] md:rounded-[3.5rem] overflow-hidden border border-slate-100 dark:border-white/10 relative group">
+          <div class="h-52 md:h-full bg-slate-100 dark:bg-white/5 rounded-[1.8rem] md:rounded-[3.5rem] overflow-hidden border border-slate-100 dark:border-white/10 relative group">
             <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80"
-                 class="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-1000" />
+                 class="w-full h-full object-cover object-top grayscale-[0.3] group-hover:grayscale-0 transition-all duration-1000" />
             <div class="absolute inset-0 bg-gradient-to-t from-[#152C77]/80 via-transparent flex items-end p-6 md:p-10">
                <p class="text-white font-[1000] italic uppercase text-lg md:text-2xl leading-none">
                  Compromiso <br/><span class="text-[#DE1F27]">Garantizado.</span>
@@ -138,9 +138,9 @@
           <div v-for="p in [...productosFiltrados, ...productosFiltrados]" :key="p.id + Math.random()"
             @click="router.push('/tienda/producto/' + p.id)"
             class="conveyor-card flex-shrink-0 w-48 md:w-64 group bg-white dark:bg-white/5 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 dark:border-white/10 hover:border-[#DE1F27] transition-all cursor-pointer overflow-hidden flex flex-col">
-            <div class="w-full aspect-square bg-slate-50 dark:bg-white/5 overflow-hidden">
+            <div class="w-full aspect-square bg-white dark:bg-white/5 overflow-hidden flex items-center justify-center p-3">
               <img v-if="p.fotosUrls && p.fotosUrls[0]" :src="p.fotosUrls[0]" :alt="p.nombre"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" />
               <div v-else class="w-full h-full flex items-center justify-center text-5xl">
                 {{ especieActiva === 'CANINO' ? '🐕' : '🐈' }}
               </div>
@@ -223,22 +223,102 @@
 
         <div class="relative z-10 grid md:grid-cols-3 gap-6 text-left">
           <div class="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group">
-            <span class="text-4xl mb-4 block group-hover:scale-110 transition-transform">📂</span>
+            <div class="w-12 h-12 mb-5 text-[#152C77] dark:text-white group-hover:scale-110 transition-transform">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
             <h3 class="text-lg font-[1000] uppercase italic text-[#152C77] dark:text-white mb-2">Perfil Digital</h3>
             <p class="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">Centraliza la información básica, fotos y preferencias de tu mascota en un solo lugar seguro.</p>
           </div>
           <div class="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group">
-            <span class="text-4xl mb-4 block group-hover:scale-110 transition-transform">📅</span>
+            <div class="w-12 h-12 mb-5 text-[#152C77] dark:text-white group-hover:scale-110 transition-transform">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+              </svg>
+            </div>
             <h3 class="text-lg font-[1000] uppercase italic text-[#152C77] dark:text-white mb-2">Smart Booking</h3>
             <p class="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">Agenda citas médicas y grooming en tiempo real sin llamadas.</p>
           </div>
           <div class="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group">
-            <span class="text-4xl mb-4 block group-hover:scale-110 transition-transform">🧬</span>
+            <div class="w-12 h-12 mb-5 text-[#152C77] dark:text-white group-hover:scale-110 transition-transform">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+                <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+                <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/>
+                <line x1="17" y1="16" x2="23" y2="16"/>
+              </svg>
+            </div>
             <h3 class="text-lg font-[1000] uppercase italic text-[#152C77] dark:text-white mb-2">Filtro Genético</h3>
             <p class="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">Nuestra tienda filtra productos automáticamente según la raza y edad de tu mascota.</p>
           </div>
         </div>
 
+      </div>
+    </section>
+
+    <!-- TESTIMONIOS -->
+    <section class="py-6 px-3 md:px-6">
+      <div class="max-w-[1400px] mx-auto">
+        <div class="bg-[#050505] rounded-[2rem] md:rounded-[3.5rem] overflow-hidden p-8 md:p-16">
+
+          <!-- Header -->
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10">
+            <div>
+              <p class="text-[#DE1F27] font-black uppercase text-[9px] md:text-xs tracking-[0.4em] mb-4">Lo que dicen nuestros clientes</p>
+              <div class="flex items-end gap-4">
+                <span class="text-5xl md:text-7xl font-[1000] italic text-white leading-none">4.6</span>
+                <div class="pb-1">
+                  <div class="flex gap-1 mb-1">
+                    <span v-for="i in 5" :key="i" class="text-yellow-400 text-xl">★</span>
+                  </div>
+                  <p class="text-white/40 font-black uppercase text-[9px] tracking-widest">234 reseñas en Google</p>
+                </div>
+              </div>
+            </div>
+            <a href="https://g.co/kgs/petstation" target="_blank" rel="noopener"
+              class="inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 hover:border-[#DE1F27] transition-all self-start group">
+              <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              <div>
+                <p class="text-white font-[1000] text-sm leading-none mb-0.5">Ver todas las reseñas</p>
+                <p class="text-white/40 font-black uppercase text-[9px] tracking-widest group-hover:text-[#DE1F27] transition-colors">Google Maps →</p>
+              </div>
+            </a>
+          </div>
+
+          <!-- Grid de reviews -->
+          <div class="grid md:grid-cols-2 gap-4">
+            <div v-for="t in testimonios" :key="t.nombre"
+              class="relative bg-white/[0.04] rounded-[1.5rem] p-6 border border-white/5 hover:border-white/15 transition-all overflow-hidden">
+              <span class="absolute top-4 right-6 text-6xl font-[1000] text-white/5 leading-none select-none">"</span>
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-[1000] text-sm shrink-0 text-white"
+                  :style="{ background: t.color }">
+                  {{ t.nombre[0] }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-white font-[1000] text-sm leading-none truncate">{{ t.nombre }}</p>
+                  <p class="text-white/30 font-bold text-[9px] uppercase tracking-widest mt-0.5">{{ t.tiempo }}</p>
+                </div>
+                <div class="flex gap-0.5 shrink-0">
+                  <span v-for="i in 5" :key="i" class="text-yellow-400 text-xs">★</span>
+                </div>
+              </div>
+              <p class="text-white/65 font-bold text-[11px] leading-relaxed relative z-10">"{{ t.texto }}"</p>
+            </div>
+          </div>
+
+        </div>
       </div>
     </section>
 
@@ -284,6 +364,33 @@ const destinosViaje = [
   { pais: 'Unión Europea', bandera: '🇪🇺', tiempo: '4 meses' },
   { pais: 'Suramérica', bandera: '🇧🇷', tiempo: '10-15 días' },
   { pais: 'Nacional', bandera: '🇨🇴', tiempo: '1-3 días' },
+];
+
+const testimonios = [
+  {
+    nombre: 'Daniela Landi',
+    tiempo: 'hace 27 semanas',
+    color: '#DE1F27',
+    texto: 'Para nosotros este es nuestro veterinario de confianza desde hace más de cinco años. Han cuidado y operado a nuestro Bernes con dedicación y calidad y muchooo cariño. ¡Super recomendado!'
+  },
+  {
+    nombre: 'Mario Botero',
+    tiempo: 'hace 30 semanas',
+    color: '#152C77',
+    texto: 'El equipo Pet Station siempre ha estado acompañándonos en la salud de nuestra mascota; demuestran día a día un sentido de respeto por la calidad de vida de todas y cada una de las mascotas. Mil gracias.'
+  },
+  {
+    nombre: 'Alejandro Guerrero',
+    tiempo: 'hace 32 semanas',
+    color: '#2d7a2d',
+    texto: 'Me parece muy buena la labor de cada integrante en la parte médica y de guardería. La peluquería es limpia y el manejo con las mascotas es siempre a favor de la mascota, evitando estrés y miedo. Excelente sitio.'
+  },
+  {
+    nombre: 'Libni Castillo',
+    tiempo: 'hace 32 semanas',
+    color: '#7a2d7a',
+    texto: 'Quiero expresar mi más sincero agradecimiento por el excelente servicio a mi perrita Westie (Bibi) durante 6 años. Su dedicación, profesionalismo y amor por los animales son verdaderamente admirables. No dudaré en recomendarlos.'
+  }
 ];
 
 const serviciosHome = [

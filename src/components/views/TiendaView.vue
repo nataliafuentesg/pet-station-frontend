@@ -30,21 +30,22 @@
       </header>
 
       <Transition name="fade-scale" mode="out-in">
-        <section v-if="!pasilloSeleccionado && !searchQuery" class="py-10">
-          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 md:gap-8">
+        <section v-if="!pasilloSeleccionado && !searchQuery" class="py-6">
+          <p class="text-[9px] font-black uppercase text-slate-400 tracking-[0.3em] mb-5 md:hidden">Selecciona una categoría</p>
+          <div class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-5 gap-3 md:gap-8">
             <div v-for="p in pasillosCards" :key="p.id" @click="setPasillo(p.name)"
-              class="group cursor-pointer relative aspect-square bg-slate-50 dark:bg-white/5 rounded-[3.5rem] flex flex-col items-center justify-center p-10 border-2 border-transparent hover:border-[#DE1F27] transition-all duration-500 hover:-translate-y-4 shadow-sm hover:shadow-2xl">
-              <div class="text-[100px] mb-6 transform group-hover:scale-110 transition-transform duration-700">{{ p.icon }}</div>
-              <h3 class="text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white">{{ p.name }}</h3>
+              class="group cursor-pointer relative bg-slate-50 dark:bg-white/5 rounded-[2rem] md:rounded-[3.5rem] flex flex-col items-center justify-center py-8 px-4 md:aspect-square md:p-10 border-2 border-transparent hover:border-[#DE1F27] active:border-[#DE1F27] transition-all duration-300 hover:-translate-y-1 md:hover:-translate-y-4 shadow-sm hover:shadow-xl">
+              <div class="text-5xl md:text-[80px] mb-3 md:mb-6 transform group-hover:scale-110 transition-transform duration-500">{{ p.icon }}</div>
+              <h3 class="text-sm md:text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white text-center leading-tight">{{ p.name }}</h3>
               <div v-if="p.isPersonalized && mascotaActiva"
-                class="absolute -top-4 bg-[#DE1F27] text-white px-6 py-2 rounded-xl font-black italic text-[9px] shadow-2xl animate-bounce">
-                ✨ MODO: {{ mascotaActiva.nombre }}
+                class="absolute -top-3 bg-[#DE1F27] text-white px-3 py-1 rounded-lg font-black italic text-[8px] shadow-xl animate-bounce">
+                ✨ {{ mascotaActiva.nombre }}
               </div>
             </div>
             <div @click="setPasillo('TODOS')"
-              class="group cursor-pointer aspect-square bg-[#152C77] rounded-[3.5rem] flex flex-col items-center justify-center p-10 hover:bg-[#DE1F27] transition-all duration-500 shadow-xl">
-              <div class="text-5xl mb-6">📦</div>
-              <h3 class="text-xl font-[1000] uppercase italic text-white text-center leading-none">CATÁLOGO<br />COMPLETO</h3>
+              class="group cursor-pointer bg-[#152C77] rounded-[2rem] md:rounded-[3.5rem] flex flex-col items-center justify-center py-8 px-4 md:aspect-square md:p-10 hover:bg-[#DE1F27] active:bg-[#DE1F27] transition-all duration-300 shadow-xl">
+              <div class="text-4xl md:text-5xl mb-3 md:mb-6">📦</div>
+              <h3 class="text-sm md:text-xl font-[1000] uppercase italic text-white text-center leading-tight">CATÁLOGO<br />COMPLETO</h3>
             </div>
           </div>
         </section>
