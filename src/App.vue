@@ -86,7 +86,7 @@
       </div>
     </nav>
 
-    <div v-if="!isAdminRoute"
+    <div v-if="!isAdminRoute && !keyboardOpen"
       class="lg:hidden fixed bottom-0 w-full bg-white/95 dark:bg-[#050505]/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 z-[1000] px-2 pb-8 pt-3 flex items-end shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
 
       <router-link to="/" class="flex-1 flex flex-col items-center gap-1 text-slate-400 dark:text-white/40">
@@ -354,6 +354,7 @@ const router = useRouter();
 const cartStore = useCartStore();
 const darkMode = ref(false);
 const isScrolled = ref(false);
+const keyboardOpen = ref(false);
 const isCartOpen = ref(false);
 const tutorData = ref(null);
 const activePet = ref(null);
@@ -500,6 +501,13 @@ onMounted(async () => {
   window.addEventListener('scroll', () => {
     isScrolled.value = window.scrollY > 30;
   });
+
+  // Ocultar nav cuando el teclado virtual sube en móvil
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      keyboardOpen.value = (window.innerHeight - window.visualViewport.height) > 150;
+    });
+  }
 
   darkMode.value = localStorage.getItem('ps_theme') === 'dark';
   document.documentElement.classList.toggle('dark', darkMode.value);
