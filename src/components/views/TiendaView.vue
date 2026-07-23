@@ -102,11 +102,32 @@
                 class="px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase italic whitespace-nowrap transition-all border-2">📦 TODOS</button>
             </nav>
 
+            <!-- Mobile: chips de búsqueda activa y filtros -->
+            <div v-if="(searchQuery || activeFiltersCount > 0) && (pasilloSeleccionado || searchQuery)" class="flex flex-wrap gap-2 mb-6 lg:hidden">
+              <span v-if="searchQuery" class="flex items-center gap-2 bg-[#152C77] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase italic">
+                🔍 {{ searchQuery }}
+                <button @click="searchQuery = ''; onSearch()" class="ml-1 text-white/60 hover:text-white">✕</button>
+              </span>
+              <span class="text-[10px] font-black uppercase text-slate-400 self-center">
+                {{ filteredProducts.length }} resultado{{ filteredProducts.length !== 1 ? 's' : '' }}
+              </span>
+              <button v-if="activeFiltersCount > 0" @click="clearFilters"
+                class="flex items-center gap-1 bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/50 px-3 py-2 rounded-xl text-[9px] font-black uppercase italic">
+                ✕ Limpiar filtros
+              </button>
+            </div>
+
             <div class="mb-12 flex justify-between items-end">
               <h2 class="text-4xl md:text-7xl font-[1000] uppercase italic dark:text-white tracking-tighter leading-none">{{ dynamicTitle }}</h2>
               <div class="flex gap-2 lg:hidden">
                 <button v-if="filterByMascota || pasilloSeleccionado" @click="resetTienda" class="bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase italic">✕ Salir</button>
-                <button @click="showMobileFilters = true" class="bg-[#152C77] text-white p-4 rounded-xl text-xl shadow-lg">⚙️</button>
+                <button @click="showMobileFilters = true" class="relative bg-[#152C77] text-white p-4 rounded-xl text-xl shadow-lg">
+                  ⚙️
+                  <span v-if="activeFiltersCount > 0"
+                    class="absolute -top-2 -right-2 bg-[#DE1F27] text-white text-[8px] font-black w-5 h-5 rounded-full flex items-center justify-center">
+                    {{ activeFiltersCount }}
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -201,7 +222,9 @@
             </div>
 
           </div>
-          <button @click="showMobileFilters = false" class="w-full bg-[#152C77] text-white py-6 rounded-2xl font-black uppercase text-xs italic shadow-xl mt-auto">Ver Resultados</button>
+          <button @click="showMobileFilters = false" class="w-full bg-[#152C77] text-white py-6 rounded-2xl font-black uppercase text-xs italic shadow-xl mt-auto">
+            Ver {{ filteredProducts.length }} resultado{{ filteredProducts.length !== 1 ? 's' : '' }}
+          </button>
         </div>
       </div>
     </Transition>
@@ -442,7 +465,29 @@ const resetTienda = () => {
 };
 
 const isFilterActive = (k, o) => (k === 'species' ? activeSpecies.value : k === 'etapa' ? activeEtapa.value : activePeso.value) === o;
-const setFilter = (k, v) => { if (k === 'species') activeSpecies.value = v; if (k === 'etapa') activeEtapa.value = v; if (k === 'peso') activePeso.value = v; currentPage.value = 1; };
+const setFilter = (k, v) => {
+  if (k === 'species') activeSpecies.value = v;
+  if (k === 'etapa') activeEtapa.value = v;
+  if (k === 'peso') activePeso.value = v;
+  currentPage.value = 1;
+  // Auto-close filter panel after applying a filter on mobile
+  setTimeout(() => { showMobileFilters.value = false; }, 250);
+};
+
+const clearFilters = () => {
+  activeSpecies.value = activeEtapa.value = activePeso.value = activeMarca.value = activeSubcategory.value = 'TODOS';
+  currentPage.value = 1;
+};
+
+const activeFiltersCount = computed(() => {
+  let count = 0;
+  if (activeSpecies.value !== 'TODOS') count++;
+  if (activeEtapa.value !== 'TODOS') count++;
+  if (activePeso.value !== 'TODOS') count++;
+  if (activeMarca.value !== 'TODOS') count++;
+  if (activeSubcategory.value !== 'TODOS') count++;
+  return count;
+});
 
 const dynamicTitle = computed(() => filterByMascota.value ? `PARA ${mascotaActiva.value?.nombre || 'TU MASCOTA'}` : (activeCategory.value === 'TODOS' ? 'TODO EL CATÁLOGO' : activeCategory.value));
 
@@ -455,7 +500,15 @@ const onAddToCart = (p) => {
   emit('notify', { msg: `${p.nombre} añadido`, type: 'success' });
 };
 
-const onSearch = () => { if (searchQuery.value) { pasilloSeleccionado.value = true; trackSearch(searchQuery.value); } };
+const onSearch = () => {
+  if (searchQuery.value) {
+    pasilloSeleccionado.value = true;
+    trackSearch(searchQuery.value);
+  } else if (!localStorage.getItem('ps_last_aisle')) {
+    pasilloSeleccionado.value = false;
+  }
+  currentPage.value = 1;
+};
 
 onMounted(async () => {
   isLoading.value = true;
@@ -483,12 +536,18 @@ onMounted(async () => {
     // Esperar a que Vue renderice la grilla
     await nextTick();
 
-    // 3. Restaurar Scroll
+    // 3. Restaurar Scroll — doble rAF + margen de 200ms para que el layout esté estable
     const savedScroll = sessionStorage.getItem('ps_tienda_scroll');
     if (savedScroll) {
-      setTimeout(() => {
-        window.scrollTo({ top: parseInt(savedScroll, 10), behavior: 'instant' });
-      }, 50);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            window.scrollTo({ top: parseInt(savedScroll, 10), behavior: 'instant' });
+            sessionStorage.removeItem('ps_tienda_scroll');
+            sessionStorage.removeItem('ps_tienda_page');
+          }, 200);
+        });
+      });
     }
 
   } finally {
