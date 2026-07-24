@@ -275,7 +275,7 @@
             <span class="text-[#152C77] dark:text-white font-[1000] text-lg italic">4.6</span>
             <span class="text-slate-400 font-bold text-[10px] uppercase tracking-widest">· 234 reseñas</span>
           </div>
-          <a href="https://g.co/kgs/petstation" target="_blank" rel="noopener"
+          <a href="https://share.google/nJf06e3wcpIPPCaPW" target="_blank" rel="noopener"
             class="flex items-center gap-1.5 text-[9px] font-black uppercase text-slate-400 hover:text-[#DE1F27] transition-colors tracking-widest">
             <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
