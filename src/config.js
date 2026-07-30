@@ -1,1 +1,1 @@
-export const TIENDA_ACTIVA = false;
+export const TIENDA_ACTIVA = true;
