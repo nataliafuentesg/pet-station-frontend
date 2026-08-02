@@ -100,6 +100,22 @@
               </span>
             </div>
 
+            <!-- Aviso entrega -->
+            <div :class="[
+              'rounded-2xl px-4 py-3 flex items-center gap-3 border',
+              proximaEntrega.urgente
+                ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-400/20'
+                : 'bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-400/20'
+            ]">
+              <span class="text-lg shrink-0">{{ proximaEntrega.urgente ? '📅' : '🚚' }}</span>
+              <div>
+                <p :class="['text-[10px] font-black uppercase', proximaEntrega.urgente ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400']">
+                  {{ proximaEntrega.label }}
+                </p>
+                <p class="text-[8px] font-bold text-slate-400 uppercase mt-0.5">Sin domicilios domingos ni festivos</p>
+              </div>
+            </div>
+
             <!-- Botón -->
             <template v-if="TIENDA_ACTIVA">
               <button @click="irACheckout"
@@ -153,6 +169,43 @@ const router = useRouter();
 const progresoMinimo = computed(() => (cartStore.totalPrice / configStore.pedidoMinimo) * 100);
 const alcanzaMinimo  = computed(() => cartStore.totalPrice >= configStore.pedidoMinimo);
 const faltanParaMinimo = computed(() => Math.max(0, configStore.pedidoMinimo - cartStore.totalPrice));
+
+// Festivos Colombia 2025-2026 (Ley Emiliani)
+const FESTIVOS = new Set([
+  '2025-08-07','2025-08-18','2025-10-13','2025-11-03','2025-11-17',
+  '2025-12-08','2025-12-25','2026-01-01','2026-01-12','2026-03-23',
+  '2026-04-02','2026-04-03','2026-05-01','2026-05-18','2026-06-08',
+  '2026-06-29','2026-07-20','2026-08-07','2026-08-17','2026-10-12',
+  '2026-11-02','2026-11-16','2026-12-08','2026-12-25',
+]);
+
+const esDiaHabil = (d) => {
+  const iso = d.toISOString().split('T')[0];
+  return d.getDay() !== 0 && !FESTIVOS.has(iso); // no domingo ni festivo
+};
+
+const proximaEntrega = computed(() => {
+  const ahora = new Date();
+  const corte = new Date(ahora); corte.setHours(14, 0, 0, 0);
+  const d = new Date(ahora);
+  if (ahora >= corte) { d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); }
+  while (!esDiaHabil(d)) d.setDate(d.getDate() + 1);
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const manana = new Date(hoy); manana.setDate(hoy.getDate() + 1);
+  d.setHours(0,0,0,0);
+
+  if (d.getTime() === hoy.getTime()) return { label: 'Entrega HOY en la tarde', urgente: false };
+  if (d.getTime() === manana.getTime()) return { label: 'Entrega MAÑANA', urgente: false };
+
+  const dias = ['dom','lun','mar','mié','jue','vie','sáb'];
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const diasDiff = Math.round((d - hoy) / 86400000);
+  return {
+    label: `Entrega el ${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`,
+    urgente: diasDiff >= 2,
+  };
+});
 
 const irACheckout = () => {
   if (!alcanzaMinimo.value) return;

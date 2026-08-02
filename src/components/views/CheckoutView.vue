@@ -455,36 +455,40 @@ const detectarUbicacion = () => {
   );
 };
 
-// Calcula el próximo día hábil de entrega
-/**
- * Calcula la fecha estimada de entrega:
- *  - Antes de las 2:00 PM en día hábil → MISMO DÍA (ruta de la tarde)
- *  - Después de las 2:00 PM → siguiente día hábil
- *  - No se entrega domingos (se corre al lunes)
- */
+// Festivos Colombia 2025-2026 (Ley Emiliani) — respaldo si el back no responde
+const FESTIVOS_LOCAL = new Set([
+  '2025-08-07','2025-08-18','2025-10-13','2025-11-03','2025-11-17',
+  '2025-12-08','2025-12-25','2026-01-01','2026-01-12','2026-03-23',
+  '2026-04-02','2026-04-03','2026-05-01','2026-05-18','2026-06-08',
+  '2026-06-29','2026-07-20','2026-08-07','2026-08-17','2026-10-12',
+  '2026-11-02','2026-11-16','2026-12-08','2026-12-25',
+]);
+
+const esDiaHabilLocal = (d) => {
+  const iso = d.toISOString().split('T')[0];
+  return d.getDay() !== 0 && !FESTIVOS_LOCAL.has(iso);
+};
+
 const calcularFechaEntrega = () => {
-  const d = new Date();
-  if (d.getHours() >= 14) {
-    d.setDate(d.getDate() + 1); // pasó el corte → día siguiente
-    d.setHours(9, 0, 0, 0);
-  }
-  // Saltar domingos
-  while (d.getDay() === 0) {
-    d.setDate(d.getDate() + 1);
-  }
+  const ahora = new Date();
+  const corte = new Date(ahora); corte.setHours(14, 0, 0, 0);
+  const d = new Date(ahora);
+  if (ahora >= corte) { d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); }
+  while (!esDiaHabilLocal(d)) d.setDate(d.getDate() + 1);
   return d;
 };
 
 // El mensaje de entrega lo dicta el BACK (incluye festivos colombianos).
-// Si la llamada falla, usamos el cálculo local como respaldo (solo salta domingos).
+// Si la llamada falla, usamos el cálculo local como respaldo (salta domingos y festivos).
 const mensajeEntrega = ref('Calculando entrega...');
 
 const mensajeEntregaLocal = () => {
   const entrega = calcularFechaEntrega();
-  const hoy = new Date();
-  if (entrega.toDateString() === hoy.toDateString()) return 'Entrega HOY en la tarde';
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
   const manana = new Date(hoy); manana.setDate(hoy.getDate() + 1);
-  if (entrega.toDateString() === manana.toDateString()) return 'Entrega MAÑANA';
+  entrega.setHours(0,0,0,0);
+  if (entrega.getTime() === hoy.getTime()) return 'Entrega HOY en la tarde';
+  if (entrega.getTime() === manana.getTime()) return 'Entrega MAÑANA';
   const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
   const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
   return `Entrega el ${dias[entrega.getDay()]} ${entrega.getDate()} ${meses[entrega.getMonth()]}`;
