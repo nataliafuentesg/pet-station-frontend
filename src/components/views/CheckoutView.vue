@@ -17,22 +17,54 @@
         </div>
       </div>
 
+      <!-- Selector tipo de entrega -->
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <button type="button" @click="tipoEntrega = 'DOMICILIO'"
+          :class="['rounded-2xl border-2 p-4 flex items-center gap-3 transition-all', tipoEntrega === 'DOMICILIO' ? 'border-[#152C77] bg-[#152C77] text-white' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-white hover:border-[#152C77]/40']">
+          <span class="text-2xl">🚚</span>
+          <div class="text-left">
+            <p class="text-[10px] font-black uppercase leading-none">Domicilio</p>
+            <p class="text-[8px] font-bold mt-0.5 opacity-70">Chía · Cajicá · Bogotá norte</p>
+          </div>
+        </button>
+        <button type="button" @click="tipoEntrega = 'PICKUP'"
+          :class="['rounded-2xl border-2 p-4 flex items-center gap-3 transition-all', tipoEntrega === 'PICKUP' ? 'border-[#DE1F27] bg-[#DE1F27] text-white' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-white hover:border-[#DE1F27]/40']">
+          <span class="text-2xl">🏪</span>
+          <div class="text-left">
+            <p class="text-[10px] font-black uppercase leading-none">Recoger en tienda</p>
+            <p class="text-[8px] font-bold mt-0.5 opacity-70">Sin costo de envío</p>
+          </div>
+        </button>
+      </div>
+
       <!-- Banner logística -->
-      <div class="bg-[#152C77]/5 dark:bg-white/5 border border-[#152C77]/10 dark:border-white/10 rounded-2xl p-4 mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+      <div v-if="tipoEntrega === 'DOMICILIO'" class="bg-[#152C77]/5 dark:bg-white/5 border border-[#152C77]/10 dark:border-white/10 rounded-2xl p-4 mb-8 grid grid-cols-1 sm:grid-cols-2 gap-3 text-center">
         <div>
           <p class="text-lg">🚚</p>
           <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Envío gratis desde $200.000</p>
           <p class="text-[8px] font-bold text-slate-400">Chía $8.500 · Cajicá/Bogotá $15.000</p>
         </div>
         <div>
-          <p class="text-lg">⏰</p>
-          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Elige tu franja: mañana o tarde</p>
-          <p class="text-[8px] font-bold text-slate-400">coordinamos la ruta y te avisamos antes de salir</p>
-        </div>
-        <div>
           <p class="text-lg">📅</p>
           <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">{{ mensajeEntrega }}</p>
           <p class="text-[8px] font-bold text-slate-400">sin domicilios domingos ni festivos</p>
+        </div>
+      </div>
+      <div v-else class="bg-[#DE1F27]/5 dark:bg-[#DE1F27]/10 border border-[#DE1F27]/20 rounded-2xl p-4 mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+        <div>
+          <p class="text-lg">🏪</p>
+          <p class="text-[9px] font-black uppercase text-[#DE1F27]">Sin costo de envío</p>
+          <p class="text-[8px] font-bold text-slate-400">Pagas en línea, recoges en tienda</p>
+        </div>
+        <div>
+          <p class="text-lg">⏰</p>
+          <p class="text-[9px] font-black uppercase text-[#DE1F27]">Lun–Sáb · 8am a 6pm</p>
+          <p class="text-[8px] font-bold text-slate-400">Vía Guaymaral 2km, Chía</p>
+        </div>
+        <div>
+          <p class="text-lg">🎫</p>
+          <p class="text-[9px] font-black uppercase text-[#DE1F27]">Trae tu código de pedido</p>
+          <p class="text-[8px] font-bold text-slate-400">Te lo enviamos por correo al pagar</p>
         </div>
       </div>
 
@@ -52,7 +84,7 @@
         <div class="lg:col-span-7 space-y-8">
 
           <div class="bg-slate-50 dark:bg-white/5 rounded-[2.5rem] p-8 border border-slate-100 dark:border-white/5">
-            <h2 class="text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white mb-8">1. Datos de Envío</h2>
+            <h2 class="text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white mb-8">{{ tipoEntrega === 'PICKUP' ? '1. Tus Datos' : '1. Datos de Envío' }}</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-2">
@@ -69,7 +101,7 @@
                 <p v-if="errores.telefono" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.telefono }}</p>
               </div>
 
-              <div class="md:col-span-2 space-y-2">
+              <div v-if="tipoEntrega === 'DOMICILIO'" class="md:col-span-2 space-y-2">
                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Dirección de Entrega *</label>
                 <input v-model="form.direccion" type="text" placeholder="Calle, Número, Barrio, Ciudad"
                   :class="['w-full bg-white dark:bg-black border rounded-2xl p-4 text-sm font-bold dark:text-white outline-none transition-all', errores.direccion ? 'border-[#DE1F27]' : 'border-slate-200 dark:border-white/10 focus:border-[#DE1F27]']" />
@@ -90,7 +122,7 @@
                 <p v-if="errores.emailConfirm" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.emailConfirm }}</p>
               </div>
 
-              <div class="md:col-span-2 space-y-4">
+              <div v-if="tipoEntrega === 'DOMICILIO'" class="md:col-span-2 space-y-4">
 
                 <!-- Botón GPS — acción principal -->
                 <button type="button" @click="detectarUbicacion"
@@ -178,8 +210,19 @@
                 <p v-if="errores.zona" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.zona }}</p>
               </div>
 
+              <!-- Info pick-up -->
+              <div v-if="tipoEntrega === 'PICKUP'" class="md:col-span-2 bg-[#DE1F27]/5 dark:bg-[#DE1F27]/10 border border-[#DE1F27]/20 rounded-2xl p-5 space-y-3">
+                <p class="text-[10px] font-black uppercase text-[#DE1F27] tracking-widest">📍 Punto de recogida</p>
+                <p class="text-sm font-bold text-slate-700 dark:text-white">Vía Guaymaral 2km — Variante Chía-Cota, Vereda La Balsa</p>
+                <div class="grid grid-cols-2 gap-2 text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase">
+                  <span>⏰ Lun–Vie: 8am – 6pm</span>
+                  <span>⏰ Sábado: 9am – 4pm</span>
+                </div>
+                <p class="text-[9px] font-bold text-slate-400 uppercase">Presenta tu código de pedido al llegar · Sin domicilio en este modo</p>
+              </div>
+
               <!-- Franja de entrega con cupos -->
-              <div class="space-y-3 pt-2">
+              <div v-if="tipoEntrega === 'DOMICILIO'" class="space-y-3 pt-2">
                 <div class="flex items-center justify-between">
                   <label class="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">
                     Franja de entrega
@@ -301,11 +344,12 @@
                 <span>${{ cartStore.totalPrice.toLocaleString() }}</span>
               </div>
               <div class="flex justify-between text-sm font-bold opacity-60">
-                <span>Envío</span>
-                <span v-if="costoEnvio === 0" class="text-green-400 uppercase">Gratis</span>
+                <span>{{ tipoEntrega === 'PICKUP' ? 'Recogida' : 'Envío' }}</span>
+                <span v-if="tipoEntrega === 'PICKUP'" class="text-green-400 uppercase">Sin costo</span>
+                <span v-else-if="costoEnvio === 0" class="text-green-400 uppercase">Gratis</span>
                 <span v-else>${{ costoEnvio.toLocaleString() }}</span>
               </div>
-              <div v-if="costoEnvio > 0 && !ciudadSeleccionada" class="text-[9px] font-bold text-white/40 -mt-2">
+              <div v-if="tipoEntrega === 'DOMICILIO' && costoEnvio > 0 && !ciudadSeleccionada" class="text-[9px] font-bold text-white/40 -mt-2">
                 El envío se calcula al seleccionar tu zona
               </div>
               <div class="flex justify-between items-end pt-4">
@@ -353,6 +397,7 @@ const router = useRouter();
 const route = useRoute();
 const loading = ref(false);
 const emit = defineEmits(['notify']);
+const tipoEntrega = ref('DOMICILIO');
 
 // Estado del botón de pago Bold embebido
 const boldListo = ref(false);
@@ -363,6 +408,7 @@ const MINIMO_DOMICILIO = computed(() => configStore.pedidoMinimo);
 
 const ENVIO_GRATIS_DESDE = 200000;
 const costoEnvio = computed(() => {
+  if (tipoEntrega.value === 'PICKUP') return 0;
   if (cartStore.totalPrice >= ENVIO_GRATIS_DESDE) return 0;
   return ciudadSeleccionada.value === 'Chía' ? 8500 : 15000;
 });
@@ -677,19 +723,19 @@ const validar = () => {
     ok = false;
   }
 
-  if (!form.direccion.trim()) {
-    errores.direccion = 'La dirección de entrega es obligatoria';
-    ok = false;
-  }
-
-  if (!form.zona) {
-    errores.zona = 'Selecciona tu zona de entrega';
-    ok = false;
-  }
-
-  if (!form.franja) {
-    errores.franja = 'Selecciona la franja de entrega';
-    ok = false;
+  if (tipoEntrega.value === 'DOMICILIO') {
+    if (!form.direccion.trim()) {
+      errores.direccion = 'La dirección de entrega es obligatoria';
+      ok = false;
+    }
+    if (!form.zona) {
+      errores.zona = 'Selecciona tu zona de entrega';
+      ok = false;
+    }
+    if (!form.franja) {
+      errores.franja = 'Selecciona la franja de entrega';
+      ok = false;
+    }
   }
 
   if (form.quiereFactura) {
@@ -723,10 +769,11 @@ const procesarCompra = async () => {
     const payload = {
       nombre: form.nombre.trim(),
       telefono: form.telefono.replace(/\s/g, ''),
-      direccion: form.direccion.trim(),
+      direccion: tipoEntrega.value === 'PICKUP' ? 'RECOGE EN TIENDA' : form.direccion.trim(),
       email: form.email.trim() || null,
-      zona: form.zona.trim() || null,
-      franjaEntrega: form.franja || null,
+      zona: tipoEntrega.value === 'PICKUP' ? 'PICKUP' : (form.zona.trim() || null),
+      franjaEntrega: tipoEntrega.value === 'PICKUP' ? null : (form.franja || null),
+      tipoEntrega: tipoEntrega.value,
       fbp: getCookie('_fbp'),
       fbc: getCookie('_fbc'),
       quiereFactura: form.quiereFactura,
