@@ -584,7 +584,10 @@ const cargarCupos = async () => {
   cargandoCupos.value = true;
   try {
     const { data } = await api.get('/domicilios/cupos/disponibilidad');
-    cuposData.value = data;
+    // Si ya pasaron las 2pm en Bogotá, descartar los slots de hoy
+    const ahoraBogota = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+    const pasoCorteDia = ahoraBogota.getHours() >= 14;
+    cuposData.value = pasoCorteDia ? data.filter(c => c.fecha !== hoyStr) : data;
   } catch {
     // Fallback: calcular el próximo día hábil correctamente (respeta corte 2pm)
     const fecha = fechaFallback();
