@@ -545,19 +545,28 @@ const cargandoCupos = ref(false);
 const cuposData = ref([]);
 const hoyStr = new Date().toISOString().split('T')[0];
 
+// Fecha del próximo día hábil para entregas (respeta corte 2pm y festivos)
+const fechaFallback = () => {
+  const ahora = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+  const d = new Date(ahora);
+  if (ahora.getHours() >= 14) { d.setDate(d.getDate() + 1); }
+  while (!esDiaHabilLocal(d)) d.setDate(d.getDate() + 1);
+  return d.toISOString().split('T')[0];
+};
+
 const franjasDisponibles = computed(() => {
   const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const visto = new Set();
   const result = [];
   for (const c of cuposData.value) {
-    const key = c.franja === 'MANANA' ? `${c.fecha}_MANANA` : `${c.fecha}_TARDE`;
+    const key = `${c.fecha}|${c.franja}`;
     if (visto.has(key)) continue;
     visto.add(key);
     const d = new Date(c.fecha + 'T12:00:00');
     const fechaLabel = c.fecha === hoyStr ? 'Hoy' : `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
     result.push({
-      key: c.franja,
+      key,
       fecha: c.fecha,
       fechaLabel,
       emoji: c.franja === 'MANANA' ? '🌅' : '🌇',
@@ -566,7 +575,7 @@ const franjasDisponibles = computed(() => {
       disponibles: c.disponibles,
       lleno: c.lleno,
     });
-    if (result.length >= 4) break; // máximo 4 opciones visibles
+    if (result.length >= 4) break;
   }
   return result;
 });
@@ -575,12 +584,13 @@ const cargarCupos = async () => {
   cargandoCupos.value = true;
   try {
     const { data } = await api.get('/domicilios/cupos/disponibilidad');
-    cuposData.value = data.filter(c => !c.lleno || true); // mostrar todos, lleno se deshabilita
+    cuposData.value = data;
   } catch {
-    // Si falla, mostrar las dos franjas sin info de cupos
+    // Fallback: calcular el próximo día hábil correctamente (respeta corte 2pm)
+    const fecha = fechaFallback();
     cuposData.value = [
-      { franja: 'MANANA', fecha: hoyStr, disponibles: 10, lleno: false },
-      { franja: 'TARDE', fecha: hoyStr, disponibles: 10, lleno: false },
+      { franja: 'MANANA', fecha, disponibles: 10, lleno: false },
+      { franja: 'TARDE',  fecha, disponibles: 10, lleno: false },
     ];
   } finally {
     cargandoCupos.value = false;
@@ -771,7 +781,7 @@ const procesarCompra = async () => {
       direccion: tipoEntrega.value === 'PICKUP' ? 'RECOGE EN TIENDA' : form.direccion.trim(),
       email: form.email.trim() || null,
       zona: tipoEntrega.value === 'PICKUP' ? 'PICKUP' : (form.zona.trim() || null),
-      franjaEntrega: tipoEntrega.value === 'PICKUP' ? null : (form.franja || null),
+      franjaEntrega: tipoEntrega.value === 'PICKUP' ? null : (form.franja ? form.franja.split('|')[1] : null),
       tipoEntrega: tipoEntrega.value,
       fbp: getCookie('_fbp'),
       fbc: getCookie('_fbc'),
