@@ -206,10 +206,10 @@ const aplicarBusqueda = (lista) => {
   );
 };
 
-// Por entregar: PAGADO + EN_CAMINO (de cualquier fecha), ordenados por ruta
+// Por entregar: PAGADO + EN_CAMINO (solo domicilios), ordenados por ruta
 const paraEntregar = computed(() => {
   const lista = pedidos.value
-    .filter(p => ['PAGADO', 'EN_CAMINO'].includes(p.estado))
+    .filter(p => ['PAGADO', 'EN_CAMINO'].includes(p.estado) && p.tipoEntrega !== 'PICKUP')
     .sort((a, b) => {
       const pz = prioridadZona(a.zona) - prioridadZona(b.zona);
       if (pz !== 0) return pz;
@@ -227,8 +227,8 @@ const entregadosHoy = computed(() => {
   return aplicarBusqueda(lista);
 });
 
-const countPagado = computed(() => pedidos.value.filter(p => p.estado === 'PAGADO').length);
-const countCamino = computed(() => pedidos.value.filter(p => p.estado === 'EN_CAMINO').length);
+const countPagado = computed(() => pedidos.value.filter(p => p.estado === 'PAGADO' && p.tipoEntrega !== 'PICKUP').length);
+const countCamino = computed(() => pedidos.value.filter(p => p.estado === 'EN_CAMINO' && p.tipoEntrega !== 'PICKUP').length);
 
 const pinHeaders = () => ({ headers: { 'Authorization': `Pin ${pin.value}` } });
 

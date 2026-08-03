@@ -543,7 +543,8 @@ const mensajeEntregaLocal = () => {
 // Cupos de domicilio
 const cargandoCupos = ref(false);
 const cuposData = ref([]);
-const hoyStr = new Date().toISOString().split('T')[0];
+const _hoyBogota = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+const hoyStr = `${_hoyBogota.getFullYear()}-${String(_hoyBogota.getMonth()+1).padStart(2,'0')}-${String(_hoyBogota.getDate()).padStart(2,'0')}`;
 
 // Fecha del próximo día hábil para entregas (respeta corte 2pm y festivos)
 const fechaFallback = () => {
@@ -558,12 +559,9 @@ const franjasDisponibles = computed(() => {
   const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
-  // Solo mostrar el primer día disponible (el más próximo)
-  const primerFecha = cuposData.value.length ? cuposData.value[0].fecha : null;
-  if (!primerFecha) return [];
+  if (!cuposData.value.length) return [];
 
   return cuposData.value
-    .filter(c => c.fecha === primerFecha)
     .map(c => {
       const d = new Date(c.fecha + 'T12:00:00');
       const fechaLabel = c.fecha === hoyStr ? 'Hoy' : `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;

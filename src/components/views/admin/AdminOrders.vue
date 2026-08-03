@@ -1,11 +1,19 @@
 <template>
   <div class="space-y-6 container-reveal">
-    <div class="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
-      <button v-for="st in ['EN PROCESO', 'COMPLETADOS', 'CANCELADOS']" 
-              :key="st" @click="filtroPrincipal = st" 
-              :class="[filtroPrincipal === st ? 'bg-ps-red text-white shadow-lg' : 'bg-white dark:bg-white/5 text-slate-400']" 
+    <div class="flex gap-2 mb-3 overflow-x-auto pb-2 no-scrollbar">
+      <button v-for="st in ['EN PROCESO', 'COMPLETADOS', 'CANCELADOS']"
+              :key="st" @click="filtroPrincipal = st"
+              :class="[filtroPrincipal === st ? 'bg-ps-red text-white shadow-lg' : 'bg-white dark:bg-white/5 text-slate-400']"
               class="px-5 py-3 rounded-xl text-[9px] font-[1000] uppercase tracking-widest border border-white/5 transition-all italic whitespace-nowrap">
         {{ st }}
+      </button>
+    </div>
+    <div class="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
+      <button v-for="ft in ['TODOS', 'DOMICILIO', 'PICKUP']"
+              :key="ft" @click="filtroEntrega = ft"
+              :class="[filtroEntrega === ft ? 'bg-[#152C77] text-white' : 'bg-white dark:bg-white/5 text-slate-400']"
+              class="px-4 py-2 rounded-xl text-[8px] font-[1000] uppercase tracking-widest border border-white/5 transition-all italic whitespace-nowrap">
+        {{ ft === 'PICKUP' ? '🏪 Pick-up' : ft === 'DOMICILIO' ? '🚚 Domicilio' : 'Todos' }}
       </button>
     </div>
 
@@ -19,6 +27,7 @@
               {{ order.nombre || order.nombreCliente || 'Cliente Sin Nombre' }}
             </h3>
             <span class="text-[9px] font-black px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 rounded">{{ order.codigoPedido || ('#' + order.id) }}</span>
+            <span v-if="order.tipoEntrega === 'PICKUP'" class="text-[8px] font-black px-2 py-0.5 bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 rounded-lg uppercase">🏪 Pick-up</span>
             <!-- Badge de estado visible -->
             <span :class="['text-[9px] font-[1000] px-2.5 py-1 rounded-lg uppercase italic flex items-center gap-1', badgeEstado(order.estado)]">
               {{ iconoEstado(order.estado) }} {{ labelEstado(order.estado) }}
@@ -181,6 +190,7 @@ const props = defineProps(['orders', 'productos', 'searchQuery']);
 const emit = defineEmits(['refresh']);
 
 const filtroPrincipal = ref('EN PROCESO');
+const filtroEntrega = ref('TODOS');
 const showModal = ref(false);
 const searchProd = ref('');
 const isSaving = ref(false);
@@ -194,6 +204,9 @@ const itemsFiltrados = computed(() => {
         list = list.filter(o => o.estado === 'ENTREGADO');
     } else {
         list = list.filter(o => o.estado === 'CANCELADO');
+    }
+    if (filtroEntrega.value !== 'TODOS') {
+        list = list.filter(o => (o.tipoEntrega || 'DOMICILIO') === filtroEntrega.value);
     }
     const q = (props.searchQuery || '').toLowerCase();
     return list.filter(o => (o.nombre || o.nombreCliente || '').toLowerCase().includes(q) || o.id.toString().includes(q));
