@@ -41,8 +41,8 @@
       <div v-if="tipoEntrega === 'DOMICILIO'" class="bg-[#152C77]/5 dark:bg-white/5 border border-[#152C77]/10 dark:border-white/10 rounded-2xl p-4 mb-8 grid grid-cols-1 sm:grid-cols-2 gap-3 text-center">
         <div>
           <p class="text-lg">🚚</p>
-          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Envío gratis desde $200.000</p>
-          <p class="text-[8px] font-bold text-slate-400">Chía $8.500 · Cajicá/Bogotá $15.000</p>
+          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Envío gratis desde ${{ configStore.envioGratisDesde.toLocaleString() }}</p>
+          <p class="text-[8px] font-bold text-slate-400">Chía ${{ configStore.costoEnvioChia.toLocaleString() }} · Cajicá/Bogotá ${{ configStore.costoEnvioFuera.toLocaleString() }}</p>
         </div>
         <div>
           <p class="text-lg">📅</p>
@@ -241,7 +241,7 @@
                     <span class="text-xl">{{ franja.emoji }}</span>
                     <span class="text-[10px] font-black uppercase">{{ franja.label }}</span>
                     <span class="text-[8px] font-bold opacity-70">{{ franja.hora }}</span>
-                    <span v-if="!franja.lleno && franja.fecha !== hoyStr" class="text-[7px] font-black text-amber-500 uppercase">
+                    <span class="text-[7px] font-black uppercase" :class="franja.fecha === hoyStr ? 'text-green-500' : 'text-amber-500'">
                       {{ franja.fechaLabel }}
                     </span>
                     <span v-if="franja.lleno" class="text-[7px] font-black text-red-400 uppercase">Cupo lleno</span>
@@ -350,7 +350,7 @@
                 <span v-else>${{ costoEnvio.toLocaleString() }}</span>
               </div>
               <div v-if="tipoEntrega === 'DOMICILIO' && costoEnvio > 0 && !ciudadSeleccionada" class="text-[9px] font-bold text-white/40 -mt-2">
-                El envío se calcula al seleccionar tu zona
+                Gratis desde ${{ configStore.envioGratisDesde.toLocaleString() }}
               </div>
               <div class="flex justify-between items-end pt-4">
                 <span class="text-xl font-[1000] uppercase italic">Total</span>
@@ -406,11 +406,10 @@ const boldContainer = ref(null);
 const configStore = useConfigStore();
 const MINIMO_DOMICILIO = computed(() => configStore.pedidoMinimo);
 
-const ENVIO_GRATIS_DESDE = 200000;
 const costoEnvio = computed(() => {
   if (tipoEntrega.value === 'PICKUP') return 0;
-  if (cartStore.totalPrice >= ENVIO_GRATIS_DESDE) return 0;
-  return ciudadSeleccionada.value === 'Chía' ? 8500 : 15000;
+  if (cartStore.totalPrice >= configStore.envioGratisDesde) return 0;
+  return ciudadSeleccionada.value === 'Chía' ? configStore.costoEnvioChia : configStore.costoEnvioFuera;
 });
 const totalConEnvio = computed(() => cartStore.totalPrice + costoEnvio.value);
 
