@@ -557,27 +557,27 @@ const fechaFallback = () => {
 const franjasDisponibles = computed(() => {
   const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  const visto = new Set();
-  const result = [];
-  for (const c of cuposData.value) {
-    const key = `${c.fecha}|${c.franja}`;
-    if (visto.has(key)) continue;
-    visto.add(key);
-    const d = new Date(c.fecha + 'T12:00:00');
-    const fechaLabel = c.fecha === hoyStr ? 'Hoy' : `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
-    result.push({
-      key,
-      fecha: c.fecha,
-      fechaLabel,
-      emoji: c.franja === 'MANANA' ? '🌅' : '🌇',
-      label: c.franja === 'MANANA' ? 'Mañana' : 'Tarde',
-      hora: c.franja === 'MANANA' ? '8am – 12pm' : '12pm – 6pm',
-      disponibles: c.disponibles,
-      lleno: c.lleno,
+
+  // Solo mostrar el primer día disponible (el más próximo)
+  const primerFecha = cuposData.value.length ? cuposData.value[0].fecha : null;
+  if (!primerFecha) return [];
+
+  return cuposData.value
+    .filter(c => c.fecha === primerFecha)
+    .map(c => {
+      const d = new Date(c.fecha + 'T12:00:00');
+      const fechaLabel = c.fecha === hoyStr ? 'Hoy' : `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
+      return {
+        key: `${c.fecha}|${c.franja}`,
+        fecha: c.fecha,
+        fechaLabel,
+        emoji: c.franja === 'MANANA' ? '🌅' : '🌇',
+        label: c.franja === 'MANANA' ? 'Mañana' : 'Tarde',
+        hora: c.franja === 'MANANA' ? '8am – 12pm' : '12pm – 6pm',
+        disponibles: c.disponibles,
+        lleno: c.lleno,
+      };
     });
-    if (result.length >= 4) break;
-  }
-  return result;
 });
 
 const cargarCupos = async () => {
