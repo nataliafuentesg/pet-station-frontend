@@ -578,14 +578,21 @@ const franjasDisponibles = computed(() => {
     });
 });
 
+// Verifica si una fecha ISO ('YYYY-MM-DD') es día hábil (no domingo, no festivo)
+const esDiaHabilStr = (fechaStr) => {
+  const d = new Date(fechaStr + 'T12:00:00'); // mediodía evita problemas de TZ
+  return d.getDay() !== 0 && !FESTIVOS_LOCAL.has(fechaStr);
+};
+
 const cargarCupos = async () => {
   cargandoCupos.value = true;
   try {
     const { data } = await api.get('/domicilios/cupos/disponibilidad');
-    // Si ya pasaron las 2pm en Bogotá, descartar los slots de hoy
     const ahoraBogota = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
     const pasoCorteDia = ahoraBogota.getHours() >= 14;
-    cuposData.value = pasoCorteDia ? data.filter(c => c.fecha !== hoyStr) : data;
+    cuposData.value = data
+      .filter(c => esDiaHabilStr(c.fecha))                          // excluir domingos y festivos
+      .filter(c => !pasoCorteDia || c.fecha !== hoyStr);            // excluir hoy si pasó el corte 2pm
   } catch {
     // Fallback: calcular el próximo día hábil correctamente (respeta corte 2pm)
     const fecha = fechaFallback();
