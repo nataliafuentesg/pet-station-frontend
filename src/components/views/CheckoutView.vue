@@ -229,23 +229,32 @@
                   </label>
                   <span v-if="cargandoCupos" class="text-[8px] font-bold opacity-40 uppercase">Consultando disponibilidad...</span>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-2">
                   <button v-for="franja in franjasDisponibles" :key="franja.key" type="button"
                     @click="!franja.lleno && (form.franja = franja.key)"
                     :disabled="franja.lleno"
                     :class="[
-                      form.franja === franja.key ? 'border-[#152C77] bg-[#152C77] text-white' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-white/70',
-                      franja.lleno ? 'opacity-40 cursor-not-allowed' : 'hover:border-[#152C77]'
-                    ]"
-                    class="rounded-2xl border-2 p-4 flex flex-col items-center gap-1 transition-all">
-                    <span class="text-xl">{{ franja.emoji }}</span>
-                    <span class="text-[10px] font-black uppercase">{{ franja.label }}</span>
-                    <span class="text-[8px] font-bold opacity-70">{{ franja.hora }}</span>
-                    <span class="text-[7px] font-black uppercase" :class="franja.fecha === hoyStr ? 'text-green-500' : 'text-amber-500'">
-                      {{ franja.fechaLabel }}
-                    </span>
-                    <span v-if="franja.lleno" class="text-[7px] font-black text-red-400 uppercase">Cupo lleno</span>
-                    <span v-else class="text-[7px] font-bold opacity-50">{{ franja.disponibles }} cupos</span>
+                      'flex items-center gap-2.5 px-3 py-2.5 rounded-xl border-2 transition-all text-left w-full',
+                      form.franja === franja.key
+                        ? 'border-[#152C77] bg-[#152C77] text-white'
+                        : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-700 dark:text-white/70 hover:border-[#152C77]',
+                      franja.lleno ? 'opacity-40 cursor-not-allowed' : ''
+                    ]">
+                    <span class="text-base shrink-0">{{ franja.emoji }}</span>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-[9px] font-black uppercase leading-tight tracking-wide">{{ franja.label }}</p>
+                      <p class="text-[8px] font-bold opacity-60 leading-tight">{{ franja.hora }}</p>
+                    </div>
+                    <div class="text-right shrink-0">
+                      <p class="text-[8px] font-black leading-tight"
+                        :class="franja.fecha === hoyStr
+                          ? (form.franja === franja.key ? 'text-green-300' : 'text-green-500')
+                          : (form.franja === franja.key ? 'text-amber-200' : 'text-amber-500')">
+                        {{ franja.fechaLabel }}
+                      </p>
+                      <p v-if="franja.lleno" class="text-[7px] font-black text-red-400 uppercase leading-tight">Lleno</p>
+                      <p v-else class="text-[7px] font-bold opacity-50 leading-tight">{{ franja.disponibles }} cupos</p>
+                    </div>
                   </button>
                 </div>
                 <p v-if="errores.franja" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.franja }}</p>

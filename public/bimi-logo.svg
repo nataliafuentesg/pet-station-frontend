@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+
+  <!-- Fondo blanco sólido (requerido por BIMI) -->
+  <rect width="500" height="500" fill="#ffffff"/>
+
+  <!-- Arco rojo -->
+  <path d="M 165,178 A 130,130 0 1 1 295,308"
+        fill="none" stroke="#DE1F27" stroke-width="21" stroke-linecap="round"/>
+
+  <!-- COLA: sube hacia la izquierda -->
+  <path d="M 205,196 C 193,168 178,138 165,110
+           C 161,102 153,105 152,115
+           C 150,126 164,144 172,160
+           C 180,176 193,186 205,196 Z"
+        fill="#152C77"/>
+
+  <!-- CUERPO: elipse elongada -->
+  <ellipse cx="282" cy="226" rx="105" ry="48"
+           transform="rotate(-10 282 226)" fill="#152C77"/>
+
+  <!-- CUELLO: puente entre cuerpo y cabeza -->
+  <ellipse cx="325" cy="196" rx="36" ry="27"
+           transform="rotate(-32 325 196)" fill="#152C77"/>
+
+  <!-- CABEZA -->
+  <circle cx="358" cy="164" r="46" fill="#152C77"/>
+
+  <!-- HOCICO -->
+  <ellipse cx="396" cy="180" rx="34" ry="16"
+           transform="rotate(-18 396 180)" fill="#152C77"/>
+
+  <!-- PATAS TRASERAS (par fusionado, forma ancha) -->
+  <rect x="224" y="266" width="46" height="100" rx="13" fill="#152C77"/>
+
+  <!-- PATAS DELANTERAS (par fusionado, forma ancha) -->
+  <rect x="308" y="266" width="46" height="100" rx="13" fill="#152C77"/>
+
+  <!-- PET en rojo -->
+  <text x="50" y="406"
+        font-family="'Arial Black',Arial,sans-serif"
+        font-weight="900"
+        font-size="92"
+        fill="#DE1F27">PET</text>
+
+  <!-- STATION en azul marino -->
+  <text x="50" y="483"
+        font-family="'Arial Black',Arial,sans-serif"
+        font-weight="900"
+        font-size="70"
+        fill="#152C77">STATION</text>
+
+</svg>
