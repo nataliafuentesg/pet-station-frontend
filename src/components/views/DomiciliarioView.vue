@@ -191,7 +191,7 @@ const fechaHoy = computed(() => new Date().toLocaleDateString('es-CO', {
 const prioridadZona = (zona) => {
   const z = (zona || '').toLowerCase();
   if (z.includes('chía') || z.includes('chia')) return 1;
-  if (z.includes('cajicá') || z.includes('cajica')) return 2;
+
   if (z.includes('bogot')) return 3;
   return 4;
 };

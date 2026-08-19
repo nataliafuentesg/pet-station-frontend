@@ -24,7 +24,7 @@
 
           <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10">
             <p class="text-[#152C77] dark:text-white font-black mb-2">Zonas de cobertura</p>
-            <p>Realizamos domicilios en <strong>Chía, Cajicá</strong> y <strong>Bogotá norte</strong> (desde calle 53 hacia el norte). Si tienes dudas sobre si tu dirección está dentro de la cobertura, escríbenos antes de hacer el pedido.</p>
+            <p>Realizamos domicilios únicamente en <strong>Chía</strong>. Para el resto del país despachamos por transportadora (el flete se cobra a la entrega).</p>
           </div>
 
           <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10">
@@ -40,9 +40,9 @@
           <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10">
             <p class="text-[#152C77] dark:text-white font-black mb-2">Costos de envío</p>
             <ul class="space-y-1">
-              <li>📦 Chía: <strong>$8.500</strong></li>
-              <li>📦 Cajicá / Bogotá norte: <strong>$15.000</strong></li>
-              <li>🎁 <strong>Envío gratis</strong> en pedidos desde <strong>$200.000</strong></li>
+              <li>🏍️ Domicilio en Chía: <strong>$8.500</strong></li>
+              <li>🎁 <strong>Domicilio gratis en Chía</strong> en pedidos desde <strong>$400.000</strong></li>
+              <li>📦 Envío nacional: flete cobrado a la entrega por la transportadora</li>
             </ul>
           </div>
 

@@ -12,7 +12,7 @@
         <p>Nuestros servicios médicos son prestados por profesionales titulados. Las citas están sujetas a disponibilidad. En caso de emergencia vital, por favor acude directamente a nuestra sede física o al centro de urgencias más cercano.</p>
 
         <h3 class="text-xl font-black uppercase text-[#152C77] dark:text-white mt-8 mb-4">2. Tienda Online y Envíos</h3>
-        <p>Los productos están sujetos a disponibilidad de inventario. Los tiempos de entrega pueden variar según la zona de Bogotá o Cundinamarca. Nos reservamos el derecho de cancelar pedidos si se detectan transacciones fraudulentas.</p>
+        <p>Los productos están sujetos a disponibilidad de inventario. Los domicilios se realizan únicamente en Chía; los envíos nacionales van por transportadora. Nos reservamos el derecho de cancelar pedidos si se detectan transacciones fraudulentas.</p>
 
         <h3 class="text-xl font-black uppercase text-[#152C77] dark:text-white mt-8 mb-4">3. Política de Devoluciones</h3>
         <p>Aceptamos devoluciones de productos cerrados y en perfecto estado dentro de los 5 días hábiles siguientes a la compra. Los medicamentos y alimentos abiertos no tienen cambio por seguridad sanitaria.</p>
