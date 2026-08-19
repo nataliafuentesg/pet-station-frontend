@@ -253,7 +253,9 @@ const whatsappUrl = computed(() => {
 
 const whatsappAgotadoUrl = computed(() => {
   if (!product.value) return '#';
-  return `https://wa.me/573053462413?text=${encodeURIComponent('Hola! El producto *' + product.value.nombre + '* aparece agotado en la web. ¿Cuándo estará disponible o tienen alternativas?')}`;
+  const url = window.location.href;
+  const msg = `Hola Pet Station! Me interesa: *${product.value.nombre}*\n🔗 ${url}`;
+  return `https://wa.me/573053462413?text=${encodeURIComponent(msg)}`;
 });
 
 // --- FUNCIONES DE UUID Y SLUG (Déjalas tal cual las tienes) ---
