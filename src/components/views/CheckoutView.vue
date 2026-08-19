@@ -18,13 +18,21 @@
       </div>
 
       <!-- Selector tipo de entrega -->
-      <div class="grid grid-cols-2 gap-3 mb-6">
+      <div class="grid grid-cols-3 gap-3 mb-6">
         <button type="button" @click="tipoEntrega = 'DOMICILIO'"
           :class="['rounded-2xl border-2 p-4 flex items-center gap-3 transition-all', tipoEntrega === 'DOMICILIO' ? 'border-[#152C77] bg-[#152C77] text-white' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-white hover:border-[#152C77]/40']">
-          <span class="text-2xl">🚚</span>
+          <span class="text-2xl">🏍️</span>
           <div class="text-left">
             <p class="text-[10px] font-black uppercase leading-none">Domicilio</p>
-            <p class="text-[8px] font-bold mt-0.5 opacity-70">Chía · Cajicá · Bogotá norte</p>
+            <p class="text-[8px] font-bold mt-0.5 opacity-70">Solo Chía</p>
+          </div>
+        </button>
+        <button type="button" @click="tipoEntrega = 'ENVIO'"
+          :class="['rounded-2xl border-2 p-4 flex items-center gap-3 transition-all', tipoEntrega === 'ENVIO' ? 'border-[#152C77] bg-[#152C77] text-white' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-white hover:border-[#152C77]/40']">
+          <span class="text-2xl">📦</span>
+          <div class="text-left">
+            <p class="text-[10px] font-black uppercase leading-none">Envío nacional</p>
+            <p class="text-[8px] font-bold mt-0.5 opacity-70">Todo el país</p>
           </div>
         </button>
         <button type="button" @click="tipoEntrega = 'PICKUP'"
@@ -32,17 +40,19 @@
           <span class="text-2xl">🏪</span>
           <div class="text-left">
             <p class="text-[10px] font-black uppercase leading-none">Recoger en tienda</p>
-            <p class="text-[8px] font-bold mt-0.5 opacity-70">Sin costo de envío</p>
+            <p class="text-[8px] font-bold mt-0.5 opacity-70">Sin costo</p>
           </div>
         </button>
       </div>
 
-      <!-- Banner logística -->
+      <!-- Banner logística: DOMICILIO -->
       <div v-if="tipoEntrega === 'DOMICILIO'" class="bg-[#152C77]/5 dark:bg-white/5 border border-[#152C77]/10 dark:border-white/10 rounded-2xl p-4 mb-8 grid grid-cols-1 sm:grid-cols-2 gap-3 text-center">
         <div>
-          <p class="text-lg">🚚</p>
-          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Envío gratis desde ${{ configStore.envioGratisDesde.toLocaleString() }}</p>
-          <p class="text-[8px] font-bold text-slate-400">Chía ${{ configStore.costoEnvioChia.toLocaleString() }} · Cajicá/Bogotá ${{ configStore.costoEnvioFuera.toLocaleString() }}</p>
+          <p class="text-lg">🏍️</p>
+          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">
+            Domicilio en Chía · ${{ configStore.costoEnvioChia.toLocaleString() }}
+          </p>
+          <p class="text-[8px] font-bold text-slate-400">Gratis en compras desde ${{ configStore.envioGratisDesde.toLocaleString() }}</p>
         </div>
         <div>
           <p class="text-lg">📅</p>
@@ -50,6 +60,27 @@
           <p class="text-[8px] font-bold text-slate-400">sin domicilios domingos ni festivos</p>
         </div>
       </div>
+
+      <!-- Banner logística: ENVÍO NACIONAL -->
+      <div v-else-if="tipoEntrega === 'ENVIO'" class="bg-[#152C77]/5 dark:bg-white/5 border border-[#152C77]/10 dark:border-white/10 rounded-2xl p-4 mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+        <div>
+          <p class="text-lg">📦</p>
+          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Envío a todo el país</p>
+          <p class="text-[8px] font-bold text-slate-400">Via transportadora</p>
+        </div>
+        <div>
+          <p class="text-lg">💵</p>
+          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Flete cobrado a la entrega</p>
+          <p class="text-[8px] font-bold text-slate-400">Lo cobra la transportadora</p>
+        </div>
+        <div>
+          <p class="text-lg">⏱️</p>
+          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Tiempos según destino</p>
+          <p class="text-[8px] font-bold text-slate-400">Depende de la transportadora</p>
+        </div>
+      </div>
+
+      <!-- Banner logística: PICKUP -->
       <div v-else class="bg-[#DE1F27]/5 dark:bg-[#DE1F27]/10 border border-[#DE1F27]/20 rounded-2xl p-4 mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
         <div>
           <p class="text-lg">🏪</p>
@@ -101,9 +132,12 @@
                 <p v-if="errores.telefono" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.telefono }}</p>
               </div>
 
-              <div v-if="tipoEntrega === 'DOMICILIO'" class="md:col-span-2 space-y-2">
-                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Dirección de Entrega *</label>
-                <input v-model="form.direccion" type="text" placeholder="Calle, Número, Barrio, Ciudad"
+              <div v-if="tipoEntrega === 'DOMICILIO' || tipoEntrega === 'ENVIO'" class="md:col-span-2 space-y-2">
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">
+                  {{ tipoEntrega === 'ENVIO' ? 'Dirección completa *' : 'Dirección de Entrega *' }}
+                </label>
+                <input v-model="form.direccion" type="text"
+                  :placeholder="tipoEntrega === 'ENVIO' ? 'Calle, Número, Barrio' : 'Calle, Número, Barrio'"
                   :class="['w-full bg-white dark:bg-black border rounded-2xl p-4 text-sm font-bold dark:text-white outline-none transition-all', errores.direccion ? 'border-[#DE1F27]' : 'border-slate-200 dark:border-white/10 focus:border-[#DE1F27]']" />
                 <p v-if="errores.direccion" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.direccion }}</p>
               </div>
@@ -122,91 +156,47 @@
                 <p v-if="errores.emailConfirm" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.emailConfirm }}</p>
               </div>
 
-              <div v-if="tipoEntrega === 'DOMICILIO'" class="md:col-span-2 space-y-4">
-
-                <!-- Botón GPS — acción principal -->
-                <button type="button" @click="detectarUbicacion"
-                  :disabled="geoEstado === 'cargando'"
-                  :class="[
-                    'w-full flex items-center justify-center gap-3 py-4 rounded-2xl border-2 font-[1000] uppercase text-[10px] tracking-widest transition-all',
-                    geoResultado?.enCobertura
-                      ? 'border-green-400 bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400'
-                      : 'border-[#152C77]/30 dark:border-white/20 bg-[#152C77]/5 dark:bg-white/5 text-[#152C77] dark:text-white hover:border-[#152C77] hover:bg-[#152C77] hover:text-white'
-                  ]">
-                  <span class="text-lg">{{ geoEstado === 'cargando' ? '⏳' : geoResultado?.enCobertura ? '✅' : '📍' }}</span>
-                  {{ geoEstado === 'cargando' ? 'Detectando tu ubicación...' : geoResultado?.enCobertura ? '¡Estás dentro de cobertura!' : 'Verificar cobertura con GPS' }}
-                </button>
-
-                <!-- Resultado GPS -->
-                <Transition name="fade-up">
-                  <div v-if="geoResultado && !geoResultado.enCobertura"
-                    class="rounded-2xl p-4 border-2 bg-red-50 dark:bg-red-500/10 border-red-300 dark:border-red-500/30 flex items-start gap-3">
-                    <span class="text-xl shrink-0">❌</span>
-                    <div>
-                      <p class="text-[11px] font-black uppercase text-red-700 dark:text-red-400">
-                        Tu ubicación está a {{ geoResultado.distanciaKm }} km — fuera de cobertura
-                      </p>
-                      <p class="text-[9px] font-bold text-slate-500 mt-1">
-                        Cubrimos Chía, Cajicá y Bogotá norte (hasta Calle 53 aprox.)
-                      </p>
-                      <a href="https://wa.me/573053462413?text=Hola!%20Quiero%20un%20pedido%20pero%20estoy%20fuera%20de%20cobertura%2C%20%C2%BFpueden%20ayudarme%3F"
-                        target="_blank"
-                        class="text-[9px] font-black uppercase text-[#25D366] underline mt-2 inline-block">
-                        💬 Consultar por WhatsApp
-                      </a>
-                    </div>
-                  </div>
-                </Transition>
-
-                <!-- Error GPS -->
-                <div v-if="geoError" class="bg-amber-50 dark:bg-amber-500/10 rounded-xl p-3 border border-amber-200 dark:border-amber-500/30">
-                  <p class="text-[9px] font-bold text-amber-700 dark:text-amber-400">⚠️ {{ geoError }}</p>
-                </div>
-
-                <!-- Selector manual: ciudad + barrio libre -->
-                <div class="space-y-3">
-                  <p class="text-[8px] font-black uppercase text-slate-400 tracking-widest ml-1">
-                    {{ geoResultado?.enCobertura ? 'Confirma tu zona:' : 'O ingresa tu zona manualmente:' }}
-                  </p>
-
-                  <!-- Selector de ciudad -->
-                  <div class="grid grid-cols-3 gap-2">
-                    <button v-for="c in CIUDADES" :key="c.nombre" type="button"
-                      @click="ciudadSeleccionada = c.nombre; form.zona = c.nombre"
-                      :class="[
-                        'py-3 px-3 rounded-2xl border-2 text-center transition-all',
-                        ciudadSeleccionada === c.nombre
-                          ? 'border-[#152C77] bg-[#152C77] text-white'
-                          : 'border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/50 hover:border-[#152C77]/40'
-                      ]">
-                      <span class="block text-lg mb-1">{{ c.emoji }}</span>
-                      <span class="text-[9px] font-black uppercase leading-none">{{ c.nombre }}</span>
-                    </button>
-                  </div>
-
-                  <!-- Campo libre de barrio/sector -->
-                  <Transition name="fade-up">
-                    <div v-if="ciudadSeleccionada" class="space-y-1">
-                      <label class="text-[8px] font-black uppercase text-slate-400 tracking-widest ml-1">
-                        ¿En qué barrio o sector de {{ ciudadSeleccionada }}?
-                      </label>
-                      <input v-model="barrioLibre" type="text"
-                        :placeholder="`Ej: ${ciudadSeleccionada === 'Bogotá Norte' ? 'Chapinero, Cedritos, Usaquén...' : ciudadSeleccionada === 'Cajicá' ? 'Centro, Zipaquirá...' : 'La Balsa, Fonquetá...'}`"
-                        @input="form.zona = ciudadSeleccionada + (barrioLibre ? ' · ' + barrioLibre : '')"
-                        class="w-full bg-white dark:bg-black border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-sm font-bold dark:text-white focus:border-[#152C77] outline-none transition-all" />
-                    </div>
-                  </Transition>
-                </div>
-
-                <!-- Nota de cobertura -->
-                <div class="bg-slate-50 dark:bg-white/5 rounded-xl p-3 flex items-start gap-2 border border-slate-100 dark:border-white/5">
-                  <span class="text-sm shrink-0">🚚</span>
-                  <p class="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase leading-relaxed">
-                    Cubrimos <strong class="text-slate-500 dark:text-white/50">Chía, Cajicá</strong> y <strong class="text-slate-500 dark:text-white/50">Bogotá norte</strong> (desde Calle 53 hacia el norte).
-                    ¿Dudas? <a href="https://wa.me/573053462413" target="_blank" class="text-[#152C77] dark:text-white underline">Escríbenos</a>
+              <!-- DOMICILIO Chía: barrio libre -->
+              <div v-if="tipoEntrega === 'DOMICILIO'" class="md:col-span-2 space-y-3">
+                <div class="bg-[#152C77]/5 dark:bg-white/5 rounded-xl p-3 flex items-start gap-2 border border-[#152C77]/10 dark:border-white/5">
+                  <span class="text-sm shrink-0">🏍️</span>
+                  <p class="text-[9px] font-bold text-slate-500 dark:text-white/40 uppercase leading-relaxed">
+                    Domicilio disponible únicamente en <strong class="text-[#152C77] dark:text-white">Chía</strong>.
+                    Si estás en otra ciudad usa <strong class="text-[#152C77] dark:text-white">Envío nacional</strong>.
                   </p>
                 </div>
+                <div class="space-y-1">
+                  <label class="text-[8px] font-black uppercase text-slate-400 tracking-widest ml-1">¿En qué barrio o sector de Chía?</label>
+                  <input v-model="barrioLibre" type="text" placeholder="Ej: La Balsa, Fonquetá, Centro..."
+                    @input="form.zona = 'Chía' + (barrioLibre ? ' · ' + barrioLibre : '')"
+                    class="w-full bg-white dark:bg-black border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-sm font-bold dark:text-white focus:border-[#152C77] outline-none transition-all" />
+                </div>
+                <p v-if="errores.zona" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.zona }}</p>
+              </div>
 
+              <!-- ENVÍO NACIONAL: ciudad + departamento -->
+              <div v-if="tipoEntrega === 'ENVIO'" class="md:col-span-2 space-y-3">
+                <div class="bg-amber-50 dark:bg-amber-500/10 rounded-xl p-3 flex items-start gap-2 border border-amber-200 dark:border-amber-400/20">
+                  <span class="text-sm shrink-0">💵</span>
+                  <p class="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase leading-relaxed">
+                    El costo del flete lo cobra la transportadora directamente a la entrega.
+                    Los tiempos dependen del destino.
+                  </p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="space-y-1">
+                    <label class="text-[8px] font-black uppercase text-slate-400 tracking-widest ml-1">Ciudad *</label>
+                    <input v-model="ciudadEnvio" type="text" placeholder="Ej: Medellín, Cali, Barranquilla..."
+                      @input="form.zona = ciudadEnvio + (deptoEnvio ? ', ' + deptoEnvio : '')"
+                      :class="['w-full bg-white dark:bg-black border rounded-2xl p-4 text-sm font-bold dark:text-white outline-none transition-all', errores.zona ? 'border-[#DE1F27]' : 'border-slate-200 dark:border-white/10 focus:border-[#152C77]']" />
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-[8px] font-black uppercase text-slate-400 tracking-widest ml-1">Departamento *</label>
+                    <input v-model="deptoEnvio" type="text" placeholder="Ej: Antioquia, Valle, Atlántico..."
+                      @input="form.zona = ciudadEnvio + (deptoEnvio ? ', ' + deptoEnvio : '')"
+                      :class="['w-full bg-white dark:bg-black border rounded-2xl p-4 text-sm font-bold dark:text-white outline-none transition-all', errores.zona ? 'border-[#DE1F27]' : 'border-slate-200 dark:border-white/10 focus:border-[#152C77]']" />
+                  </div>
+                </div>
                 <p v-if="errores.zona" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.zona }}</p>
               </div>
 
@@ -353,12 +343,13 @@
                 <span>${{ cartStore.totalPrice.toLocaleString() }}</span>
               </div>
               <div class="flex justify-between text-sm font-bold opacity-60">
-                <span>{{ tipoEntrega === 'PICKUP' ? 'Recogida' : 'Envío' }}</span>
+                <span>{{ tipoEntrega === 'PICKUP' ? 'Recogida' : tipoEntrega === 'ENVIO' ? 'Envío' : 'Domicilio' }}</span>
                 <span v-if="tipoEntrega === 'PICKUP'" class="text-green-400 uppercase">Sin costo</span>
+                <span v-else-if="tipoEntrega === 'ENVIO'" class="text-amber-400 uppercase text-[10px]">Contraentrega transportadora</span>
                 <span v-else-if="costoEnvio === 0" class="text-green-400 uppercase">Gratis</span>
                 <span v-else>${{ costoEnvio.toLocaleString() }}</span>
               </div>
-              <div v-if="tipoEntrega === 'DOMICILIO' && costoEnvio > 0 && !ciudadSeleccionada" class="text-[9px] font-bold text-white/40 -mt-2">
+              <div v-if="tipoEntrega === 'DOMICILIO' && costoEnvio > 0" class="text-[9px] font-bold text-white/40 -mt-2">
                 Gratis desde ${{ configStore.envioGratisDesde.toLocaleString() }}
               </div>
               <div class="flex justify-between items-end pt-4">
@@ -417,97 +408,19 @@ const MINIMO_DOMICILIO = computed(() => configStore.pedidoMinimo);
 
 const costoEnvio = computed(() => {
   if (tipoEntrega.value === 'PICKUP') return 0;
+  if (tipoEntrega.value === 'ENVIO') return 0; // lo cobra la transportadora
+  // DOMICILIO Chía
   if (cartStore.totalPrice >= configStore.envioGratisDesde) return 0;
-  return ciudadSeleccionada.value === 'Chía' ? configStore.costoEnvioChia : configStore.costoEnvioFuera;
+  return configStore.costoEnvioChia;
 });
 const totalConEnvio = computed(() => cartStore.totalPrice + costoEnvio.value);
 
-// Coordenadas exactas de Pet Station (verificadas en Google Maps)
-// https://maps.app.goo.gl/32mULMP2jZE6hgdx9
-const PET_STATION_LAT = 4.8419462;
-const PET_STATION_LNG = -74.0674483;
-// Radio de cobertura: ~25km cubre desde Pet Station hasta Chapinero (Cll 53) en Bogotá
-const RADIO_KM = 25;
-
-// Solo 3 ciudades — el barrio lo escribe libremente el usuario
-const CIUDADES = [
-  { nombre: 'Chía',        emoji: '🌳' },
-  { nombre: 'Cajicá',      emoji: '🏡' },
-  { nombre: 'Bogotá Norte', emoji: '🏙️' },
-];
-
-const ciudadSeleccionada = ref('');
+// Barrio para domicilio Chía
 const barrioLibre = ref('');
 
-// Geolocalización
-const geoEstado   = ref('');      // '' | 'cargando'
-const geoResultado = ref(null);   // { enCobertura, mensaje, distanciaKm }
-const geoError    = ref('');
-
-// Fórmula Haversine — distancia entre dos puntos GPS en km
-const haversine = (lat1, lng1, lat2, lng2) => {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 +
-            Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-};
-
-const detectarUbicacion = () => {
-  geoError.value = '';
-  geoResultado.value = null;
-
-  if (!navigator.geolocation) {
-    geoError.value = 'Tu browser no soporta geolocalización. Selecciona tu zona manualmente.';
-    return;
-  }
-
-  geoEstado.value = 'cargando';
-
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const dist = haversine(
-        pos.coords.latitude, pos.coords.longitude,
-        PET_STATION_LAT, PET_STATION_LNG
-      );
-      const km = Math.round(dist * 10) / 10;
-      const enCobertura = dist <= RADIO_KM;
-
-      geoResultado.value = {
-        enCobertura,
-        distanciaKm: km,
-        mensaje: enCobertura
-          ? `¡Perfecto! Tu ubicación está dentro de nuestra cobertura 🎉`
-          : `Tu ubicación está a ${km} km — fuera de nuestra cobertura actual`
-      };
-
-      // Auto-seleccionar ciudad aproximada según distancia
-      if (enCobertura) {
-        if (dist < 12) {
-          ciudadSeleccionada.value = 'Chía';
-        } else if (dist < 18) {
-          ciudadSeleccionada.value = 'Cajicá';
-        } else {
-          ciudadSeleccionada.value = 'Bogotá Norte';
-        }
-        form.zona = ciudadSeleccionada.value;
-      }
-
-      geoEstado.value = '';
-    },
-    (err) => {
-      geoEstado.value = '';
-      if (err.code === 1)
-        geoError.value = 'Permiso de ubicación denegado. Selecciona tu zona manualmente.';
-      else if (err.code === 2)
-        geoError.value = 'No se pudo obtener la ubicación. Verifica tu GPS y vuelve a intentar.';
-      else
-        geoError.value = 'Error al detectar ubicación. Selecciona tu zona manualmente.';
-    },
-    { timeout: 10000, maximumAge: 60000 }
-  );
-};
+// Ciudad y departamento para envío nacional
+const ciudadEnvio = ref('');
+const deptoEnvio  = ref('');
 
 // Festivos Colombia 2025-2026 (Ley Emiliani) — respaldo si el back no responde
 const FESTIVOS_LOCAL = new Set([
@@ -747,11 +660,22 @@ const validar = () => {
       ok = false;
     }
     if (!form.zona) {
-      errores.zona = 'Selecciona tu zona de entrega';
+      errores.zona = 'Ingresa tu barrio o sector en Chía';
       ok = false;
     }
     if (!form.franja) {
       errores.franja = 'Selecciona la franja de entrega';
+      ok = false;
+    }
+  }
+
+  if (tipoEntrega.value === 'ENVIO') {
+    if (!form.direccion.trim()) {
+      errores.direccion = 'La dirección de entrega es obligatoria';
+      ok = false;
+    }
+    if (!ciudadEnvio.value.trim() || !deptoEnvio.value.trim()) {
+      errores.zona = 'Ingresa la ciudad y el departamento de destino';
       ok = false;
     }
   }
@@ -790,7 +714,7 @@ const procesarCompra = async () => {
       direccion: tipoEntrega.value === 'PICKUP' ? 'RECOGE EN TIENDA' : form.direccion.trim(),
       email: form.email.trim() || null,
       zona: tipoEntrega.value === 'PICKUP' ? 'PICKUP' : (form.zona.trim() || null),
-      franjaEntrega: tipoEntrega.value === 'PICKUP' ? null : (form.franja ? form.franja.split('|')[1] : null),
+      franjaEntrega: tipoEntrega.value === 'DOMICILIO' ? (form.franja ? form.franja.split('|')[1] : null) : null,
       tipoEntrega: tipoEntrega.value,
       fbp: getCookie('_fbp'),
       fbc: getCookie('_fbc'),

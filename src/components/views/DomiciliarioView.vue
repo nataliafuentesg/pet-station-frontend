@@ -209,7 +209,7 @@ const aplicarBusqueda = (lista) => {
 // Por entregar: PAGADO + EN_CAMINO (solo domicilios), ordenados por ruta
 const paraEntregar = computed(() => {
   const lista = pedidos.value
-    .filter(p => ['PAGADO', 'EN_CAMINO'].includes(p.estado) && p.tipoEntrega !== 'PICKUP')
+    .filter(p => ['PAGADO', 'EN_CAMINO'].includes(p.estado) && p.tipoEntrega === 'DOMICILIO')
     .sort((a, b) => {
       const pz = prioridadZona(a.zona) - prioridadZona(b.zona);
       if (pz !== 0) return pz;
@@ -227,8 +227,8 @@ const entregadosHoy = computed(() => {
   return aplicarBusqueda(lista);
 });
 
-const countPagado = computed(() => pedidos.value.filter(p => p.estado === 'PAGADO' && p.tipoEntrega !== 'PICKUP').length);
-const countCamino = computed(() => pedidos.value.filter(p => p.estado === 'EN_CAMINO' && p.tipoEntrega !== 'PICKUP').length);
+const countPagado = computed(() => pedidos.value.filter(p => p.estado === 'PAGADO' && p.tipoEntrega === 'DOMICILIO').length);
+const countCamino = computed(() => pedidos.value.filter(p => p.estado === 'EN_CAMINO' && p.tipoEntrega === 'DOMICILIO').length);
 
 const pinHeaders = () => ({ headers: { 'Authorization': `Pin ${pin.value}` } });
 
