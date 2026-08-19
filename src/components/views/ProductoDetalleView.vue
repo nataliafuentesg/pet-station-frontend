@@ -254,7 +254,7 @@ const whatsappUrl = computed(() => {
 const whatsappAgotadoUrl = computed(() => {
   if (!product.value) return '#';
   const url = `https://petstationvet.com${route.fullPath}`;
-  const msg = `Hola Pet Station! Me interesa: *${product.value.nombre}*\n🔗 ${url}`;
+  const msg = `Hola Pet Station! Me interesa ${product.value.nombre} ${url}`;
   return `https://wa.me/573053462413?text=${encodeURIComponent(msg)}`;
 });
 
