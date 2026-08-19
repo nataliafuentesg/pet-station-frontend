@@ -10,6 +10,7 @@ import AdminInventory from './AdminInventory.vue';
 import AdminFormulas from './AdminFormulas.vue';
 import AdminClientes from './AdminClientes.vue';
 import AdminRecordatorios from './AdminRecordatorios.vue';
+import AdminLeads from './AdminLeads.vue';
 import { suscribirNotificaciones } from '@/composables/usePushNotifications';
 
 const notifActivas = ref(Notification.permission === 'granted');
@@ -33,7 +34,8 @@ const data = reactive({
     citas: [],
     productos: [],
     usuarios: [],
-    formulas: []
+    formulas: [],
+    leads: null
 });
 
 // Definimos los tabs con íconos para que se vean bien en el celular
@@ -46,7 +48,8 @@ const tabs = [
     { id: 'usuarios', label: 'Usuarios', icon: '👥' },
     { id: 'clientes', label: 'Base Clientes', icon: '🗂️' },
     { id: 'inventario', label: 'Inventario', icon: '📦' },
-    { id: 'recordatorios', label: 'Recordatorios', icon: '🔔' }
+    { id: 'recordatorios', label: 'Recordatorios', icon: '🔔' },
+    { id: 'leads', label: 'Leads', icon: '📡' }
 ];
 
 const tabTitle = computed(() => {
@@ -81,6 +84,9 @@ const fetchData = async () => {
         } else if (currentTab.value === 'formulas') {
             const { data: f } = await api.get('/formulas/pendientes');
             data.formulas = f || [];
+        } else if (currentTab.value === 'leads') {
+            const { data: l } = await api.get('/leads');
+            data.leads = l;
         }
     } catch (e) {
         console.error("Error en Dashboard:", e);
@@ -187,6 +193,7 @@ const doLogout = () => {
                         <AdminFormulas v-if="currentTab === 'formulas'" :formulas="data.formulas" @refresh="fetchData" />
                         <AdminClientes v-if="currentTab === 'clientes'" />
                         <AdminRecordatorios v-if="currentTab === 'recordatorios'" />
+                        <AdminLeads v-if="currentTab === 'leads'" :data="data.leads" />
                     </div>
                 </Transition>
             </template>

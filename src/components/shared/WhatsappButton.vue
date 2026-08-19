@@ -35,13 +35,13 @@
               <button @click="handleOption('agendar')" class="w-full text-left px-4 py-2.5 border rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all duration-300 transform active:scale-95 border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-[#152C77] hover:text-white">
                 📅 Agendar Cita
               </button>
-              <button @click="chatStep = 'info'" class="w-full text-left px-4 py-2.5 border rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all duration-300 transform active:scale-95 border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-[#152C77] hover:text-white">
+              <button @click="chatStep = 'info'; track('CHATBOT_OPCION', { opcion: 'horarios' })" class="w-full text-left px-4 py-2.5 border rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all duration-300 transform active:scale-95 border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-[#152C77] hover:text-white">
                 📍 Horarios y Ubicación
               </button>
-              <button @click="chatStep = 'viajes'" class="w-full text-left px-4 py-2.5 border rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all duration-300 transform active:scale-95 border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-[#152C77] hover:text-white">
+              <button @click="chatStep = 'viajes'; track('CHATBOT_OPCION', { opcion: 'viajes' })" class="w-full text-left px-4 py-2.5 border rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all duration-300 transform active:scale-95 border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-[#152C77] hover:text-white">
                 ✈️ Viajes Internacionales
               </button>
-              <button @click="chatStep = 'tienda'" class="w-full text-left px-4 py-2.5 border rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all duration-300 transform active:scale-95 border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-[#152C77] hover:text-white">
+              <button @click="chatStep = 'tienda'; track('CHATBOT_OPCION', { opcion: 'tienda' })" class="w-full text-left px-4 py-2.5 border rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all duration-300 transform active:scale-95 border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-[#152C77] hover:text-white">
                 🛍️ Consultar Producto
               </button>
               <button @click="handleOption('urgencia')" class="w-full text-left px-4 py-2.5 border rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all duration-300 transform active:scale-95 border-[#DE1F27] text-[#DE1F27] bg-[#DE1F27]/5 hover:bg-[#DE1F27] hover:text-white animate-pulse mt-2">
@@ -185,8 +185,10 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useLead } from '@/composables/useLead';
 
 const router = useRouter();
+const { track } = useLead();
 const isOpen = ref(false);
 const hasOpened = ref(false);
 const chatStep = ref('menu'); 
@@ -224,16 +226,18 @@ const toggleChat = () => {
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     hasOpened.value = true;
-    chatStep.value = 'menu'; 
-    productoBuscado.value = ''; 
-    formViaje.value = { destino: '', especie: '', edad: '', fecha: '' }; // Limpiamos form al abrir
+    chatStep.value = 'menu';
+    productoBuscado.value = '';
+    formViaje.value = { destino: '', especie: '', edad: '', fecha: '' };
     trackChatbot('abrir_chat');
+    track('CHATBOT_ABIERTO', { pagina: window.location.pathname });
   }
 };
 
 // Navegación Básica
 const handleOption = (opcion) => {
   trackChatbot(`click_${opcion}`);
+  track('CHATBOT_OPCION', { opcion, pagina: window.location.pathname });
 
   let textoWA = "";
 
@@ -258,6 +262,12 @@ const sendViajeWA = () => {
   if (!isViajeFormValid.value) return;
 
   trackChatbot(`viaje_${formViaje.value.destino}`);
+  track('CHATBOT_VIAJE', {
+    destino: formViaje.value.destino,
+    especie: formViaje.value.especie,
+    edad: formViaje.value.edad,
+    fecha: formViaje.value.fecha
+  });
   
   // Construimos un mensaje hermoso y fácil de leer para tu equipo
   const textoWA = `Hola Pet Station! ✈️ Necesito asesoría y cotización para viajar con mi mascota. Aquí están los datos del pasajero:
@@ -279,8 +289,9 @@ Quedo atento(a) a los requisitos. ¡Gracias!`;
 // Enviar Flujo de Tienda
 const sendProductoWA = () => {
   if (!productoBuscado.value.trim()) return;
-  
+
   trackChatbot(`busqueda_tienda_wa`);
+  track('CHATBOT_TIENDA', { producto: productoBuscado.value.trim() });
   const textoWA = `Hola Pet Station! 🛍️ Quiero confirmar si tienen disponibilidad o precio de: *${productoBuscado.value}*`;
   
   isOpen.value = false;
