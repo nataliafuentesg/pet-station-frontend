@@ -12,7 +12,10 @@ export async function onRequest({ params, request, next }) {
   let pageUrl = `https://petstationvet.com/tienda/producto/${id}`;
 
   try {
-    const apiRes = await fetch(`https://api.petstationvet.com/api/tienda/productos/${id}`);
+    // El slug tiene formato "nombre-del-producto-UUID" — extraemos solo el UUID (último segmento de 36 chars)
+    const uuidMatch = id.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    const productId = uuidMatch ? uuidMatch[0] : id;
+    const apiRes = await fetch(`https://api.petstationvet.com/api/tienda/productos/${productId}`);
     if (apiRes.ok) {
       const p = await apiRes.json();
       const nombre = p.nombre || 'Producto';
