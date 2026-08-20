@@ -12,7 +12,7 @@ export async function onRequest({ params, request, next }) {
   let pageUrl = `https://petstationvet.com/tienda/producto/${id}`;
 
   try {
-    const apiRes = await fetch(`https://api.petstationvet.com/api/tienda/producto/${id}`);
+    const apiRes = await fetch(`https://api.petstationvet.com/api/tienda/productos/${id}`);
     if (apiRes.ok) {
       const p = await apiRes.json();
       const nombre = p.nombre || 'Producto';
@@ -21,7 +21,7 @@ export async function onRequest({ params, request, next }) {
       desc   = p.descripcion
         ? p.descripcion.replace(/<[^>]+>/g, '').slice(0, 160)
         : `${nombre} disponible en Pet Station, tu tienda veterinaria en Chía.`;
-      imagen = (p.imagenes && p.imagenes[0]) || imagen;
+      imagen = (p.fotosUrls && p.fotosUrls[0]) || imagen;
     }
   } catch (_) {}
 
