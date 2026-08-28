@@ -193,27 +193,62 @@
               <div class="w-8 h-8 bg-[#152C77] rounded-full flex items-center justify-center text-white text-sm shrink-0 shadow-md">🤖</div>
               <div class="bg-white dark:bg-[#152C77] border border-slate-200 dark:border-white/5 p-4 rounded-2xl rounded-bl-none shadow-sm relative">
                 <p class="text-[11px] font-bold text-slate-600 dark:text-white leading-relaxed">
-                  ¡Perfecto! 🛍️ <br>Escríbeme el nombre del producto, medicamento o marca que buscas y te confirmo disponibilidad:
+                  ¡Perfecto! 🛍️ <br>Escríbeme el nombre del producto o marca que buscas:
                 </p>
                 <div class="absolute -bottom-1 -left-1 w-3 h-3 bg-white dark:bg-[#152C77] transform rotate-45 border-b border-l border-slate-200 dark:border-transparent"></div>
               </div>
             </div>
 
             <div class="flex flex-col gap-3 pl-10">
-              <input
-                v-model="productoBuscado"
-                type="text"
-                placeholder="Ej: Bravecto, Royal Canin..."
-                class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#DE1F27] transition-colors text-slate-600 dark:text-white"
-                @keyup.enter="sendProductoWA"
-              >
-              <button
-                @click="sendProductoWA"
-                :disabled="!productoBuscado.trim()"
-                class="w-full text-center px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-[#25D366] text-white shadow-lg flex justify-center items-center gap-2"
-              >
-                <span>💬</span> Enviar por WhatsApp
-              </button>
+              <div class="flex gap-2">
+                <input
+                  v-model="productoBuscado"
+                  type="text"
+                  placeholder="Ej: Bravecto, Royal Canin..."
+                  class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#DE1F27] transition-colors text-slate-600 dark:text-white"
+                  @keyup.enter="buscarProducto"
+                >
+                <button @click="buscarProducto" :disabled="!productoBuscado.trim() || buscandoProducto"
+                  class="px-4 py-3 bg-[#152C77] text-white rounded-xl text-sm font-black disabled:opacity-40 hover:bg-[#DE1F27] transition-colors">
+                  {{ buscandoProducto ? '…' : '→' }}
+                </button>
+              </div>
+
+              <!-- Resultados -->
+              <Transition name="fade">
+                <div v-if="busquedaHecha">
+                  <!-- Encontró productos -->
+                  <div v-if="resultadosProducto.length" class="flex flex-col gap-2">
+                    <p class="text-[9px] font-black uppercase text-slate-400 tracking-widest">{{ resultadosProducto.length === 5 ? 'Top resultados' : 'Resultados' }}</p>
+                    <router-link
+                      v-for="p in resultadosProducto" :key="p.id"
+                      :to="{ name: 'ProductoDetalle', params: { id: crearSlug(p.id, p.nombre) } }"
+                      @click="isOpen = false"
+                      class="flex items-center gap-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-3 hover:border-[#152C77] dark:hover:border-white/30 transition-all group"
+                    >
+                      <img v-if="p.fotosUrls?.[0]" :src="p.fotosUrls[0]" class="w-10 h-10 object-contain rounded-lg shrink-0 bg-slate-50">
+                      <div class="flex-1 min-w-0">
+                        <p class="text-[10px] font-black text-slate-700 dark:text-white leading-tight truncate group-hover:text-[#152C77] dark:group-hover:text-white">{{ p.nombre }}</p>
+                        <p class="text-[9px] font-bold text-[#DE1F27] mt-0.5">${{ p.precio.toLocaleString('es-CO') }}</p>
+                      </div>
+                      <span class="text-slate-300 dark:text-white/30 text-sm group-hover:text-[#152C77] dark:group-hover:text-white transition-colors">→</span>
+                    </router-link>
+                  </div>
+
+                  <!-- No encontró -->
+                  <div v-else class="space-y-3">
+                    <div class="bg-slate-100 dark:bg-white/5 rounded-xl p-4 text-center">
+                      <p class="text-[11px] font-bold text-slate-600 dark:text-white">No encontramos "{{ productoBuscado }}" en la tienda 🤔</p>
+                      <p class="text-[9px] font-bold text-slate-400 mt-1">Pero puede que lo tengamos — pregúntanos por WhatsApp.</p>
+                    </div>
+                    <button @click="sendProductoWA"
+                      class="w-full text-center px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all active:scale-95 bg-[#25D366] text-white shadow-lg flex justify-center items-center gap-2">
+                      <span>💬</span> Preguntar por WhatsApp
+                    </button>
+                  </div>
+                </div>
+              </Transition>
+
               <button @click="chatStep = 'menu'" class="w-full text-center px-4 py-2 text-[10px] font-black uppercase tracking-widest italic transition-all duration-300 text-slate-400 hover:text-slate-600 dark:hover:text-white mt-1">
                 ← Volver al menú
               </button>
@@ -254,6 +289,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useLead } from '@/composables/useLead';
+import api from '@/api/axios';
 
 const router = useRouter();
 const { track } = useLead();
@@ -264,6 +300,37 @@ const chatStep = ref('menu');
 const productoBuscado = ref('');
 const faqQuery = ref('');
 const faqRespuesta = ref(null);
+
+// Búsqueda de productos
+const resultadosProducto = ref([]);
+const buscandoProducto = ref(false);
+const busquedaHecha = ref(false);
+
+const crearSlug = (id, nombre) => {
+  const cleanName = (nombre || '').toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+  return `${cleanName}-${id}`;
+};
+
+const buscarProducto = async () => {
+  const q = productoBuscado.value.trim();
+  if (!q) return;
+  buscandoProducto.value = true;
+  busquedaHecha.value = false;
+  resultadosProducto.value = [];
+  track('CHATBOT_TIENDA', { producto: q });
+  try {
+    const { data } = await api.get('/tienda/productos');
+    const terminos = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(' ').filter(Boolean);
+    resultadosProducto.value = data
+      .filter(p => {
+        const hay = (p.nombre || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        return terminos.every(t => hay.includes(t));
+      })
+      .slice(0, 5);
+  } catch (_) {}
+  buscandoProducto.value = false;
+  busquedaHecha.value = true;
+};
 
 const formViaje = ref({ destino: '', especie: '', edad: '', fecha: '' });
 
@@ -386,6 +453,8 @@ const toggleChat = () => {
     productoBuscado.value = '';
     faqQuery.value = '';
     faqRespuesta.value = null;
+    resultadosProducto.value = [];
+    busquedaHecha.value = false;
     formViaje.value = { destino: '', especie: '', edad: '', fecha: '' };
     trackChatbot('abrir_chat');
     track('CHATBOT_ABIERTO', { pagina: window.location.pathname });
