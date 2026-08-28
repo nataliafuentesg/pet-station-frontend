@@ -285,8 +285,8 @@ const FAQ = [
   },
   {
     palabras: ['baño', 'peluquería', 'peluqueria', 'bañar', 'corte', 'grooming', 'baño y corte'],
-    texto: '✂️ ¡Tenemos servicio de peluquería y spa para mascotas!\n\nIncluye baño, corte, limpieza de oídos y más. Para agendar tu cita de peluquería escríbenos directamente.',
-    wa: `https://wa.me/573053462413?text=${encodeURIComponent('Hola! Quiero agendar un baño/peluquería para mi mascota.')}`,
+    texto: '✂️ ¡Tenemos servicio de peluquería y spa para mascotas!\n\nEl precio varía según la raza, el tamaño, el largo del manto y el estado del pelaje — por eso lo cotizamos directamente. Escríbenos y con gusto te damos el valor exacto.',
+    wa: `https://wa.me/573053462413?text=${encodeURIComponent('Hola! Quiero información y precio de peluquería para mi mascota.')}`,
   },
   {
     palabras: ['cirugía', 'cirugia', 'operación', 'operacion', 'castrar', 'castración', 'esterilizar'],
@@ -295,8 +295,8 @@ const FAQ = [
   },
   {
     palabras: ['precio', 'precios', 'costo', 'costos', 'cuánto', 'cuanto', 'valor', 'tarifa', 'consulta médica'],
-    texto: '💰 Los precios varían según el servicio y el tamaño de tu mascota.\n\nPara darte un presupuesto exacto, escríbenos por WhatsApp y con gusto te asesoramos.',
-    wa: `https://wa.me/573053462413?text=${encodeURIComponent('Hola! Quisiera saber los precios de los servicios veterinarios.')}`,
+    texto: '💰 Los precios de nuestros servicios varían según el tipo de procedimiento y las condiciones de cada mascota, por eso no los publicamos de forma fija.\n\nEscríbenos por WhatsApp y te asesoramos según lo que necesites.',
+    wa: `https://wa.me/573053462413?text=${encodeURIComponent('Hola! Quisiera información sobre los servicios de Pet Station.')}`,
   },
   {
     palabras: ['domicilio', 'a domicilio', 'van', 'visita', 'casa', 'visita domiciliaria'],
