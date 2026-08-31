@@ -14,7 +14,7 @@ import AdminLeads from './AdminLeads.vue';
 import AdminMarketing from './AdminMarketing.vue';
 import { suscribirNotificaciones } from '@/composables/usePushNotifications';
 
-const notifActivas = ref(Notification.permission === 'granted');
+const notifActivas = ref(typeof Notification !== 'undefined' && Notification.permission === 'granted');
 const activandoNotif = ref(false);
 
 const activarNotificaciones = async () => {
