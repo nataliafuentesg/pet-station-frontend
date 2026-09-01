@@ -66,14 +66,22 @@
               class="w-full flex items-center justify-center gap-3 px-6 py-5 bg-[#DE1F27] text-white rounded-2xl font-[1000] uppercase italic text-[10px] shadow-xl hover:bg-[#152C77] transition-all">← REGRESAR</button>
 
             <div class="space-y-10">
-              <div v-for="(label, key) in filterGroups" :key="key" class="space-y-4">
-                <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#DE1F27] italic">{{ label }}</h4>
-                <div class="flex flex-col gap-2.5">
-                  <button v-for="opt in getOptions(key)" :key="opt" @click="setFilter(key, opt)"
-                    :class="isFilterActive(key, opt) ? 'bg-[#152C77] text-white shadow-xl translate-x-2' : 'bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-[#152C77]'"
-                    class="w-full text-left px-5 py-3.5 rounded-xl text-[10px] font-[1000] uppercase italic transition-all">{{ opt }}</button>
+              <!-- Limpiar filtros desktop -->
+              <button v-if="activeFiltersCount > 0" @click="clearFilters"
+                class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[9px] font-black uppercase italic text-[#DE1F27] border border-[#DE1F27]/30 hover:bg-[#DE1F27]/5 transition-all">
+                ✕ Limpiar {{ activeFiltersCount }} filtro{{ activeFiltersCount !== 1 ? 's' : '' }}
+              </button>
+
+              <template v-if="catRequiereBiologia">
+                <div v-for="(label, key) in filterGroups" :key="key" class="space-y-4">
+                  <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#DE1F27] italic">{{ label }}</h4>
+                  <div class="flex flex-col gap-2.5">
+                    <button v-for="opt in getOptions(key)" :key="opt" @click="setFilter(key, opt)"
+                      :class="isFilterActive(key, opt) ? 'bg-[#152C77] text-white shadow-xl translate-x-2' : 'bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-[#152C77]'"
+                      class="w-full text-left px-5 py-3.5 rounded-xl text-[10px] font-[1000] uppercase italic transition-all">{{ opt }}</button>
+                  </div>
                 </div>
-              </div>
+              </template>
 
               <div v-if="uniqueSubcategories.length > 0" class="space-y-4 pt-6 border-t border-slate-100 dark:border-white/5">
                 <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#DE1F27] italic">Sección Específica</h4>
@@ -223,18 +231,20 @@
           <!-- Scroll content -->
           <div class="flex-1 overflow-y-auto px-6 py-5 space-y-7 no-scrollbar">
 
-            <div v-for="(label, key) in filterGroups" :key="key" class="space-y-3">
-              <p class="text-[10px] font-black uppercase text-[#DE1F27] tracking-widest italic">{{ label }}</p>
-              <div class="flex flex-wrap gap-2">
-                <button v-for="opt in getOptions(key)" :key="opt" @click="setFilter(key, opt)"
-                  :class="isFilterActive(key, opt)
-                    ? 'bg-[#152C77] text-white shadow-md'
-                    : 'bg-slate-100 dark:bg-white/8 text-slate-500 dark:text-white/60'"
-                  class="px-5 py-3 rounded-2xl text-[10px] font-black uppercase italic transition-all active:scale-95 min-w-[72px] text-center">
-                  {{ opt }}
-                </button>
+            <template v-if="catRequiereBiologia">
+              <div v-for="(label, key) in filterGroups" :key="key" class="space-y-3">
+                <p class="text-[10px] font-black uppercase text-[#DE1F27] tracking-widest italic">{{ label }}</p>
+                <div class="flex flex-wrap gap-2">
+                  <button v-for="opt in getOptions(key)" :key="opt" @click="setFilter(key, opt)"
+                    :class="isFilterActive(key, opt)
+                      ? 'bg-[#152C77] text-white shadow-md'
+                      : 'bg-slate-100 dark:bg-white/8 text-slate-500 dark:text-white/60'"
+                    class="px-5 py-3 rounded-2xl text-[10px] font-black uppercase italic transition-all active:scale-95 min-w-[72px] text-center">
+                    {{ opt }}
+                  </button>
+                </div>
               </div>
-            </div>
+            </template>
 
             <div v-if="uniqueSubcategories.length > 0" class="space-y-3">
               <p class="text-[10px] font-black uppercase text-[#DE1F27] tracking-widest italic">Sección</p>
@@ -512,6 +522,11 @@ const pasillosCards = computed(() => {
   return cards;
 });
 
+const catRequiereBiologia = computed(() => {
+  const c = normalizeCat(activeCategory.value);
+  return c === 'TODOS' || c.includes('NUTRI') || c.includes('ALIMEN') || c.includes('FARMACIA');
+});
+
 const filterGroups = { species: 'Especie', etapa: 'Etapa Vida', peso: 'Tamaño / Peso' };
 const getOptions = (key) => {
   if (key === 'species') return ['TODOS', 'CANINO', 'FELINO'];
@@ -576,7 +591,7 @@ const filteredProducts = computed(() => {
     const mEspS = activeSpecies.value === 'TODOS' || p.especie === activeSpecies.value || p.especie === 'TODOS';
     const mEtaS = activeEtapa.value === 'TODOS' || p.etapaVida === activeEtapa.value || p.etapaVida === 'TODOS';
     const mPesS = activePeso.value === 'TODOS' || p.rangoPeso === activePeso.value || p.rangoPeso === 'TODOS';
-    const mMarS = activeMarca.value === 'TODOS' || p.marca === activeMarca.value;
+    const mMarS = activeMarca.value === 'TODOS' || normalizeCat(p.marca) === normalizeCat(activeMarca.value);
     const mSubS = activeSubcategory.value === 'TODOS' || p.subcategoria === activeSubcategory.value;
 
     let matchesMascota = true;
