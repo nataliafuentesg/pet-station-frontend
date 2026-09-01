@@ -117,14 +117,16 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="h in historialSync" :key="h.id"
+            <tr v-for="h in historialPaginado" :key="h.id"
               class="text-[9px] font-bold border-b border-white/5 hover:bg-white/5 cursor-pointer"
               @click="verDetalle(h)">
               <td class="py-2 pr-4 font-mono opacity-60">{{ formatFecha(h.fechaSync) }}</td>
               <td class="py-2 pr-4">
                 <span :class="h.actualizados > 0 ? 'text-green-400' : 'opacity-40'">{{ h.actualizados }}</span>
               </td>
-              <td class="py-2 pr-4 opacity-40">{{ h.sinMatch }}</td>
+              <td class="py-2 pr-4">
+                <span :class="h.sinMatch > 0 ? 'text-amber-400' : 'opacity-40'">{{ h.sinMatch }}</span>
+              </td>
               <td class="py-2">
                 <span :class="h.disparadoPor === 'manual' ? 'text-amber-400' : 'opacity-40'" class="uppercase">
                   {{ h.disparadoPor }}
@@ -133,22 +135,46 @@
             </tr>
           </tbody>
         </table>
+        <div class="flex justify-between items-center pt-3">
+          <p class="text-[8px] font-black uppercase opacity-30">{{ historialSync.length }} registros en total</p>
+          <div class="flex gap-2">
+            <button @click="syncPage--" :disabled="syncPage === 1" class="page-btn">ANT.</button>
+            <span class="text-[9px] font-black px-3 py-1 bg-white dark:bg-black rounded-xl border border-white/10 dark:text-white">{{ syncPage }} / {{ syncTotalPages || 1 }}</span>
+            <button @click="syncPage++" :disabled="syncPage >= syncTotalPages" class="page-btn">SIG.</button>
+          </div>
+        </div>
       </div>
 
       <!-- Detalle de sync seleccionada -->
-      <div v-if="detalleSync" class="bg-slate-50 dark:bg-black/50 rounded-2xl p-4 space-y-1 max-h-48 overflow-y-auto">
-        <p class="text-[9px] font-[1000] uppercase opacity-50 mb-2">Cambios del {{ formatFecha(detalleSync.fechaSync) }}</p>
-        <div v-if="!parsedDetalle.length" class="text-[9px] opacity-40 uppercase">Sin cambios en esta sync</div>
-        <div v-for="c in parsedDetalle" :key="c.sku"
-          class="flex flex-wrap gap-3 text-[9px] font-black uppercase border-b border-white/5 pb-1">
-          <span class="font-mono opacity-60">{{ c.sku }}</span>
-          <span>{{ c.nombre }}</span>
-          <span v-if="c.precioAntes !== undefined" class="text-amber-400">
-            ${{ Number(c.precioAntes).toLocaleString('es-CO') }} → ${{ Number(c.precioDespues).toLocaleString('es-CO') }}
-          </span>
-          <span v-if="c.stockAntes !== undefined" class="text-blue-400">
-            stock {{ c.stockAntes }} → {{ c.stockDespues }}
-          </span>
+      <div v-if="detalleSync" class="bg-slate-50 dark:bg-black/50 rounded-2xl p-4 space-y-3">
+        <p class="text-[9px] font-[1000] uppercase opacity-50">Detalle del {{ formatFecha(detalleSync.fechaSync) }}</p>
+
+        <!-- Cambios de precio/stock -->
+        <div v-if="parsedDetalle.length" class="max-h-48 overflow-y-auto space-y-1">
+          <p class="text-[8px] font-[1000] uppercase text-green-400 opacity-70 mb-1">Cambios ({{ parsedDetalle.length }})</p>
+          <div v-for="c in parsedDetalle" :key="c.sku"
+            class="flex flex-wrap gap-3 text-[9px] font-black uppercase border-b border-white/5 pb-1">
+            <span class="font-mono opacity-60">{{ c.sku }}</span>
+            <span>{{ c.nombre }}</span>
+            <span v-if="c.precioAntes !== undefined" class="text-amber-400">
+              ${{ Number(c.precioAntes).toLocaleString('es-CO') }} → ${{ Number(c.precioDespues).toLocaleString('es-CO') }}
+            </span>
+            <span v-if="c.stockAntes !== undefined" class="text-blue-400">
+              stock {{ c.stockAntes }} → {{ c.stockDespues }}
+            </span>
+          </div>
+        </div>
+        <div v-else class="text-[9px] opacity-40 uppercase">Sin cambios en esta sync</div>
+
+        <!-- SKUs sin match -->
+        <div v-if="parsedSinMatchSkus.length" class="max-h-48 overflow-y-auto space-y-1">
+          <p class="text-[8px] font-[1000] uppercase text-amber-400 opacity-70 mb-1">SKUs sin match en Aliaddo ({{ parsedSinMatchSkus.length }})</p>
+          <div class="flex flex-wrap gap-2">
+            <span v-for="sku in parsedSinMatchSkus" :key="sku"
+              class="font-mono text-[9px] px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded text-amber-400">
+              {{ sku }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -258,8 +284,18 @@ const ultimoSync = computed(() => historialSync.value[0] || null);
 const syncCargando = ref(false);
 const syncResultado = ref(null);
 const detalleSync = ref(null);
+const syncPage = ref(1);
+const syncPerPage = 10;
+const syncTotalPages = computed(() => Math.ceil(historialSync.value.length / syncPerPage));
+const historialPaginado = computed(() => {
+  const start = (syncPage.value - 1) * syncPerPage;
+  return historialSync.value.slice(start, start + syncPerPage);
+});
 const parsedDetalle = computed(() => {
   try { return JSON.parse(detalleSync.value?.detalleCambios || '[]'); } catch { return []; }
+});
+const parsedSinMatchSkus = computed(() => {
+  try { return JSON.parse(detalleSync.value?.sinMatchSkus || '[]'); } catch { return []; }
 });
 
 const cargarHistorial = async () => {
@@ -340,6 +376,10 @@ const abrirModal = (prod = null) => {
 
 const guardar = async () => {
     form.value.fotosUrls = fotosTexto.value.split('\n').filter(u => u.trim() !== '');
+    if (form.value.sku && !editMode.value) {
+        const duplicado = (props.productos || []).some(p => p.sku && p.sku.toLowerCase() === form.value.sku.toLowerCase());
+        if (duplicado) { alert(`Ya existe un producto con el SKU "${form.value.sku}". Revisa antes de continuar.`); return; }
+    }
     try {
         if (editMode.value) await api.put(`/admin/productos/${form.value.id}`, form.value);
         else await api.post('/admin/productos', form.value);
