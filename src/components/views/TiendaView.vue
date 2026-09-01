@@ -531,7 +531,7 @@ const filterGroups = { species: 'Especie', etapa: 'Etapa Vida', peso: 'Tamaño /
 const getOptions = (key) => {
   if (key === 'species') return ['TODOS', 'CANINO', 'FELINO'];
   if (key === 'etapa') return ['TODOS', 'CACHORRO', 'ADULTO', 'SENIOR'];
-  if (key === 'peso') return ['TODOS', 'RAZA PEQUEÑA', 'RAZA MEDIANA', 'RAZA GRANDE'];
+  if (key === 'peso') return ['TODOS', 'RAZA MINIATURA', 'RAZA PEQUEÑA', 'RAZA MEDIANA', 'RAZA GRANDE', 'RAZA GIGANTE'];
   return [];
 };
 
@@ -589,7 +589,8 @@ const filteredProducts = computed(() => {
     const matchesCat = cAct === 'TODOS' || cProd.includes(cAct) || (cAct === 'NUTRICION' && cProd.includes('ALIMEN'));
 
     const mEspS = activeSpecies.value === 'TODOS' || p.especie === activeSpecies.value || p.especie === 'TODOS';
-    const mEtaS = activeEtapa.value === 'TODOS' || p.etapaVida === activeEtapa.value || p.etapaVida === 'TODOS';
+    const etapas = (p.etapaVida || 'TODOS').split(',').map(s => s.trim());
+    const mEtaS = activeEtapa.value === 'TODOS' || etapas.includes('TODOS') || etapas.includes(activeEtapa.value);
     const mPesS = activePeso.value === 'TODOS' || p.rangoPeso === activePeso.value || p.rangoPeso === 'TODOS';
     const mMarS = activeMarca.value === 'TODOS' || normalizeCat(p.marca) === normalizeCat(activeMarca.value);
     const mSubS = activeSubcategory.value === 'TODOS' || p.subcategoria === activeSubcategory.value;
@@ -600,9 +601,15 @@ const filteredProducts = computed(() => {
       const sameSpecies = p.especie === 'TODOS' || p.especie === pet.especie;
       let weightSafety = true;
       if (p.rangoPeso && p.rangoPeso !== 'TODOS' && p.rangoPeso !== '') {
-        weightSafety = (pet.pesoActual > 20) ? (p.rangoPeso !== 'RAZA PEQUEÑA') : (p.rangoPeso !== 'RAZA GRANDE');
+        const peso = pet.pesoActual;
+        if (peso <= 4) weightSafety = ['RAZA MINIATURA', 'RAZA PEQUEÑA'].includes(p.rangoPeso);
+        else if (peso <= 10) weightSafety = ['RAZA PEQUEÑA', 'RAZA MEDIANA'].includes(p.rangoPeso);
+        else if (peso <= 25) weightSafety = ['RAZA MEDIANA', 'RAZA GRANDE'].includes(p.rangoPeso);
+        else if (peso <= 45) weightSafety = ['RAZA GRANDE', 'RAZA GIGANTE'].includes(p.rangoPeso);
+        else weightSafety = p.rangoPeso === 'RAZA GIGANTE';
       }
-      const stageSafety = p.etapaVida === 'TODOS' || p.etapaVida === autoEtapa.value || !p.etapaVida;
+      const etapasProd = (p.etapaVida || 'TODOS').split(',').map(s => s.trim());
+      const stageSafety = etapasProd.includes('TODOS') || etapasProd.includes(autoEtapa.value) || !p.etapaVida;
       const isNotPrescription = p.requiereReceta !== true;
       let isSafePharmacy = true;
       if (cProd.includes('FARMACIA')) {
@@ -663,7 +670,8 @@ const setPasillo = async (cat) => {
     loadMascota();
     if (mascotaActiva.value) {
       activeSpecies.value = mascotaActiva.value.especie;
-      activePeso.value = mascotaActiva.value.pesoActual > 20 ? 'RAZA GRANDE' : 'RAZA PEQUEÑA';
+      const p = mascotaActiva.value.pesoActual;
+      activePeso.value = p <= 4 ? 'RAZA MINIATURA' : p <= 10 ? 'RAZA PEQUEÑA' : p <= 25 ? 'RAZA MEDIANA' : p <= 45 ? 'RAZA GRANDE' : 'RAZA GIGANTE';
       activeEtapa.value = autoEtapa.value;
     }
   } else {

@@ -186,7 +186,7 @@
                 <span class="text-lg mt-0.5 shrink-0">📦</span>
                 <div>
                   <p class="text-[10px] font-black uppercase tracking-widest text-white">Resto del país</p>
-                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">Envío por transportadora · valor calculado al finalizar el pedido</p>
+                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">Envío por transportadora · el flete se paga contra entrega al recibir</p>
                 </div>
               </div>
 

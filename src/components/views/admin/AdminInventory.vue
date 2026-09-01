@@ -231,21 +231,23 @@
             </select>
           </div>
           <div>
-            <label class="label">Etapa de Vida</label>
-            <select v-model="form.etapaVida" class="admin-input">
-              <option value="TODOS">Todas</option>
-              <option value="CACHORRO">Cachorro</option>
-              <option value="ADULTO">Adulto</option>
-              <option value="SENIOR">Senior</option>
-            </select>
+            <label class="label">Etapa de Vida (puede ser varias)</label>
+            <div class="admin-input flex flex-wrap gap-3">
+              <label v-for="e in ['CACHORRO','ADULTO','SENIOR']" :key="e" class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" :value="e" :checked="etapasSeleccionadas.includes(e)" @change="toggleEtapa(e)" class="accent-ps-blue w-4 h-4" />
+                <span class="text-[10px] font-black uppercase">{{ e.charAt(0) + e.slice(1).toLowerCase() }}</span>
+              </label>
+            </div>
           </div>
           <div>
-            <label class="label">Rango de Peso</label>
+            <label class="label">Tamaño / Raza</label>
             <select v-model="form.rangoPeso" class="admin-input">
-              <option value="TODOS">Cualquiera</option>
-              <option value="RAZA PEQUEÑA">Pequeña</option>
-              <option value="RAZA MEDIANA">Mediana</option>
-              <option value="RAZA GRANDE">Grande</option>
+              <option value="TODOS">Cualquier tamaño</option>
+              <option value="RAZA MINIATURA">Miniatura (hasta ~4 kg)</option>
+              <option value="RAZA PEQUEÑA">Pequeña (4–10 kg)</option>
+              <option value="RAZA MEDIANA">Mediana (10–25 kg)</option>
+              <option value="RAZA GRANDE">Grande (25–45 kg)</option>
+              <option value="RAZA GIGANTE">Gigante (+45 kg)</option>
             </select>
           </div>
 
@@ -359,6 +361,19 @@ const stockClass = (s) => {
     if (s <= 0) return 'bg-red-500/20 text-red-500 border-red-500/30';
     if (s <= 5) return 'bg-amber-500/20 text-amber-500 border-amber-500/30';
     return 'bg-green-500/20 text-green-500 border-green-500/30';
+};
+
+const etapasSeleccionadas = computed(() => {
+    const v = form.value.etapaVida || 'TODOS';
+    if (v === 'TODOS' || !v) return [];
+    return v.split(',').map(s => s.trim()).filter(Boolean);
+});
+
+const toggleEtapa = (etapa) => {
+    let actual = etapasSeleccionadas.value.slice();
+    if (actual.includes(etapa)) actual = actual.filter(e => e !== etapa);
+    else actual.push(etapa);
+    form.value.etapaVida = actual.length ? actual.join(',') : 'TODOS';
 };
 
 const abrirModal = (prod = null) => {
