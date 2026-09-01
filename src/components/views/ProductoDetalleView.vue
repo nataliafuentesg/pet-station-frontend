@@ -169,19 +169,47 @@
               </button>
             </div>
 
-            <!-- Info rápida de envío y devoluciones -->
-            <div class="mt-4 bg-slate-50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/10 space-y-2">
-              <div class="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 dark:text-slate-400">
-                <span>🚚</span>
-                <span>Domicilio en Chía $8.500 · <strong class="text-[#152C77] dark:text-white">Gratis desde $400.000</strong> · Envío nacional por transportadora</span>
+            <!-- Envío y condiciones -->
+            <div class="mt-6 space-y-3">
+
+              <!-- Chía domicilio -->
+              <div class="flex items-start gap-3 bg-white/10 rounded-2xl px-4 py-3">
+                <span class="text-lg mt-0.5 shrink-0">🏠</span>
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-widest text-white">Domicilio en Chía</p>
+                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">$8.500 · <strong class="text-white">Gratis en pedidos desde $400.000</strong></p>
+                </div>
               </div>
-              <div class="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 dark:text-slate-400">
-                <span>🔄</span>
-                <span>Cambios en accesorios y alimentos sellados ·
-                  <router-link to="/politicas" class="text-[#DE1F27] underline underline-offset-2">Ver política completa</router-link>
-                </span>
+
+              <!-- Nacional -->
+              <div class="flex items-start gap-3 bg-white/10 rounded-2xl px-4 py-3">
+                <span class="text-lg mt-0.5 shrink-0">📦</span>
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-widest text-white">Resto del país</p>
+                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">Envío por transportadora · valor calculado al finalizar el pedido</p>
+                </div>
               </div>
+
+              <!-- T&C -->
+              <div class="flex items-start gap-3 bg-white/10 rounded-2xl px-4 py-3">
+                <span class="text-lg mt-0.5 shrink-0">📄</span>
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-widest text-white">Cambios y devoluciones</p>
+                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">Aplica en accesorios y alimentos sellados ·
+                    <router-link to="/politicas" class="text-[#DE1F27] underline underline-offset-2">Ver términos y condiciones</router-link>
+                  </p>
+                </div>
+              </div>
+
             </div>
+          </div>
+
+          <!-- Nota aclaratoria de imagen -->
+          <div class="mt-6 flex items-start gap-3 bg-amber-50 dark:bg-amber-500/8 border border-amber-200 dark:border-amber-400/20 rounded-2xl px-4 py-3">
+            <span class="text-base mt-0.5 shrink-0">📸</span>
+            <p class="text-[10px] text-amber-700 dark:text-amber-400 font-bold leading-relaxed">
+              <strong>Nota sobre las imágenes:</strong> Los fabricantes pueden actualizar el empaque o presentación del producto sin previo aviso. La imagen es referencial — el producto que recibes es exactamente el mismo, solo puede variar el diseño del empaque.
+            </p>
           </div>
         </div>
       </div>
