@@ -50,98 +50,152 @@
           </div>
         </section>
 
-        <div v-else class="flex flex-col lg:flex-row gap-16 pt-10">
+        <div v-else class="pt-10">
 
-          <aside class="hidden lg:block w-72 shrink-0 sticky top-40 h-fit space-y-12">
-            <div v-if="filterByMascota && mascotaActiva" class="p-8 bg-[#152C77] text-white rounded-[3rem] shadow-2xl space-y-4 border-b-8 border-black/20">
-              <p class="text-[9px] font-black uppercase opacity-60">Filtro Inteligente:</p>
-              <h4 class="text-3xl font-[1000] uppercase italic">{{ mascotaActiva.nombre }}</h4>
-              <div class="text-[10px] font-bold uppercase tracking-widest space-y-1 opacity-80 italic">
-                <p>🧬 {{ mascotaActiva.especie }}</p>
-                <p>⚖️ {{ mascotaActiva.pesoActual }}KG | 🕒 {{ autoEtapa }}</p>
-              </div>
-              <button @click="resetTienda" class="w-full py-3 bg-[#DE1F27] text-white rounded-xl font-black uppercase text-[9px] hover:scale-105 transition-transform">Desactivar</button>
-            </div>
-            <button v-else @click="resetTienda"
-              class="w-full flex items-center justify-center gap-3 px-6 py-5 bg-[#DE1F27] text-white rounded-2xl font-[1000] uppercase italic text-[10px] shadow-xl hover:bg-[#152C77] transition-all">← REGRESAR</button>
-
-            <div class="space-y-10">
-              <!-- Limpiar filtros desktop -->
-              <button v-if="activeFiltersCount > 0" @click="clearFilters"
-                class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[9px] font-black uppercase italic text-[#DE1F27] border border-[#DE1F27]/30 hover:bg-[#DE1F27]/5 transition-all">
-                ✕ Limpiar {{ activeFiltersCount }} filtro{{ activeFiltersCount !== 1 ? 's' : '' }}
-              </button>
-
-              <template v-if="catRequiereBiologia">
-                <div v-for="(label, key) in filterGroups" :key="key" class="space-y-4">
-                  <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#DE1F27] italic">{{ label }}</h4>
-                  <div class="flex flex-col gap-2.5">
-                    <button v-for="opt in getOptions(key)" :key="opt" @click="setFilter(key, opt)"
-                      :class="isFilterActive(key, opt) ? 'bg-[#152C77] text-white shadow-xl translate-x-2' : 'bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-[#152C77]'"
-                      class="w-full text-left px-5 py-3.5 rounded-xl text-[10px] font-[1000] uppercase italic transition-all">{{ opt }}</button>
+          <!-- ── Off-canvas overlay desktop ── -->
+          <Teleport to="body">
+            <div v-if="showDesktopFilters" class="fixed inset-0 z-[4000] hidden lg:flex" style="animation: fadeIn 0.2s ease">
+              <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showDesktopFilters = false"></div>
+              <div class="absolute left-0 top-0 bottom-0 w-80 bg-white dark:bg-[#0D0D0D] shadow-2xl flex flex-col overflow-hidden" style="animation: slideInLeft 0.3s cubic-bezier(0.32,0.72,0,1)">
+                <!-- Header -->
+                <div class="flex items-center justify-between px-7 py-5 border-b border-slate-100 dark:border-white/10 shrink-0">
+                  <div class="flex items-center gap-3">
+                    <h3 class="text-lg font-[1000] uppercase italic dark:text-white">Filtros</h3>
+                    <span v-if="activeFiltersCount > 0" class="bg-[#DE1F27] text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase">
+                      {{ activeFiltersCount }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <button v-if="activeFiltersCount > 0" @click="clearFilters"
+                      class="text-[10px] font-black uppercase italic text-[#DE1F27]">Limpiar</button>
+                    <button @click="showDesktopFilters = false"
+                      class="w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-white/10 rounded-full text-slate-500 dark:text-white font-bold">✕</button>
                   </div>
                 </div>
-              </template>
 
-              <div v-if="uniqueSubcategories.length > 0" class="space-y-4 pt-6 border-t border-slate-100 dark:border-white/5">
-                <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#DE1F27] italic">Sección Específica</h4>
-                <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto custom-scrollbar p-1">
-                  <button @click="activeSubcategory = 'TODOS'"
-                    :class="activeSubcategory === 'TODOS' ? 'bg-[#152C77] text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-400'"
-                    class="px-4 py-2 rounded-xl text-[9px] font-black uppercase italic transition-all">Todas</button>
-                  <button v-for="sub in uniqueSubcategories" :key="sub" @click="activeSubcategory = sub"
-                    :class="activeSubcategory === sub ? 'bg-[#DE1F27] text-white' : 'bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-[#152C77]'"
-                    class="px-4 py-2 rounded-xl text-[9px] font-black uppercase italic transition-all border border-slate-200 dark:border-white/10">{{ sub }}</button>
+                <!-- Mascota activa -->
+                <div v-if="filterByMascota && mascotaActiva" class="mx-6 mt-5 p-5 bg-[#152C77] text-white rounded-2xl space-y-2 shrink-0">
+                  <p class="text-[9px] font-black uppercase opacity-60">Filtro Inteligente:</p>
+                  <h4 class="text-xl font-[1000] uppercase italic">{{ mascotaActiva.nombre }}</h4>
+                  <p class="text-[10px] font-bold uppercase tracking-widest opacity-80 italic">🧬 {{ mascotaActiva.especie }} · ⚖️ {{ mascotaActiva.pesoActual }}kg · 🕒 {{ autoEtapa }}</p>
+                  <button @click="resetTienda; showDesktopFilters = false" class="w-full py-2 bg-[#DE1F27] text-white rounded-xl font-black uppercase text-[9px] mt-1">Desactivar</button>
+                </div>
+
+                <!-- Scroll -->
+                <div class="flex-1 overflow-y-auto px-7 py-5 space-y-8 no-scrollbar">
+                  <template v-if="catRequiereBiologia">
+                    <div v-for="(label, key) in filterGroups" :key="key" class="space-y-3">
+                      <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#DE1F27] italic">{{ label }}</h4>
+                      <div class="flex flex-col gap-2">
+                        <button v-for="opt in getOptions(key)" :key="opt" @click="setFilter(key, opt)"
+                          :class="isFilterActive(key, opt) ? 'bg-[#152C77] text-white shadow-lg translate-x-1' : 'bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-[#152C77] dark:hover:text-white'"
+                          class="w-full text-left px-5 py-3 rounded-xl text-[10px] font-[1000] uppercase italic transition-all">{{ opt }}</button>
+                      </div>
+                    </div>
+                  </template>
+
+                  <div v-if="uniqueSubcategories.length > 0" class="space-y-3 pt-4 border-t border-slate-100 dark:border-white/5">
+                    <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#DE1F27] italic">Sección</h4>
+                    <div class="flex flex-wrap gap-2">
+                      <button @click="activeSubcategory = 'TODOS'; currentPage = 1"
+                        :class="activeSubcategory === 'TODOS' ? 'bg-[#152C77] text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-400'"
+                        class="px-3 py-2 rounded-xl text-[9px] font-black uppercase italic transition-all">Todas</button>
+                      <button v-for="sub in uniqueSubcategories" :key="sub" @click="activeSubcategory = sub; currentPage = 1"
+                        :class="activeSubcategory === sub ? 'bg-[#DE1F27] text-white' : 'bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-[#152C77]'"
+                        class="px-3 py-2 rounded-xl text-[9px] font-black uppercase italic transition-all border border-slate-200 dark:border-white/10">{{ sub }}</button>
+                    </div>
+                  </div>
+
+                  <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-white/5">
+                    <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#DE1F27] italic">Marca</h4>
+                    <select v-model="activeMarca" class="clean-select">
+                      <option value="TODOS">Todas las marcas</option>
+                      <option v-for="m in uniqueMarcas" :key="m" :value="m">{{ m }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- CTA -->
+                <div class="px-6 py-4 border-t border-slate-100 dark:border-white/10 shrink-0">
+                  <button @click="showDesktopFilters = false"
+                    class="w-full bg-[#152C77] text-white py-4 rounded-2xl font-black uppercase text-[11px] italic shadow-xl hover:bg-[#DE1F27] transition-colors">
+                    Ver {{ filteredProducts.length }} resultado{{ filteredProducts.length !== 1 ? 's' : '' }}
+                  </button>
                 </div>
               </div>
-
-              <div class="space-y-4 pt-6 border-t border-slate-100 dark:border-white/5">
-                <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#DE1F27] italic">Marca</h4>
-                <select v-model="activeMarca" class="clean-select">
-                  <option value="TODOS">Todas las marcas</option>
-                  <option v-for="m in uniqueMarcas" :key="m" :value="m">{{ m }}</option>
-                </select>
-              </div>
             </div>
-          </aside>
+          </Teleport>
 
           <main class="flex-1">
-            <nav class="flex gap-2 overflow-x-auto no-scrollbar pb-6 mb-10 border-b dark:border-white/5">
-              <button v-for="p in pasillosCards" :key="p.id" @click="setPasillo(p.name)"
-                :class="activeCategory === p.name || (p.isPersonalized && filterByMascota) ? 'bg-[#152C77] text-white shadow-xl scale-105 border-[#152C77]' : 'bg-slate-50 dark:bg-white/5 text-slate-400 border-transparent hover:text-[#DE1F27] hover:border-[#DE1F27]/20'"
-                class="px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase italic whitespace-nowrap transition-all border-2 flex items-center gap-2">
-                <span>{{ p.icon }}</span> {{ p.name }}
+            <!-- Barra de navegación + botón filtros -->
+            <div class="flex items-center gap-3 mb-6">
+              <nav class="flex gap-2 overflow-x-auto no-scrollbar flex-1">
+                <button v-for="p in pasillosCards" :key="p.id" @click="setPasillo(p.name)"
+                  :class="activeCategory === p.name || (p.isPersonalized && filterByMascota) ? 'bg-[#152C77] text-white shadow-xl scale-105 border-[#152C77]' : 'bg-slate-50 dark:bg-white/5 text-slate-400 border-transparent hover:text-[#DE1F27] hover:border-[#DE1F27]/20'"
+                  class="px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase italic whitespace-nowrap transition-all border-2 flex items-center gap-2 shrink-0">
+                  <span>{{ p.icon }}</span> {{ p.name }}
+                </button>
+                <button @click="setPasillo('TODOS')"
+                  :class="activeCategory === 'TODOS' && !filterByMascota ? 'bg-[#DE1F27] text-white border-[#DE1F27]' : 'bg-slate-100 dark:bg-white/10 border-transparent text-slate-400'"
+                  class="px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase italic whitespace-nowrap transition-all border-2 shrink-0">📦 TODOS</button>
+              </nav>
+              <!-- Botón filtros — desktop y móvil -->
+              <button @click="showDesktopFilters = true; showMobileFilters = true"
+                class="relative shrink-0 flex items-center gap-2 bg-[#152C77] text-white px-5 py-4 rounded-[1.5rem] text-[10px] font-black uppercase italic shadow-lg hover:bg-[#DE1F27] transition-colors lg:flex"
+                :class="activeFiltersCount > 0 ? 'bg-[#DE1F27]' : ''">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 4h18M7 8h10M11 12h2M13 16h-2"/></svg>
+                <span class="hidden sm:inline">Filtros</span>
+                <span v-if="activeFiltersCount > 0"
+                  class="bg-white text-[#DE1F27] text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                  {{ activeFiltersCount }}
+                </span>
               </button>
-              <button @click="setPasillo('TODOS')"
-                :class="activeCategory === 'TODOS' && !filterByMascota ? 'bg-[#DE1F27] text-white border-[#DE1F27]' : 'bg-slate-100 dark:bg-white/10 border-transparent text-slate-400'"
-                class="px-6 py-4 rounded-[1.5rem] text-[10px] font-black uppercase italic whitespace-nowrap transition-all border-2">📦 TODOS</button>
-            </nav>
+            </div>
 
-            <!-- Chips de búsqueda activa (desktop) -->
-            <div v-if="searchQuery" class="hidden lg:flex flex-wrap gap-2 mb-6">
-              <span class="flex items-center gap-2 bg-[#152C77] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase italic">
+            <!-- Chips de filtros activos -->
+            <div v-if="activeFiltersCount > 0 || searchQuery" class="flex flex-wrap gap-2 mb-6 pb-5 border-b border-slate-100 dark:border-white/5">
+              <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 self-center mr-1">Filtrando:</span>
+              <span v-if="searchQuery" class="flex items-center gap-1.5 bg-[#152C77] text-white px-3 py-2 rounded-full text-[9px] font-black uppercase italic">
                 🔍 {{ searchQuery }}
-                <button @click="searchQuery = ''; onSearch()" class="ml-1 text-white/60 hover:text-white">✕</button>
+                <button @click="searchQuery = ''; onSearch()" class="text-white/60 hover:text-white leading-none">✕</button>
               </span>
-              <span class="text-[10px] font-black uppercase text-slate-400 self-center">
+              <span v-if="activeSpecies !== 'TODOS'" class="flex items-center gap-1.5 bg-[#152C77] text-white px-3 py-2 rounded-full text-[9px] font-black uppercase italic">
+                🧬 {{ activeSpecies }}
+                <button @click="activeSpecies = 'TODOS'; currentPage = 1" class="text-white/60 hover:text-white leading-none">✕</button>
+              </span>
+              <span v-if="activeEtapa !== 'TODOS'" class="flex items-center gap-1.5 bg-[#152C77] text-white px-3 py-2 rounded-full text-[9px] font-black uppercase italic">
+                🕒 {{ activeEtapa }}
+                <button @click="activeEtapa = 'TODOS'; currentPage = 1" class="text-white/60 hover:text-white leading-none">✕</button>
+              </span>
+              <span v-if="activePeso !== 'TODOS'" class="flex items-center gap-1.5 bg-[#152C77] text-white px-3 py-2 rounded-full text-[9px] font-black uppercase italic">
+                ⚖️ {{ activePeso }}
+                <button @click="activePeso = 'TODOS'; currentPage = 1" class="text-white/60 hover:text-white leading-none">✕</button>
+              </span>
+              <span v-if="activeMarca !== 'TODOS'" class="flex items-center gap-1.5 bg-[#DE1F27] text-white px-3 py-2 rounded-full text-[9px] font-black uppercase italic">
+                🏷️ {{ activeMarca }}
+                <button @click="activeMarca = 'TODOS'; currentPage = 1" class="text-white/60 hover:text-white leading-none">✕</button>
+              </span>
+              <span v-if="activeSubcategory !== 'TODOS'" class="flex items-center gap-1.5 bg-[#DE1F27] text-white px-3 py-2 rounded-full text-[9px] font-black uppercase italic">
+                📂 {{ activeSubcategory }}
+                <button @click="activeSubcategory = 'TODOS'; currentPage = 1" class="text-white/60 hover:text-white leading-none">✕</button>
+              </span>
+              <span class="text-[9px] font-black uppercase text-slate-400 dark:text-white/30 self-center ml-auto">
                 {{ filteredProducts.length }} resultado{{ filteredProducts.length !== 1 ? 's' : '' }}
               </span>
             </div>
 
-            <div class="mb-12">
-              <h2 class="text-4xl md:text-7xl font-[1000] uppercase italic dark:text-white tracking-tighter leading-none mb-4">{{ dynamicTitle }}</h2>
-              <!-- Botones móvil -->
-              <div class="flex gap-2 lg:hidden">
+            <div class="mb-8">
+              <div class="flex items-center justify-between gap-4">
+                <h2 class="text-4xl md:text-7xl font-[1000] uppercase italic dark:text-white tracking-tighter leading-none">{{ dynamicTitle }}</h2>
                 <button v-if="filterByMascota || pasilloSeleccionado" @click="resetTienda"
-                  class="bg-[#DE1F27] text-white px-4 py-3 rounded-xl text-[9px] font-black uppercase italic">✕ Salir</button>
-                <button @click="showMobileFilters = true"
-                  class="relative bg-[#152C77] text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase italic flex items-center gap-2 shadow-lg">
-                  <span>⚙️</span> Filtrar
-                  <span v-if="activeFiltersCount > 0"
-                    class="absolute -top-2 -right-2 bg-[#DE1F27] text-white text-[8px] font-black w-5 h-5 rounded-full flex items-center justify-center">
-                    {{ activeFiltersCount }}
-                  </span>
+                  class="hidden lg:flex shrink-0 items-center gap-2 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/50 px-4 py-3 rounded-xl text-[9px] font-black uppercase italic hover:bg-[#DE1F27] hover:text-white transition-all">
+                  ← Volver
                 </button>
+              </div>
+              <!-- Botón salir móvil -->
+              <div class="flex gap-2 mt-4 lg:hidden">
+                <button v-if="filterByMascota || pasilloSeleccionado" @click="resetTienda"
+                  class="bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/50 px-4 py-3 rounded-xl text-[9px] font-black uppercase italic">← Volver</button>
               </div>
             </div>
 
@@ -411,6 +465,7 @@ const { trackAddToCart } = useTracking();
 
 const pasilloSeleccionado = ref(false);
 const showMobileFilters = ref(false);
+const showDesktopFilters = ref(false);
 const searchQuery = ref('');
 const activeCategory = ref('TODOS');
 const activeSubcategory = ref('TODOS');
@@ -788,6 +843,10 @@ watch(filterByMascota, (newVal) => { if (newVal) loadMascota(); });
 .clean-select {
   @apply bg-transparent border-b-2 border-slate-200 dark:border-white/10 w-full py-4 text-[10px] font-black uppercase outline-none focus:border-[#DE1F27] transition-all dark:text-white appearance-none italic cursor-pointer;
 }
+
+/* Off-canvas — animaciones keyframe */
+@keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* Bottom sheet — sube desde abajo */
 .slide-up-enter-active { transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1); }
