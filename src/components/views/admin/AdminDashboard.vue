@@ -12,6 +12,7 @@ import AdminClientes from './AdminClientes.vue';
 import AdminRecordatorios from './AdminRecordatorios.vue';
 import AdminLeads from './AdminLeads.vue';
 import AdminMarketing from './AdminMarketing.vue';
+import AdminVeterinarios from './AdminVeterinarios.vue';
 import { suscribirNotificaciones } from '@/composables/usePushNotifications';
 
 const notifActivas = ref(typeof Notification !== 'undefined' && Notification.permission === 'granted');
@@ -51,7 +52,8 @@ const tabs = [
     { id: 'inventario', label: 'Inventario', icon: '📦' },
     { id: 'recordatorios', label: 'Recordatorios', icon: '🔔' },
     { id: 'leads', label: 'Leads', icon: '📡' },
-    { id: 'marketing', label: 'Marketing', icon: '📣' }
+    { id: 'marketing', label: 'Marketing', icon: '📣' },
+    { id: 'veterinarios', label: 'Veterinarios', icon: '👨‍⚕️' }
 ];
 
 const tabTitle = computed(() => {
@@ -197,6 +199,7 @@ const doLogout = () => {
                         <AdminRecordatorios v-if="currentTab === 'recordatorios'" />
                         <AdminLeads v-if="currentTab === 'leads'" :data="data.leads" />
                         <AdminMarketing v-if="currentTab === 'marketing'" />
+                        <AdminVeterinarios v-if="currentTab === 'veterinarios'" />
                     </div>
                 </Transition>
             </template>
