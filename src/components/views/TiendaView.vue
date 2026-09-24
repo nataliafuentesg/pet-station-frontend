@@ -20,11 +20,47 @@
             <span class="flex-1 text-[11px] font-[1000] uppercase tracking-widest text-slate-300 dark:text-white/20 select-none">BUSCAR PRODUCTO O MARCA...</span>
             <span class="text-xl ml-4">🔍</span>
           </div>
-          <!-- Desktop: input real -->
-          <div class="hidden lg:flex relative items-center bg-slate-50 dark:bg-white/5 rounded-3xl border-2 border-slate-200 dark:border-white/10 px-8 py-4 shadow-sm">
-            <input v-model="searchQuery" @input="onSearch" type="text" placeholder="BUSCAR PRODUCTO O MARCA..."
-              class="w-full bg-transparent text-[11px] font-[1000] uppercase tracking-widest outline-none dark:text-white" />
-            <span class="text-xl ml-4">🔍</span>
+          <!-- Desktop: input real + dropdown -->
+          <div class="hidden lg:block relative">
+            <div class="flex items-center bg-slate-50 dark:bg-white/5 rounded-3xl border-2 border-slate-200 dark:border-white/10 px-8 py-4 shadow-sm"
+                 :class="searchQuery ? 'border-[#152C77] dark:border-[#152C77] rounded-b-none' : ''">
+              <input v-model="searchQuery" @input="onSearch" @focus="searchFocused = true" @blur="setTimeout(() => searchFocused = false, 150)"
+                type="text" placeholder="BUSCAR PRODUCTO O MARCA..."
+                class="w-full bg-transparent text-[11px] font-[1000] uppercase tracking-widest outline-none dark:text-white" />
+              <button v-if="searchQuery" @click="searchQuery = ''; onSearch()" class="text-slate-400 hover:text-[#DE1F27] ml-3 text-base leading-none">✕</button>
+              <span v-else class="text-xl ml-4">🔍</span>
+            </div>
+            <!-- Dropdown resultados -->
+            <div v-if="searchQuery && searchFocused"
+              class="absolute top-full left-0 right-0 bg-white dark:bg-[#0D0D0D] border-2 border-t-0 border-[#152C77] rounded-b-3xl shadow-2xl z-[3000] max-h-[480px] overflow-y-auto no-scrollbar">
+              <div v-if="filteredProducts.length === 0" class="py-10 text-center text-[10px] font-black uppercase text-slate-400 italic">
+                Sin resultados para "{{ searchQuery }}"
+              </div>
+              <div v-else>
+                <div class="px-5 py-3 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+                  <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">{{ filteredProducts.length }} resultado{{ filteredProducts.length !== 1 ? 's' : '' }}</span>
+                  <button @click="searchQuery = ''; onSearch()" class="text-[9px] font-black uppercase italic text-[#DE1F27]">Limpiar</button>
+                </div>
+                <div class="grid grid-cols-3 gap-0 divide-x divide-y divide-slate-100 dark:divide-white/5">
+                  <router-link v-for="p in filteredProducts.slice(0, 9)" :key="p.id"
+                    :to="{ name: 'ProductoDetalle', params: { id: crearSlug(p.id, p.nombre) } }"
+                    @click="searchQuery = ''"
+                    class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                    <div class="w-10 h-10 shrink-0 bg-white dark:bg-white/5 rounded-xl overflow-hidden flex items-center justify-center">
+                      <img v-if="p.fotosUrls?.length" :src="p.fotosUrls[0]" class="w-full h-full object-contain">
+                      <span v-else class="text-lg">📦</span>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-[9px] font-black uppercase italic leading-tight line-clamp-2 dark:text-white group-hover:text-[#152C77] dark:group-hover:text-[#DE1F27] transition-colors">{{ p.nombre }}</p>
+                      <p class="text-[9px] font-[1000] text-[#DE1F27] mt-0.5">${{ p.precio.toLocaleString() }}</p>
+                    </div>
+                  </router-link>
+                </div>
+                <div v-if="filteredProducts.length > 9" class="px-5 py-3 border-t border-slate-100 dark:border-white/5 text-center">
+                  <span class="text-[9px] font-black uppercase italic text-slate-400">+ {{ filteredProducts.length - 9 }} más en el grid</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -199,43 +235,43 @@
               </div>
             </div>
 
-            <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-10">
-              <div v-for="i in 6" :key="i" class="bg-slate-100 dark:bg-white/5 rounded-[3rem] p-6 h-[400px] animate-pulse"></div>
+            <div v-if="isLoading" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
+              <div v-for="i in 8" :key="i" class="bg-slate-100 dark:bg-white/5 rounded-[2rem] p-4 h-[280px] animate-pulse"></div>
             </div>
 
-            <div v-else-if="paginatedProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-10">
+            <div v-else-if="paginatedProducts.length > 0" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
               <div v-for="p in paginatedProducts" :key="p.id"
-                :class="['group relative flex flex-col bg-slate-50 dark:bg-[#0A0A0A] p-6 rounded-[3rem] transition-all border-2 shadow-sm', p.stock <= 0 ? 'opacity-60 grayscale border-slate-200 pointer-events-none' : 'border-transparent hover:border-[#DE1F27]/20 hover:shadow-2xl']">
-                <router-link :to="{ name: 'ProductoDetalle', params: { id: crearSlug(p.id, p.nombre) } }" class="block relative w-full mb-4">
-                  <div v-if="p.presentacion" class="absolute top-4 left-4 bg-[#DE1F27] px-3 py-1.5 rounded-xl shadow-lg z-20">
-                    <span class="text-[8px] font-black text-white uppercase tracking-widest">{{ p.presentacion }}</span>
+                :class="['group relative flex flex-col bg-slate-50 dark:bg-[#0A0A0A] p-4 rounded-[2rem] transition-all border-2 shadow-sm', p.stock <= 0 ? 'opacity-60 grayscale border-slate-200 pointer-events-none' : 'border-transparent hover:border-[#DE1F27]/20 hover:shadow-xl']">
+                <router-link :to="{ name: 'ProductoDetalle', params: { id: crearSlug(p.id, p.nombre) } }" class="block relative w-full mb-3">
+                  <div v-if="p.presentacion" class="absolute top-2 left-2 bg-[#DE1F27] px-2 py-1 rounded-lg shadow-md z-20">
+                    <span class="text-[7px] font-black text-white uppercase tracking-widest">{{ p.presentacion }}</span>
                   </div>
-                  <div class="relative w-full aspect-square overflow-hidden rounded-[2rem] bg-white dark:bg-white/5 p-4 flex items-center justify-center">
-                    <img v-if="p.fotosUrls?.length" :src="p.fotosUrls[0]" class="w-full h-full object-contain transition-transform duration-1000 group-hover:scale-110 z-10">
+                  <div class="relative w-full aspect-square overflow-hidden rounded-xl bg-white dark:bg-white/5 p-3 flex items-center justify-center">
+                    <img v-if="p.fotosUrls?.length" :src="p.fotosUrls[0]" class="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105 z-10">
                   </div>
-                  <div v-if="p.stock <= 0" class="absolute inset-0 z-30 bg-white/60 dark:bg-black/60 backdrop-blur-[2px] rounded-[2rem] flex items-center justify-center">
-                    <span class="bg-slate-800 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl">Agotado</span>
+                  <div v-if="p.stock <= 0" class="absolute inset-0 z-30 bg-white/60 dark:bg-black/60 backdrop-blur-[2px] rounded-xl flex items-center justify-center">
+                    <span class="bg-slate-800 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-xl">Agotado</span>
                   </div>
                 </router-link>
 
-                <div class="flex-1 px-2 space-y-4">
+                <div class="flex-1 px-1 space-y-2">
                   <router-link :to="{ name: 'ProductoDetalle', params: { id: crearSlug(p.id, p.nombre) } }" class="pointer-events-auto">
-                    <div class="flex items-center justify-between mb-2">
-                      <p class="text-[9px] font-black text-[#DE1F27] uppercase tracking-widest italic opacity-70 truncate pr-2">{{ p.marca }}</p>
-                      <span v-if="p.requiereReceta" class="shrink-0 bg-red-50 dark:bg-[#DE1F27]/10 text-[#DE1F27] border border-[#DE1F27]/30 px-2 py-0.5 rounded-md text-[7px] font-[1000] uppercase tracking-widest animate-pulse">📋 Fórmula</span>
+                    <div class="flex items-center justify-between mb-1">
+                      <p class="text-[8px] font-black text-[#DE1F27] uppercase tracking-widest italic opacity-70 truncate pr-1">{{ p.marca }}</p>
+                      <span v-if="p.requiereReceta" class="shrink-0 bg-red-50 dark:bg-[#DE1F27]/10 text-[#DE1F27] border border-[#DE1F27]/30 px-1.5 py-0.5 rounded text-[6px] font-[1000] uppercase tracking-widest">📋</span>
                     </div>
-                    <h3 class="text-xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight mb-4 h-12 line-clamp-2">{{ p.nombre }}</h3>
+                    <h3 class="text-sm font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight mb-2 h-9 line-clamp-2">{{ p.nombre }}</h3>
                   </router-link>
-                  <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-white/10">
+                  <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-white/10">
                     <div>
-                      <span class="text-3xl font-[1000] dark:text-white italic text-[#152C77] tracking-tighter">${{ p.precio.toLocaleString() }}</span>
-                      <p v-if="p.stock > 10" class="text-[9px] font-black uppercase tracking-widest text-green-500 mt-0.5">● {{ p.stock }} disponibles</p>
-                      <p v-else-if="p.stock > 0" class="text-[9px] font-black uppercase tracking-widest text-amber-500 mt-0.5">● Quedan {{ p.stock }}</p>
-                      <p v-else class="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-0.5">● Agotado</p>
+                      <span class="text-lg font-[1000] dark:text-white italic text-[#152C77] tracking-tight">${{ p.precio.toLocaleString() }}</span>
+                      <p v-if="p.stock > 10" class="text-[8px] font-black uppercase tracking-widest text-green-500 mt-0.5">● stock ok</p>
+                      <p v-else-if="p.stock > 0" class="text-[8px] font-black uppercase tracking-widest text-amber-500 mt-0.5">● {{ p.stock }} und</p>
+                      <p v-else class="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-0.5">● Agotado</p>
                     </div>
-                    <button v-if="p.stock > 0 && TIENDA_ACTIVA" @click="onAddToCart(p)" class="pointer-events-auto w-12 h-12 bg-[#152C77] hover:bg-[#DE1F27] text-white rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-all font-bold">🛒</button>
-                    <span v-else-if="!TIENDA_ACTIVA" class="text-2xl opacity-30">🚧</span>
-                    <span v-else class="text-2xl opacity-30">🚫</span>
+                    <button v-if="p.stock > 0 && TIENDA_ACTIVA" @click="onAddToCart(p)" class="pointer-events-auto w-9 h-9 bg-[#152C77] hover:bg-[#DE1F27] text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all text-sm">🛒</button>
+                    <span v-else-if="!TIENDA_ACTIVA" class="text-xl opacity-30">🚧</span>
+                    <span v-else class="text-xl opacity-30">🚫</span>
                   </div>
                 </div>
               </div>
@@ -484,6 +520,7 @@ const itemsPerPage = 12;
 const mobileSearchOpen = ref(false);
 const mobileSearchQuery = ref('');
 const mobileSearchInputRef = ref(null);
+const searchFocused = ref(false);
 
 const openMobileSearch = () => {
   mobileSearchOpen.value = true;
