@@ -131,9 +131,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
-
-const API = import.meta.env.VITE_API_URL || 'https://api.petstationvet.com'
+import api from '@/api/axios.js'
 
 const vets           = ref([])
 const loading        = ref(false)
@@ -148,7 +146,7 @@ onMounted(cargar)
 async function cargar() {
   loading.value = true
   try {
-    const { data } = await axios.get(`${API}/api/admin/veterinarios`)
+    const { data } = await api.get('/admin/veterinarios')
     vets.value = data
   } catch (e) {
     vets.value = []
@@ -163,7 +161,7 @@ async function crearVet() {
   errorForm.value = ''
   exitoForm.value = false
   try {
-    const { data } = await axios.post(`${API}/api/admin/veterinarios`, form.value)
+    const { data } = await api.post('/admin/veterinarios', form.value)
     vets.value.unshift(data)
     exitoForm.value = true
     form.value = { nombre: '', apellido: '', email: '', telefono: '', password: '' }
@@ -177,7 +175,7 @@ async function crearVet() {
 async function desactivar(v) {
   if (!confirm(`¿Desactivar cuenta de ${v.nombre}? Podrás reactivarla después.`)) return
   try {
-    await axios.delete(`${API}/api/admin/veterinarios/${v.id}`)
+    await api.delete(`/admin/veterinarios/${v.id}`)
     v.role = 'ROLE_VET_INACTIVO'
   } catch (e) {
     alert('Error al desactivar: ' + (e.response?.data?.message || e.message))
@@ -186,7 +184,7 @@ async function desactivar(v) {
 
 async function reactivar(v) {
   try {
-    await axios.patch(`${API}/api/admin/veterinarios/${v.id}/reactivar`)
+    await api.patch(`/admin/veterinarios/${v.id}/reactivar`)
     v.role = 'ROLE_VET'
   } catch (e) {
     alert('Error al reactivar: ' + (e.response?.data?.message || e.message))
