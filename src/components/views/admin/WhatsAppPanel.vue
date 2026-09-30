@@ -219,7 +219,7 @@ const conversacionesFiltradas = computed(() => {
 });
 
 async function cargarConversaciones() {
-  const { data } = await api.get('/api/admin/wa/conversaciones');
+  const { data } = await api.get('/admin/wa/conversaciones');
   conversaciones.value = data;
   // Actualizar la conversación activa si está abierta
   if (conversacionActual.value) {
@@ -229,7 +229,7 @@ async function cargarConversaciones() {
 }
 
 async function cargarStats() {
-  const { data } = await api.get('/api/admin/wa/stats');
+  const { data } = await api.get('/admin/wa/stats');
   stats.value = data;
 }
 
@@ -239,9 +239,9 @@ async function abrirConversacion(conv) {
   mensajes.value = [];
   mensajeCitado.value = null;
   try {
-    const { data } = await api.get(`/api/admin/wa/conversaciones/${conv.telefono}/mensajes`);
+    const { data } = await api.get(`/admin/wa/conversaciones/${conv.telefono}/mensajes`);
     mensajes.value = data;
-    await api.post(`/api/admin/wa/conversaciones/${conv.telefono}/leer`);
+    await api.post(`/admin/wa/conversaciones/${conv.telefono}/leer`);
     conv.sinLeer = 0;
     await nextTick();
     scrollAbajo(true);
@@ -254,14 +254,14 @@ async function abrirConversacion(conv) {
 
 async function tomarControl() {
   const asesor = prompt('Tu nombre:') || 'Asesor';
-  await api.post(`/api/admin/wa/conversaciones/${conversacionActual.value.telefono}/tomar`, { asesor });
+  await api.post(`/admin/wa/conversaciones/${conversacionActual.value.telefono}/tomar`, { asesor });
   conversacionActual.value.modo = 'HUMAN';
   conversacionActual.value.asesor = asesor;
 }
 
 async function resolver() {
   if (!confirm('¿Devolver al bot esta conversación?')) return;
-  await api.post(`/api/admin/wa/conversaciones/${conversacionActual.value.telefono}/resolver`);
+  await api.post(`/admin/wa/conversaciones/${conversacionActual.value.telefono}/resolver`);
   conversacionActual.value.modo = 'BOT';
   conversacionActual.value.asesor = null;
 }
@@ -271,7 +271,7 @@ async function enviar() {
   if (!texto || enviando.value) return;
   enviando.value = true;
   try {
-    await api.post(`/api/admin/wa/conversaciones/${conversacionActual.value.telefono}/enviar`, {
+    await api.post(`/admin/wa/conversaciones/${conversacionActual.value.telefono}/enviar`, {
       texto,
       contextoWamid: mensajeCitado.value?.wamid || null,
     });
@@ -333,7 +333,8 @@ function conectarWS() {
 
 function mediaUrl(mediaId) {
   if (!mediaId) return '';
-  return `${import.meta.env.VITE_API_BASE_URL || ''}/api/admin/wa/media/${mediaId}`;
+  const base = import.meta.env.VITE_API_URL || 'https://api.petstationvet.com/api';
+  return `${base}/admin/wa/media/${mediaId}`;
 }
 
 function verImagen(mediaId) {
