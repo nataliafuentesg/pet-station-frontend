@@ -5,7 +5,7 @@
     <aside class="wa-sidebar">
       <div class="wa-sidebar-header">
         <div class="flex items-center gap-3">
-          <img src="/logo.webp" class="w-8 h-8 rounded-full object-cover" alt="logo" />
+          <img src="/images/logo-pet-station.png" class="w-8 h-8 rounded-full object-cover" alt="logo" />
           <span class="font-bold text-sm text-white">Pet Station</span>
         </div>
         <div class="flex gap-2">
