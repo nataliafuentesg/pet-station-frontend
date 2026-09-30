@@ -398,8 +398,20 @@ function resumeMensaje(conv) {
 onMounted(async () => {
   await Promise.all([cargarConversaciones(), cargarStats()]);
   conectarWS();
-  // Refrescar lista cada 30s como fallback
-  const interval = setInterval(cargarConversaciones, 30_000);
+  // Polling cada 3s como fallback cuando WS falla
+  const interval = setInterval(async () => {
+    await cargarConversaciones();
+    if (conversacionActual.value) {
+      const tel = conversacionActual.value.telefono;
+      const resp = await api.get(`/admin/wa/conversaciones/${tel}/mensajes`);
+      const nuevos = resp.data;
+      if (nuevos.length !== mensajes.value.length) {
+        mensajes.value = nuevos;
+        await nextTick();
+        scrollAbajo();
+      }
+    }
+  }, 3000);
   onUnmounted(() => {
     clearInterval(interval);
     clearTimeout(wsReconnectTimer);
