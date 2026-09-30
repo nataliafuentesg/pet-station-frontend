@@ -114,8 +114,10 @@ onMounted(() => {
   if (!aprobado.value || !pedidoId.value) return;
   const numericId = parseInt(pedidoId.value.split('-').pop());
   const total = parseFloat(sessionStorage.getItem('ps_last_order_total')) || null;
+  const contentIds = JSON.parse(sessionStorage.getItem('ps_last_order_content_ids') || '[]');
   sessionStorage.removeItem('ps_last_order_total');
-  trackCompraCompletada(total, null, numericId);
+  sessionStorage.removeItem('ps_last_order_content_ids');
+  trackCompraCompletada(total, contentIds, numericId);
 });
 </script>
 

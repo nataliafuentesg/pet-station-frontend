@@ -61,11 +61,14 @@ export function useTracking() {
     });
   };
 
-  const trackCompraCompletada = (total = null, items = null, numericId = null) => {
+  const trackCompraCompletada = (total = null, contentIds = null, numericId = null) => {
     const eventID = numericId ? `Purchase-PED-${numericId}` : null;
-    const params = { currency: 'COP' };
+    const params = { currency: 'COP', content_type: 'product' };
     if (total) params.value = total;
-    if (items) params.num_items = items;
+    if (contentIds && contentIds.length) {
+      params.content_ids = contentIds;
+      params.num_items = contentIds.length;
+    }
     track('purchase', 'Purchase', params, eventID);
   };
 

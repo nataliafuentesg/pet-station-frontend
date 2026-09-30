@@ -20,6 +20,12 @@
       "port": 4000
     },
     {
+      "name": "clinic-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/nataliafuentes/pet-station-clinic", "run", "dev"],
+      "port": 5174
+    },
+    {
       "name": "realestate-node-client",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "/Users/nataliafuentes/Documents/Git Projects/realestate-node/client", "run", "dev", "--", "--port", "5175"],

@@ -754,6 +754,8 @@ const procesarCompra = async () => {
 
     const totalPedido = pedidoCreado.total;
     sessionStorage.setItem('ps_last_order_total', totalPedido);
+    const contentIds = cartStore.items.map(i => i.producto?.id ?? i.id).filter(Boolean);
+    sessionStorage.setItem('ps_last_order_content_ids', JSON.stringify(contentIds));
 
     // 2. Pedir los datos del botón de Bold
     const { data: bold } = await api.post('/pagos/bold/datos-boton', {
