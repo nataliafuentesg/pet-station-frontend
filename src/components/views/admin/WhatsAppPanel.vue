@@ -299,8 +299,7 @@ function citar(m) {
 
 function conectarWS() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  const apiBase = import.meta.env.VITE_API_URL || `${location.protocol}//${location.hostname}:8080/api`;
-  const wsBase = apiBase.replace(/^https?/, proto).replace(/\/api.*$/, '');
+  const wsBase = `${proto}://${location.hostname}`;
   ws = new WebSocket(`${wsBase}/ws/wa-panel`);
 
   ws.onmessage = async (e) => {
