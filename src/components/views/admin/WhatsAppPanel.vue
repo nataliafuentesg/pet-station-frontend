@@ -299,12 +299,14 @@ function citar(m) {
 
 function conectarWS() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  const wsBase = `${proto}://${location.hostname}`;
-  ws = new WebSocket(`${wsBase}/ws/wa-panel`);
+  const apiHost = (import.meta.env.VITE_API_URL || '').replace(/^https?:\/\//, '').replace(/\/.*$/, '') || `${location.hostname}:8080`;
+  ws = new WebSocket(`${proto}://${apiHost}/ws/wa-panel`);
 
   ws.onmessage = async (e) => {
     const ev = JSON.parse(e.data);
     if (ev.type === 'message') {
+      // Sonido si es mensaje entrante
+      if (ev.direccion === 'INBOUND') reproducirSonido();
       // Agregar mensaje a la conversación activa
       if (conversacionActual.value?.telefono === ev.telefono) {
         mensajes.value.push({
@@ -393,6 +395,23 @@ function resumeMensaje(conv) {
   return conv.ultimoMensaje || '';
 }
 
+// ── SONIDO ───────────────────────────────────────────────────────────
+
+function reproducirSonido() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (_) {}
+}
+
 // ── CICLO DE VIDA ────────────────────────────────────────────────────
 
 onMounted(async () => {
@@ -406,6 +425,8 @@ onMounted(async () => {
       const resp = await api.get(`/admin/wa/conversaciones/${tel}/mensajes`);
       const nuevos = resp.data;
       if (nuevos.length !== mensajes.value.length) {
+        const hayNuevoInbound = nuevos.slice(mensajes.value.length).some(m => m.direccion === 'INBOUND');
+        if (hayNuevoInbound) reproducirSonido();
         mensajes.value = nuevos;
         await nextTick();
         scrollAbajo();
