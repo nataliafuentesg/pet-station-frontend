@@ -420,7 +420,7 @@ onMounted(async () => {
   // Polling cada 3s como fallback cuando WS falla
   const interval = setInterval(async () => {
     await cargarConversaciones();
-    if (conversacionActual.value) {
+    if (conversacionActual.value?.telefono) {
       const tel = conversacionActual.value.telefono;
       const resp = await api.get(`/admin/wa/conversaciones/${tel}/mensajes`);
       const nuevos = resp.data;
