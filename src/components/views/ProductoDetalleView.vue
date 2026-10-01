@@ -274,9 +274,8 @@ const emit = defineEmits(['notify']);
 const abrirWhatsapp = (tipo, extra = {}) => {
   if (!product.value) return;
   track(tipo, { productoId: product.value.id, nombre: product.value.nombre, precio: product.value.precio, ...extra });
-  const url = window.location.href;
-  const msg = `Hola Pet Station! Me interesa ${product.value.nombre} ${url}`;
-  window.open(`https://wa.me/573053462413?text=${encodeURIComponent(msg)}`, '_blank');
+  const msg = `PRODUCTO:${product.value.id}:${product.value.nombre}`;
+  window.open(`https://wa.me/573213501873?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
 // --- FUNCIONES DE UUID Y SLUG (Déjalas tal cual las tienes) ---
