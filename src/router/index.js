@@ -7,6 +7,7 @@ import ProfileSelector from '../components/home/ProfileSelector.vue'
 import TiendaView from '../components/views/TiendaView.vue'
 import AdminDashboard from '../components/views/admin/AdminDashboard.vue';
 import WhatsAppPanel from '../components/views/admin/WhatsAppPanel.vue';
+import AdminInstagram from '../components/views/admin/AdminInstagram.vue';
 import PrivacyView from '../components/views/legal/PrivacyView.vue';
 import TermsView from '../components/views/legal/TermsView.vue';
 
@@ -107,6 +108,12 @@ const routes = [
     name: 'WhatsAppPanel',
     component: WhatsAppPanel,
     meta: { requiresAdmin: true, title: 'WhatsApp Panel | Pet Station' }
+  },
+  {
+    path: '/admin/instagram',
+    name: 'AdminInstagram',
+    component: AdminInstagram,
+    meta: { requiresAdmin: true, title: 'Instagram DM | Pet Station' }
   },
   {
     path: '/admin/dashboard',
