@@ -1,5 +1,5 @@
 <template>
-  <div class="wa-panel" :class="{ 'sidebar-open': sidebarOpen }">
+  <div class="wa-panel" :class="{ 'sidebar-open': sidebarOpen, 'chat-open': !!conversacionActual }">
 
     <!-- ── SIDEBAR: lista de conversaciones ─────────────────────────── -->
     <aside class="wa-sidebar">
@@ -164,6 +164,14 @@
           </div>
 
           <div v-else class="flex items-end gap-2">
+            <!-- Input oculto para archivos -->
+            <input ref="fileInput" type="file" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx"
+              class="hidden" @change="onFileSelected" />
+            <!-- Botón adjuntar -->
+            <button @click="fileInput.click()" :disabled="enviando" title="Enviar archivo o foto"
+              class="wa-attach-btn">
+              📎
+            </button>
             <textarea v-model="textoNuevo" ref="inputRef"
               placeholder="Escribe un mensaje..."
               rows="1"
@@ -202,6 +210,7 @@ const mensajeCitado = ref(null);
 const busqueda = ref('');
 const chatBody = ref(null);
 const inputRef = ref(null);
+const fileInput = ref(null);
 const imagenModal = ref(null);
 const sidebarOpen = ref(true);
 const stats = ref({ total: 0, ventanaAbierta: 0, enHumano: 0, sinLeer: 0 });
@@ -293,6 +302,31 @@ async function enviar() {
 function citar(m) {
   mensajeCitado.value = m;
   nextTick(() => inputRef.value?.focus());
+}
+
+async function onFileSelected(e) {
+  const file = e.target.files?.[0];
+  if (!file || !conversacionActual.value?.telefono) return;
+  e.target.value = '';
+  enviando.value = true;
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    await api.post(
+      `/admin/wa/conversaciones/${conversacionActual.value.telefono}/enviar-media`,
+      form,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+  } catch (e) {
+    const err = e.response?.data?.error;
+    if (err === 'ventana_cerrada') {
+      conversacionActual.value.ventanaAbierta = false;
+    } else {
+      alert('Error al enviar archivo: ' + (e.response?.data?.mensaje || e.message));
+    }
+  } finally {
+    enviando.value = false;
+  }
 }
 
 // ── WEBSOCKET ────────────────────────────────────────────────────────
@@ -639,9 +673,44 @@ onMounted(async () => {
   border-radius: 8px;
 }
 
-/* Responsive */
+.wa-attach-btn {
+  background: #2a3942;
+  border-radius: 50%;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.wa-attach-btn:hover:not(:disabled) { background: #3d5060; }
+.wa-attach-btn:disabled { opacity: 0.5; }
+
+/* Responsive móvil */
 @media (max-width: 768px) {
-  .wa-sidebar { width: 100%; }
-  .wa-chat.hidden { display: none; }
+  .wa-panel { position: relative; }
+
+  /* Sidebar: ocupa toda la pantalla por defecto */
+  .wa-sidebar {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    z-index: 10;
+    transition: transform 0.2s;
+  }
+
+  /* Cuando hay conversación activa, se oculta el sidebar */
+  .wa-panel.chat-open .wa-sidebar {
+    transform: translateX(-100%);
+    pointer-events: none;
+  }
+
+  /* Chat: ocupa toda la pantalla */
+  .wa-chat {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+  }
+
+  .wa-bubble { max-width: 85%; }
 }
 </style>
