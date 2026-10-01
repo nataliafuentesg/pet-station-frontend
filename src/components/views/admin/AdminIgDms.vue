@@ -75,7 +75,7 @@ const nombre = computed(() => conv.value?.nombre || conv.value?.igUserId || '');
 // ── WEBSOCKET ────────────────────────────────────────────────────────────
 
 function conectarWS() {
-  const apiHost = (import.meta.env.VITE_API_URL || '').replace(/^https?:\/\//, '');
+  const apiHost = (import.meta.env.VITE_API_URL || '').replace(/^https?:\/\//, '').replace(/\/.*$/, '') || `${location.hostname}:8080`;
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   ws = new WebSocket(`${proto}://${apiHost}/ws/ig-dm`);
 
