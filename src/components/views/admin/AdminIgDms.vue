@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + '/api',
+  baseURL: import.meta.env.VITE_API_URL,
   headers: { Authorization: 'Bearer ' + localStorage.getItem('ps_token') }
 });
 
