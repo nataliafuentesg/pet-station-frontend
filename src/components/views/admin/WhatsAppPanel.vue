@@ -9,7 +9,7 @@
           <span class="font-bold text-sm text-white">Pet Station</span>
         </div>
         <div class="flex gap-2">
-          <span v-if="stats.sinLeer > 0" class="bg-[#25D366] text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+          <span v-if="stats.sinLeer > 0" class="bg-[#de1f27] text-white text-[10px] font-black px-2 py-0.5 rounded-full">
             {{ stats.sinLeer }}
           </span>
           <button @click="cargarConversaciones" title="Actualizar" class="text-white/60 hover:text-white">
@@ -21,7 +21,7 @@
       <!-- Buscador -->
       <div class="px-3 py-2 bg-[#1a2936]">
         <input v-model="busqueda" placeholder="Buscar conversación..."
-          class="w-full bg-[#2a3942] text-white text-sm rounded-lg px-3 py-2 outline-none placeholder-white/40" />
+          class="w-full bg-white/10 text-white text-sm rounded-lg px-3 py-2 outline-none placeholder-white/40" />
       </div>
 
       <!-- Lista -->
@@ -34,7 +34,7 @@
           class="wa-conv-item"
           :class="{ active: conversacionActual?.telefono === conv.telefono }">
           <!-- Avatar -->
-          <div class="wa-avatar" :class="conv.modo === 'HUMAN' ? 'bg-blue-500' : 'bg-[#25D366]'">
+          <div class="wa-avatar" :class="conv.modo === 'HUMAN' ? 'bg-[#152c77]' : 'bg-[#de1f27]'">
             {{ iniciales(conv.nombre || conv.telefono) }}
           </div>
           <div class="flex-1 min-w-0">
@@ -44,14 +44,14 @@
             </div>
             <div class="flex justify-between items-center mt-0.5">
               <p class="text-xs text-white/50 truncate">
-                <span v-if="conv.ultimoMensajeDireccion === 'OUTBOUND'" class="text-[#25D366] mr-1">✓✓</span>
+                <span v-if="conv.ultimoMensajeDireccion === 'OUTBOUND'" class="text-[#de1f27] mr-1">✓✓</span>
                 {{ resumeMensaje(conv) }}
               </p>
               <div class="flex items-center gap-1 shrink-0">
                 <span v-if="!conv.ventanaAbierta" title="Ventana cerrada" class="text-[10px]">🔒</span>
                 <span v-if="conv.modo === 'HUMAN'" title="Asesor activo" class="text-[10px]">👤</span>
                 <span v-if="conv.sinLeer > 0"
-                  class="bg-[#25D366] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
+                  class="bg-[#de1f27] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
                   {{ conv.sinLeer }}
                 </span>
               </div>
@@ -71,7 +71,7 @@
         <!-- Avatar grande -->
         <div class="flex flex-col items-center py-6 gap-2">
           <div class="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black text-white"
-            :class="conversacionActual.modo === 'HUMAN' ? 'bg-blue-500' : 'bg-[#25D366]'">
+            :class="conversacionActual.modo === 'HUMAN' ? 'bg-[#152c77]' : 'bg-[#de1f27]'">
             {{ iniciales(conversacionActual.nombre || conversacionActual.telefono) }}
           </div>
           <p class="text-white font-bold text-base mt-1">{{ conversacionActual.nombre || 'Sin nombre' }}</p>
@@ -85,7 +85,7 @@
           </div>
           <div class="wa-perfil-row">
             <span class="text-white/40 text-xs">Ventana</span>
-            <span class="text-sm" :class="conversacionActual.ventanaAbierta ? 'text-[#25D366]' : 'text-orange-400'">
+            <span class="text-sm" :class="conversacionActual.ventanaAbierta ? 'text-[#de1f27]' : 'text-orange-400'">
               {{ conversacionActual.ventanaAbierta ? '✅ Abierta (24h)' : '🔒 Cerrada' }}
             </span>
           </div>
@@ -121,14 +121,14 @@
         <!-- Header del chat -->
         <div class="wa-chat-header">
           <button class="md:hidden mr-2 text-white text-xl leading-none" @click="conversacionActual = null">←</button>
-          <div class="wa-avatar-sm cursor-pointer" :class="conversacionActual.modo === 'HUMAN' ? 'bg-blue-500' : 'bg-[#25D366]'"
+          <div class="wa-avatar-sm cursor-pointer" :class="conversacionActual.modo === 'HUMAN' ? 'bg-[#152c77]' : 'bg-[#de1f27]'"
             @click="perfilAbierto = !perfilAbierto">
             {{ iniciales(conversacionActual.nombre || conversacionActual.telefono) }}
           </div>
           <div class="flex-1 min-w-0 cursor-pointer" @click="perfilAbierto = !perfilAbierto">
             <p class="font-bold text-sm text-white truncate">{{ conversacionActual.nombre || formatTel(conversacionActual.telefono) }}</p>
             <p class="text-xs text-white/50 truncate">{{ formatTel(conversacionActual.telefono) }} ·
-              <span :class="conversacionActual.modo === 'HUMAN' ? 'text-blue-300' : 'text-[#25D366]'">
+              <span :class="conversacionActual.modo === 'HUMAN' ? 'text-blue-200' : 'text-[#de1f27]'">
                 {{ conversacionActual.modo === 'HUMAN' ? `Asesor: ${conversacionActual.asesor}` : 'Bot activo' }}
               </span>
               <span v-if="!conversacionActual.ventanaAbierta" class="text-orange-400 ml-1">· 🔒</span>
@@ -137,11 +137,11 @@
           <!-- Acciones -->
           <div class="flex gap-2 shrink-0">
             <button v-if="conversacionActual.modo === 'BOT'" @click="tomarControl"
-              class="wa-btn-action bg-blue-600 hover:bg-blue-700">
+              class="wa-btn-action bg-[#152c77] hover:bg-[#0c1a3a]">
               👤 Tomar
             </button>
             <button v-else @click="resolver"
-              class="wa-btn-action bg-[#25D366] hover:bg-green-600">
+              class="wa-btn-action bg-[#de1f27] hover:bg-[#b01920]">
               ✅ Resolver
             </button>
           </div>
@@ -161,7 +161,7 @@
               <div class="wa-bubble" :class="m.direccion === 'OUTBOUND' ? 'outbound' : 'inbound'" :data-wamid="m.wamid">
                 <!-- Mensaje citado (dentro del bubble) -->
                 <div v-if="m.contextoWamid && getMsgByWamid(m.contextoWamid)" class="wa-quote" @click.stop="scrollToMsg(m.contextoWamid)">
-                  <p class="text-[10px] text-[#25D366] font-bold mb-0.5">{{ getMsgByWamid(m.contextoWamid)?.direccion === 'OUTBOUND' ? 'Tú' : (conversacionActual.nombre || formatTel(conversacionActual.telefono)) }}</p>
+                  <p class="text-[10px] text-[#de1f27] font-bold mb-0.5">{{ getMsgByWamid(m.contextoWamid)?.direccion === 'OUTBOUND' ? 'Tú' : (conversacionActual.nombre || formatTel(conversacionActual.telefono)) }}</p>
                   <p class="text-[11px] text-white/70 truncate">{{ getMsgByWamid(m.contextoWamid)?.contenido }}</p>
                 </div>
                 <!-- Audio -->
@@ -178,7 +178,7 @@
                   <span class="text-2xl">📄</span>
                   <div>
                     <p class="text-xs font-bold text-white">{{ m.contenido }}</p>
-                    <a :href="mediaUrl(m.mediaId)" target="_blank" class="text-[10px] text-[#25D366]">Descargar</a>
+                    <a :href="mediaUrl(m.mediaId)" target="_blank" class="text-[10px] text-[#de1f27]">Descargar</a>
                   </div>
                 </div>
                 <!-- Texto / otros -->
@@ -203,7 +203,7 @@
           <!-- Mensaje citado activo -->
           <div v-if="mensajeCitado" class="wa-cite-preview">
             <div class="flex-1 min-w-0">
-              <p class="text-[10px] text-[#25D366] font-bold">Respondiendo a</p>
+              <p class="text-[10px] text-[#de1f27] font-bold">Respondiendo a</p>
               <p class="text-xs text-white/70 truncate">{{ mensajeCitado.contenido }}</p>
             </div>
             <button @click="mensajeCitado = null" class="text-white/40 hover:text-white text-lg ml-2">×</button>
@@ -543,10 +543,18 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* ── PALETA PET STATION ─────────────────────────────────────────────
+   Azul oscuro: #0c1a3a  (fondo principal)
+   Azul medio:  #152c77  (headers, acciones)
+   Azul claro:  #1e3a8a  (hover, inputs)
+   Rojo:        #de1f27  (acento, enviar, badges)
+   Rojo oscuro: #b01920  (hover rojo)
+   ──────────────────────────────────────────────────────────────── */
+
 .wa-panel {
   display: flex;
   height: 100vh;
-  background: #111b21;
+  background: #0c1a3a;
   font-family: system-ui, sans-serif;
   overflow: hidden;
 }
@@ -555,14 +563,14 @@ onMounted(async () => {
 .wa-sidebar {
   width: 360px;
   min-width: 280px;
-  border-right: 1px solid #2a3942;
+  border-right: 1px solid rgba(255,255,255,0.08);
   display: flex;
   flex-direction: column;
-  background: #111b21;
+  background: #0c1a3a;
   overflow: hidden;
 }
 .wa-sidebar-header {
-  background: #202c33;
+  background: #152c77;
   padding: 10px 16px;
   display: flex;
   align-items: center;
@@ -578,13 +586,12 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  border-bottom: 1px solid #1f2c34;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
   transition: background 0.1s;
   text-align: left;
 }
-.wa-conv-item:hover, .wa-conv-item.active {
-  background: #2a3942;
-}
+.wa-conv-item:hover { background: rgba(21,44,119,0.4); }
+.wa-conv-item.active { background: rgba(21,44,119,0.7); }
 .wa-avatar {
   width: 44px; height: 44px;
   border-radius: 50%;
@@ -605,7 +612,7 @@ onMounted(async () => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #0b141a;
+  background: #091228;
   min-width: 0;
   position: relative;
   overflow: hidden;
@@ -617,12 +624,12 @@ onMounted(async () => {
   justify-content: center;
 }
 .wa-chat-header {
-  background: #202c33;
+  background: #152c77;
   padding: 8px 16px;
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid #2a3942;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   min-height: 56px;
 }
 .wa-btn-action {
@@ -634,7 +641,7 @@ onMounted(async () => {
   transition: background 0.15s;
 }
 
-/* MENSAJES */
+/* MENSAJES — fondo con patrón sutil de huellas */
 .wa-messages {
   flex: 1;
   overflow-y: auto;
@@ -642,7 +649,8 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect fill='%230b141a' width='60' height='60'/%3E%3C/svg%3E");
+  background-color: #091228;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' opacity='0.03'%3E%3Ctext x='10' y='40' font-size='32'%3E🐾%3C/text%3E%3C/svg%3E");
 }
 .wa-msg-wrapper {
   display: flex;
@@ -654,7 +662,7 @@ onMounted(async () => {
 .wa-msg-wrapper.outbound { flex-direction: row-reverse; }
 .wa-msg-wrapper .wa-quote-btn {
   opacity: 0;
-  background: #2a3942;
+  background: rgba(21,44,119,0.6);
   border-radius: 50%;
   width: 24px; height: 24px;
   display: flex; align-items: center; justify-content: center;
@@ -668,27 +676,35 @@ onMounted(async () => {
   max-width: 65%;
   min-width: 60px;
   padding: 6px 10px 4px;
-  border-radius: 8px;
+  border-radius: 10px;
   position: relative;
   word-break: break-word;
 }
-.wa-bubble.inbound  { background: #202c33; border-bottom-left-radius: 0; }
-.wa-bubble.outbound { background: #005c4b; border-bottom-right-radius: 0; }
+/* Inbound: azul oscuro con borde izquierdo sutil */
+.wa-bubble.inbound {
+  background: #152c77;
+  border-bottom-left-radius: 0;
+}
+/* Outbound: rojo Pet Station */
+.wa-bubble.outbound {
+  background: #de1f27;
+  border-bottom-right-radius: 0;
+}
 .wa-meta {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 2px;
   font-size: 10px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.5);
   margin-top: 2px;
 }
 .wa-quote {
-  background: rgba(0,0,0,0.2);
-  border-left: 3px solid #25D366;
+  background: rgba(0,0,0,0.25);
+  border-left: 3px solid rgba(255,255,255,0.5);
   padding: 4px 8px;
   border-radius: 4px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   cursor: pointer;
 }
 .wa-audio { padding: 4px 0; }
@@ -696,13 +712,13 @@ onMounted(async () => {
 
 /* INPUT */
 .wa-input-area {
-  background: #202c33;
+  background: #152c77;
   padding: 10px 16px;
-  border-top: 1px solid #2a3942;
+  border-top: 1px solid rgba(255,255,255,0.08);
 }
 .wa-textarea {
   flex: 1;
-  background: #2a3942;
+  background: rgba(255,255,255,0.1);
   color: white;
   border-radius: 24px;
   padding: 9px 16px;
@@ -711,10 +727,11 @@ onMounted(async () => {
   outline: none;
   max-height: 120px;
   line-height: 1.4;
+  border: 1px solid rgba(255,255,255,0.15);
 }
 .wa-textarea::placeholder { color: rgba(255,255,255,0.4); }
 .wa-send-btn {
-  background: #25D366;
+  background: #de1f27;
   color: white;
   border-radius: 50%;
   width: 40px; height: 40px;
@@ -722,36 +739,37 @@ onMounted(async () => {
   flex-shrink: 0;
   transition: background 0.15s;
 }
-.wa-send-btn:hover:not(:disabled) { background: #128c7e; }
+.wa-send-btn:hover:not(:disabled) { background: #b01920; }
 .wa-cite-preview {
   display: flex;
   align-items: center;
-  background: #1a2832;
-  border-left: 3px solid #25D366;
+  background: rgba(0,0,0,0.2);
+  border-left: 3px solid #de1f27;
   padding: 6px 10px;
   border-radius: 6px;
   margin-bottom: 8px;
 }
 .wa-ventana-cerrada {
   text-align: center;
-  color: #f59e0b;
+  color: #fbbf24;
   font-size: 12px;
   font-weight: 600;
   padding: 10px;
-  background: rgba(245,158,11,0.1);
+  background: rgba(251,191,36,0.1);
   border-radius: 8px;
 }
 
 .wa-attach-btn {
-  background: #2a3942;
+  background: rgba(255,255,255,0.1);
   border-radius: 50%;
   width: 40px; height: 40px;
   display: flex; align-items: center; justify-content: center;
   font-size: 18px;
   flex-shrink: 0;
   transition: background 0.15s;
+  border: 1px solid rgba(255,255,255,0.15);
 }
-.wa-attach-btn:hover:not(:disabled) { background: #3d5060; }
+.wa-attach-btn:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
 .wa-attach-btn:disabled { opacity: 0.5; }
 
 /* Botón ir al final */
@@ -760,34 +778,34 @@ onMounted(async () => {
   bottom: 80px;
   right: 16px;
   z-index: 20;
-  background: #25D366;
+  background: #de1f27;
   color: white;
   border-radius: 50%;
   width: 36px; height: 36px;
   font-size: 18px;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 10px rgba(222,31,39,0.5);
   transition: background 0.15s;
 }
-.wa-scroll-bottom:hover { background: #128c7e; }
+.wa-scroll-bottom:hover { background: #b01920; }
 
 /* PERFIL LATERAL */
 .wa-perfil {
   width: 300px;
   min-width: 260px;
-  background: #111b21;
-  border-left: 1px solid #2a3942;
+  background: #0c1a3a;
+  border-left: 1px solid rgba(255,255,255,0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 .wa-perfil-header {
-  background: #202c33;
+  background: #152c77;
   padding: 12px 16px;
   display: flex;
   align-items: center;
   min-height: 56px;
-  border-bottom: 1px solid #2a3942;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .wa-perfil-body {
   flex: 1;
@@ -798,14 +816,30 @@ onMounted(async () => {
   flex-direction: column;
   gap: 2px;
   padding: 10px 0;
-  border-bottom: 1px solid #1f2c34;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
+
+/* Scrollbars */
+.wa-conv-list::-webkit-scrollbar,
+.wa-messages::-webkit-scrollbar,
+.wa-perfil-body::-webkit-scrollbar { width: 3px; }
+.wa-conv-list::-webkit-scrollbar-thumb,
+.wa-messages::-webkit-scrollbar-thumb,
+.wa-perfil-body::-webkit-scrollbar-thumb { background: #de1f27; border-radius: 10px; }
+
+/* Buscador */
+.wa-sidebar input {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  color: white;
+}
+.wa-sidebar input::placeholder { color: rgba(255,255,255,0.35); }
 
 /* Responsive móvil */
 @media (max-width: 768px) {
   .wa-panel { position: relative; overflow: hidden; }
 
-  /* Sidebar: ocupa toda la pantalla por defecto */
   .wa-sidebar {
     position: absolute;
     inset: 0;
@@ -814,13 +848,11 @@ onMounted(async () => {
     transition: transform 0.25s ease;
   }
 
-  /* Cuando hay conversación activa, se oculta el sidebar */
   .wa-panel.chat-open .wa-sidebar {
     transform: translateX(-100%);
     pointer-events: none;
   }
 
-  /* Chat: ocupa toda la pantalla */
   .wa-chat {
     position: absolute;
     inset: 0;
@@ -828,7 +860,6 @@ onMounted(async () => {
     overflow: hidden;
   }
 
-  /* Perfil ocupa la pantalla completa en móvil */
   .wa-perfil {
     position: absolute;
     inset: 0;
