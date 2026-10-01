@@ -61,6 +61,51 @@
       </div>
     </aside>
 
+    <!-- ── PERFIL LATERAL ────────────────────────────────────────────── -->
+    <aside v-if="perfilAbierto && conversacionActual" class="wa-perfil">
+      <div class="wa-perfil-header">
+        <button @click="perfilAbierto = false" class="text-white/60 hover:text-white text-lg">✕</button>
+        <span class="text-white font-bold text-sm ml-3">Perfil del contacto</span>
+      </div>
+      <div class="wa-perfil-body">
+        <!-- Avatar grande -->
+        <div class="flex flex-col items-center py-6 gap-2">
+          <div class="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black text-white"
+            :class="conversacionActual.modo === 'HUMAN' ? 'bg-blue-500' : 'bg-[#25D366]'">
+            {{ iniciales(conversacionActual.nombre || conversacionActual.telefono) }}
+          </div>
+          <p class="text-white font-bold text-base mt-1">{{ conversacionActual.nombre || 'Sin nombre' }}</p>
+          <p class="text-white/50 text-sm">{{ formatTel(conversacionActual.telefono) }}</p>
+        </div>
+        <!-- Info -->
+        <div class="px-4 space-y-3">
+          <div class="wa-perfil-row">
+            <span class="text-white/40 text-xs">Modo</span>
+            <span class="text-white text-sm">{{ conversacionActual.modo === 'HUMAN' ? `👤 Asesor: ${conversacionActual.asesor}` : '🤖 Bot activo' }}</span>
+          </div>
+          <div class="wa-perfil-row">
+            <span class="text-white/40 text-xs">Ventana</span>
+            <span class="text-sm" :class="conversacionActual.ventanaAbierta ? 'text-[#25D366]' : 'text-orange-400'">
+              {{ conversacionActual.ventanaAbierta ? '✅ Abierta (24h)' : '🔒 Cerrada' }}
+            </span>
+          </div>
+        </div>
+        <!-- Fotos compartidas -->
+        <div class="px-4 mt-5">
+          <p class="text-white/40 text-xs font-bold uppercase tracking-wider mb-3">Fotos compartidas</p>
+          <div class="grid grid-cols-3 gap-1">
+            <div v-if="fotosCompartidas.length === 0" class="col-span-3 text-white/30 text-xs py-4 text-center">
+              Sin fotos
+            </div>
+            <img v-for="m in fotosCompartidas" :key="m.id"
+              :src="mediaUrl(m.mediaId)"
+              class="w-full aspect-square object-cover rounded cursor-pointer hover:opacity-80"
+              @click="verImagen(m.mediaId)" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </aside>
+
     <!-- ── CHAT: conversación activa ─────────────────────────────────── -->
     <main class="wa-chat" :class="{ 'hidden md:flex': !conversacionActual }">
 
@@ -75,21 +120,22 @@
       <template v-else>
         <!-- Header del chat -->
         <div class="wa-chat-header">
-          <button class="md:hidden mr-2 text-white" @click="conversacionActual = null">←</button>
-          <div class="wa-avatar-sm" :class="conversacionActual.modo === 'HUMAN' ? 'bg-blue-500' : 'bg-[#25D366]'">
+          <button class="md:hidden mr-2 text-white text-xl leading-none" @click="conversacionActual = null">←</button>
+          <div class="wa-avatar-sm cursor-pointer" :class="conversacionActual.modo === 'HUMAN' ? 'bg-blue-500' : 'bg-[#25D366]'"
+            @click="perfilAbierto = !perfilAbierto">
             {{ iniciales(conversacionActual.nombre || conversacionActual.telefono) }}
           </div>
-          <div class="flex-1 min-w-0">
+          <div class="flex-1 min-w-0 cursor-pointer" @click="perfilAbierto = !perfilAbierto">
             <p class="font-bold text-sm text-white truncate">{{ conversacionActual.nombre || formatTel(conversacionActual.telefono) }}</p>
-            <p class="text-xs text-white/50">{{ formatTel(conversacionActual.telefono) }} ·
+            <p class="text-xs text-white/50 truncate">{{ formatTel(conversacionActual.telefono) }} ·
               <span :class="conversacionActual.modo === 'HUMAN' ? 'text-blue-300' : 'text-[#25D366]'">
                 {{ conversacionActual.modo === 'HUMAN' ? `Asesor: ${conversacionActual.asesor}` : 'Bot activo' }}
               </span>
-              <span v-if="!conversacionActual.ventanaAbierta" class="text-orange-400 ml-1">· 🔒 Ventana cerrada</span>
+              <span v-if="!conversacionActual.ventanaAbierta" class="text-orange-400 ml-1">· 🔒</span>
             </p>
           </div>
           <!-- Acciones -->
-          <div class="flex gap-2">
+          <div class="flex gap-2 shrink-0">
             <button v-if="conversacionActual.modo === 'BOT'" @click="tomarControl"
               class="wa-btn-action bg-blue-600 hover:bg-blue-700">
               👤 Tomar
@@ -100,6 +146,12 @@
             </button>
           </div>
         </div>
+
+        <!-- Botón "ir al final" -->
+        <button v-if="!atBottom" @click="scrollAbajo(true)"
+          class="wa-scroll-bottom">
+          ↓
+        </button>
 
         <!-- Mensajes -->
         <div ref="chatBody" class="wa-messages" @scroll="onScroll">
@@ -197,7 +249,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import api from '@/api/axios.js';
 
 const conversaciones = ref([]);
@@ -213,7 +265,13 @@ const inputRef = ref(null);
 const fileInput = ref(null);
 const imagenModal = ref(null);
 const sidebarOpen = ref(true);
+const perfilAbierto = ref(false);
+const atBottom = ref(true);
 const stats = ref({ total: 0, ventanaAbierta: 0, enHumano: 0, sinLeer: 0 });
+
+const fotosCompartidas = computed(() =>
+  mensajes.value.filter(m => m.tipo === 'image').slice(-18)
+);
 
 let ws = null;
 let wsReconnectTimer = null;
@@ -243,10 +301,12 @@ async function cargarStats() {
 }
 
 async function abrirConversacion(conv) {
+  perfilAbierto.value = false;
   conversacionActual.value = conv;
   cargandoMensajes.value = true;
   mensajes.value = [];
   mensajeCitado.value = null;
+  atBottom.value = true;
   try {
     const { data } = await api.get(`/admin/wa/conversaciones/${conv.telefono}/mensajes`);
     mensajes.value = data;
@@ -254,6 +314,8 @@ async function abrirConversacion(conv) {
     conv.sinLeer = 0;
     await nextTick();
     scrollAbajo(true);
+    // Segundo intento por si las imágenes tardan en renderizarse
+    setTimeout(() => scrollAbajo(true), 300);
   } finally {
     cargandoMensajes.value = false;
   }
@@ -389,12 +451,18 @@ function scrollToMsg(wamid) {
 function scrollAbajo(forzar = false) {
   if (!chatBody.value) return;
   const { scrollTop, scrollHeight, clientHeight } = chatBody.value;
-  if (forzar || scrollHeight - scrollTop - clientHeight < 200) {
+  const distancia = scrollHeight - scrollTop - clientHeight;
+  if (forzar || distancia < 200) {
     chatBody.value.scrollTop = chatBody.value.scrollHeight;
+    atBottom.value = true;
   }
 }
 
-function onScroll() {}
+function onScroll() {
+  if (!chatBody.value) return;
+  const { scrollTop, scrollHeight, clientHeight } = chatBody.value;
+  atBottom.value = scrollHeight - scrollTop - clientHeight < 80;
+}
 
 function autoResize(e) {
   e.target.style.height = 'auto';
@@ -540,6 +608,8 @@ onMounted(async () => {
   flex-direction: column;
   background: #0b141a;
   min-width: 0;
+  position: relative;
+  overflow: hidden;
 }
 .wa-empty {
   flex: 1;
@@ -685,9 +755,56 @@ onMounted(async () => {
 .wa-attach-btn:hover:not(:disabled) { background: #3d5060; }
 .wa-attach-btn:disabled { opacity: 0.5; }
 
+/* Botón ir al final */
+.wa-scroll-bottom {
+  position: absolute;
+  bottom: 80px;
+  right: 16px;
+  z-index: 20;
+  background: #25D366;
+  color: white;
+  border-radius: 50%;
+  width: 36px; height: 36px;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  transition: background 0.15s;
+}
+.wa-scroll-bottom:hover { background: #128c7e; }
+
+/* PERFIL LATERAL */
+.wa-perfil {
+  width: 300px;
+  min-width: 260px;
+  background: #111b21;
+  border-left: 1px solid #2a3942;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.wa-perfil-header {
+  background: #202c33;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  border-bottom: 1px solid #2a3942;
+}
+.wa-perfil-body {
+  flex: 1;
+  overflow-y: auto;
+}
+.wa-perfil-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid #1f2c34;
+}
+
 /* Responsive móvil */
 @media (max-width: 768px) {
-  .wa-panel { position: relative; }
+  .wa-panel { position: relative; overflow: hidden; }
 
   /* Sidebar: ocupa toda la pantalla por defecto */
   .wa-sidebar {
@@ -695,7 +812,7 @@ onMounted(async () => {
     inset: 0;
     width: 100%;
     z-index: 10;
-    transition: transform 0.2s;
+    transition: transform 0.25s ease;
   }
 
   /* Cuando hay conversación activa, se oculta el sidebar */
@@ -709,8 +826,20 @@ onMounted(async () => {
     position: absolute;
     inset: 0;
     z-index: 5;
+    overflow: hidden;
+  }
+
+  /* Perfil ocupa la pantalla completa en móvil */
+  .wa-perfil {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    z-index: 15;
+    border-left: none;
   }
 
   .wa-bubble { max-width: 85%; }
+  .wa-messages { overflow-x: hidden; }
+  .wa-input-area { overflow-x: hidden; }
 }
 </style>
