@@ -9,6 +9,7 @@ import AdminDashboard from '../components/views/admin/AdminDashboard.vue';
 import WhatsAppPanel from '../components/views/admin/WhatsAppPanel.vue';
 import AdminInstagram from '../components/views/admin/AdminInstagram.vue';
 import AdminSocial from '../components/views/admin/AdminSocial.vue';
+import AdminIgDms from '../components/views/admin/AdminIgDms.vue';
 import PrivacyView from '../components/views/legal/PrivacyView.vue';
 import TermsView from '../components/views/legal/TermsView.vue';
 
@@ -114,7 +115,13 @@ const routes = [
     path: '/admin/instagram',
     name: 'AdminInstagram',
     component: AdminInstagram,
-    meta: { requiresAdmin: true, title: 'Instagram DM | Pet Station' }
+    meta: { requiresAdmin: true, title: 'Instagram Automatizaciones | Pet Station' }
+  },
+  {
+    path: '/admin/instagram/dms',
+    name: 'AdminIgDms',
+    component: AdminIgDms,
+    meta: { requiresAdmin: true, title: 'Instagram DMs | Pet Station' }
   },
   {
     path: '/admin/social',
