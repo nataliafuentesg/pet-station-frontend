@@ -274,7 +274,7 @@ const emit = defineEmits(['notify']);
 const abrirWhatsapp = (tipo, extra = {}) => {
   if (!product.value) return;
   track(tipo, { productoId: product.value.id, nombre: product.value.nombre, precio: product.value.precio, ...extra });
-  const msg = `PRODUCTO:${product.value.id}:${product.value.nombre}`;
+  const msg = `Hola! Me interesa este producto: *${product.value.nombre}*\nRef: ${product.value.id}`;
   window.open(`https://wa.me/573213501873?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
