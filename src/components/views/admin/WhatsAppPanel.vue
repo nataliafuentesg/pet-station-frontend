@@ -158,13 +158,12 @@
           <div v-if="cargandoMensajes" class="text-center py-4 text-white/30 text-sm">Cargando...</div>
           <template v-else>
             <div v-for="m in mensajes" :key="m.id" class="wa-msg-wrapper" :class="m.direccion === 'OUTBOUND' ? 'outbound' : 'inbound'">
-              <!-- Mensaje citado -->
-              <div v-if="m.contextoWamid && getMsgByWamid(m.contextoWamid)" class="wa-quote" @click="scrollToMsg(m.contextoWamid)">
-                <p class="text-[10px] text-[#25D366] font-bold mb-0.5">{{ getMsgByWamid(m.contextoWamid)?.direccion === 'OUTBOUND' ? 'Tú' : formatTel(conversacionActual.telefono) }}</p>
-                <p class="text-[11px] text-white/70 truncate">{{ getMsgByWamid(m.contextoWamid)?.contenido }}</p>
-              </div>
-
               <div class="wa-bubble" :class="m.direccion === 'OUTBOUND' ? 'outbound' : 'inbound'" :data-wamid="m.wamid">
+                <!-- Mensaje citado (dentro del bubble) -->
+                <div v-if="m.contextoWamid && getMsgByWamid(m.contextoWamid)" class="wa-quote" @click.stop="scrollToMsg(m.contextoWamid)">
+                  <p class="text-[10px] text-[#25D366] font-bold mb-0.5">{{ getMsgByWamid(m.contextoWamid)?.direccion === 'OUTBOUND' ? 'Tú' : (conversacionActual.nombre || formatTel(conversacionActual.telefono)) }}</p>
+                  <p class="text-[11px] text-white/70 truncate">{{ getMsgByWamid(m.contextoWamid)?.contenido }}</p>
+                </div>
                 <!-- Audio -->
                 <div v-if="m.tipo === 'audio'" class="wa-audio">
                   <audio controls :src="mediaUrl(m.mediaId)" class="h-8 max-w-[220px]" preload="none" />
