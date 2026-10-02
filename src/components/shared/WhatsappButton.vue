@@ -532,7 +532,7 @@ const sendViajeWA = () => {
   const textoWA = `Hola Pet Station! ✈️ Necesito asesoría y cotización para viajar con mi mascota. Aquí están los datos del pasajero:\n\n🌍 *Destino:* ${formViaje.value.destino}\n🐾 *Especie:* ${formViaje.value.especie}\n🎂 *Edad:* ${formViaje.value.edad}\n📅 *Fecha Tentativa:* ${formViaje.value.fecha}\n\nQuedo atento(a) a los requisitos. ¡Gracias!`;
   isOpen.value = false;
   formViaje.value = { destino: '', especie: '', edad: '', fecha: '' };
-  window.open(`https://wa.me/${numeroWhatsAppViajes}?text=${encodeURIComponent(textoWA)}`, '_blank');
+  window.open(`https://wa.me/${numeroWhatsAppGeneral}?text=${encodeURIComponent(textoWA)}`, '_blank');
 };
 
 const sendProductoWA = () => {
