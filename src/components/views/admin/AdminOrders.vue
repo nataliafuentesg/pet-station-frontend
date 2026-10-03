@@ -85,6 +85,28 @@
                     </div>
                 </div>
 
+                <!-- Datos de facturación -->
+                <div v-if="form.quiereFactura" class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10 space-y-3">
+                    <p class="label !ml-0 mb-0 text-ps-blue">🧾 Facturación Electrónica</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <p class="label !ml-0 mb-0">Cédula / NIT</p>
+                            <p class="text-[10px] font-black dark:text-white uppercase italic">{{ form.factCedula || '—' }}</p>
+                        </div>
+                        <div>
+                            <p class="label !ml-0 mb-0">Nombre / Razón Social</p>
+                            <p class="text-[10px] font-black dark:text-white uppercase italic truncate">{{ form.factNombre || '—' }}</p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="label !ml-0 mb-0">Correo para Factura</p>
+                            <p class="text-[10px] font-black dark:text-white opacity-70">{{ form.factEmail || '—' }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="px-4 py-2 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10">
+                    <p class="text-[9px] font-black uppercase opacity-40 tracking-widest">🧾 Consumidor Final — Sin factura electrónica</p>
+                </div>
+
                 <!-- Detalles de pago -->
                 <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10 space-y-3">
                     <p class="label !ml-0 mb-0 text-ps-red">💳 Pago</p>
@@ -238,6 +260,10 @@ const abrirModal = (order) => {
         estado: order.estado,
         boldPaymentId: order.boldPaymentId || null,
         receptorEntrega: order.receptorEntrega || null,
+        quiereFactura: order.quiereFactura || false,
+        factCedula: order.factCedula || null,
+        factNombre: order.factNombre || null,
+        factEmail: order.factEmail || null,
         items: (order.items || []).map(item => ({
             id: item.id,
             productoId: item.productoId,
