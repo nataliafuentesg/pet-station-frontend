@@ -165,7 +165,11 @@
                   <p class="text-[11px] text-white/70 truncate">{{ getMsgByWamid(m.contextoWamid)?.contenido }}</p>
                 </div>
                 <!-- Audio -->
-                <div v-if="m.tipo === 'audio'" class="wa-audio">
+                <div v-if="m.tipo === 'template'" class="space-y-1">
+                  <span class="text-[8px] font-black uppercase tracking-widest opacity-50">📋 Plantilla</span>
+                  <p class="text-sm text-white whitespace-pre-wrap">{{ m.contenido }}</p>
+                </div>
+                <div v-else-if="m.tipo === 'audio'" class="wa-audio">
                   <audio controls :src="mediaUrl(m.mediaId)" class="h-8 max-w-[220px]" preload="none" />
                 </div>
                 <!-- Imagen -->
