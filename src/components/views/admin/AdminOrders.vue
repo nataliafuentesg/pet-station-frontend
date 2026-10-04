@@ -107,6 +107,27 @@
                     <p class="text-[9px] font-black uppercase opacity-40 tracking-widest">🧾 Consumidor Final — Sin factura electrónica</p>
                 </div>
 
+                <!-- Datos de despacho: solo para pedidos ENVIO -->
+                <div v-if="esEnvio" class="p-5 bg-blue-50 dark:bg-blue-500/10 rounded-3xl border border-blue-200 dark:border-blue-400/20 space-y-3">
+                    <p class="label !ml-0 mb-0 text-blue-700 dark:text-blue-400">🚚 Despacho Nacional</p>
+                    <div v-if="form.transportadora && form.numeroGuia && originalForm?.numeroGuia" class="flex items-center gap-2 text-[9px] font-black text-green-600 dark:text-green-400">
+                        ✅ Despachado — {{ form.transportadora }} · Guía {{ form.numeroGuia }}
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="label !ml-0 mb-1">Transportadora</label>
+                            <input v-model="form.transportadora" type="text" placeholder="Ej: Coordinadora" class="admin-input-dark !py-2 !text-[10px]" />
+                        </div>
+                        <div>
+                            <label class="label !ml-0 mb-1">Número de Guía</label>
+                            <input v-model="form.numeroGuia" type="text" placeholder="Ej: 1234567890" class="admin-input-dark !py-2 !text-[10px]" />
+                        </div>
+                    </div>
+                    <p v-if="!originalForm?.numeroGuia && form.numeroGuia" class="text-[9px] text-blue-600 dark:text-blue-300">
+                        Al guardar se enviará un WhatsApp al cliente con la guía 📲
+                    </p>
+                </div>
+
                 <!-- Detalles de pago -->
                 <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10 space-y-3">
                     <p class="label !ml-0 mb-0 text-ps-red">💳 Pago</p>
@@ -288,13 +309,16 @@ const totalCalculado = computed(() => {
 // Solo se pueden editar artículos si el pedido sigue PENDIENTE (sin pagar)
 const editable = computed(() => form.value.estado === 'PENDIENTE');
 
-const esPickup = computed(() => (form.value.direccion || '').toLowerCase().includes('recoge') || (form.value.tipoEntrega || '') === 'PICKUP');
+const esPickup = computed(() => form.value.tipoEntrega === 'PICKUP');
+const esEnvio = computed(() => form.value.tipoEntrega === 'ENVIO');
 
 const haycambios = computed(() => {
     if (!originalForm.value) return false;
     const o = originalForm.value;
     const f = form.value;
     if (o.estado !== f.estado) return true;
+    if (o.transportadora !== f.transportadora) return true;
+    if (o.numeroGuia !== f.numeroGuia) return true;
     if (o.items.length !== f.items.length) return true;
     for (let i = 0; i < f.items.length; i++) {
         if (!o.items[i] || o.items[i].cantidad !== f.items[i].cantidad || o.items[i].productoId !== f.items[i].productoId) return true;
@@ -318,6 +342,9 @@ const abrirModal = (order) => {
         estado: order.estado,
         boldPaymentId: order.boldPaymentId || null,
         receptorEntrega: order.receptorEntrega || null,
+        tipoEntrega: order.tipoEntrega || 'DOMICILIO',
+        transportadora: order.transportadora || '',
+        numeroGuia: order.numeroGuia || '',
         quiereFactura: order.quiereFactura || false,
         factCedula: order.factCedula || null,
         factNombre: order.factNombre || null,
@@ -386,6 +413,16 @@ const ejecutarGuardado = async () => {
         if (estadoOriginal && estadoOriginal !== form.value.estado) {
             await api.patch(`/pedidos/admin/${form.value.id}/estado`, form.value.estado, {
                 headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // Si se registró transportadora/guía nueva → despachar y enviar WhatsApp
+        const guiaOriginal = originalForm.value?.numeroGuia || '';
+        const guiaNueva = form.value.numeroGuia || '';
+        if (esEnvio.value && guiaNueva && guiaNueva !== guiaOriginal) {
+            await api.patch(`/pedidos/admin/${form.value.id}/despacho`, {
+                transportadora: form.value.transportadora,
+                numeroGuia: form.value.numeroGuia
             });
         }
         showModal.value = false;
