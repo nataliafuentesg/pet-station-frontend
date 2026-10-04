@@ -189,7 +189,24 @@
                         <p class="text-4xl font-[1000] italic text-ps-red leading-none tracking-tighter">${{ totalCalculado.toLocaleString() }}</p>
                     </div>
                 </div>
-                <button @click="guardarCambios" class="btn-save-order" :disabled="isSaving">
+                <!-- Verificación de código para pickup -->
+                <div v-if="esPickup && form.estado === 'PAGADO'" class="mb-4 p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-400/20 rounded-2xl space-y-3">
+                    <p class="text-[9px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-400">🔑 Verificar Código de Retiro</p>
+                    <p class="text-[9px] text-blue-600 dark:text-blue-300">Pide al cliente que muestre el código que recibió por WhatsApp.</p>
+                    <div v-if="!codigoVerificado" class="flex gap-2">
+                        <input v-model="codigoInput" type="text" maxlength="6" placeholder="000000"
+                            class="admin-input-dark !py-2 !text-center !text-lg !font-black tracking-[0.5em] w-32" />
+                        <button @click="verificarCodigo" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-700 active:scale-95 transition-all">
+                            Verificar
+                        </button>
+                    </div>
+                    <p v-if="codigoError" class="text-[9px] font-black text-red-500">{{ codigoError }}</p>
+                    <p v-if="codigoVerificado" class="text-[9px] font-black text-green-600 dark:text-green-400">✅ Código correcto — puedes marcar como entregado</p>
+                </div>
+
+                <button @click="guardarCambios"
+                    :disabled="isSaving || !haycambios || (esPickup && form.estado === 'ENTREGADO' && !codigoVerificado && originalForm?.estado !== 'ENTREGADO')"
+                    :class="['btn-save-order transition-all', (!haycambios || (esPickup && form.estado === 'ENTREGADO' && !codigoVerificado && originalForm?.estado !== 'ENTREGADO')) ? 'opacity-30 cursor-not-allowed' : '']">
                     {{ isSaving ? 'ACTUALIZANDO...' : 'GUARDAR CAMBIOS' }}
                 </button>
 
@@ -201,6 +218,21 @@
                 </button>
             </div>
         </div>
+    </div>
+  </div>
+
+  <!-- Dialog de confirmación -->
+  <div v-if="confirmDialog.show" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-white dark:bg-[#111] rounded-3xl p-8 max-w-sm w-full border border-white/10 space-y-6 shadow-2xl">
+      <p class="text-[11px] font-black uppercase tracking-widest dark:text-white leading-relaxed">{{ confirmDialog.mensaje }}</p>
+      <div class="flex gap-3">
+        <button @click="confirmDialog.show = false" class="flex-1 py-3 rounded-2xl border-2 border-slate-200 dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:border-slate-400 transition-all">
+          Cancelar
+        </button>
+        <button @click="() => { confirmDialog.show = false; confirmDialog.onConfirm(); }" class="flex-1 py-3 rounded-2xl bg-ps-red text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-700 active:scale-95 transition-all">
+          Confirmar
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -218,6 +250,15 @@ const showModal = ref(false);
 const searchProd = ref('');
 const isSaving = ref(false);
 const form = ref({ items: [] });
+const originalForm = ref(null);
+
+// Confirmación de estado
+const confirmDialog = ref({ show: false, mensaje: '', onConfirm: null });
+
+// Código de retiro para pickup
+const codigoInput = ref('');
+const codigoError = ref('');
+const codigoVerificado = ref(false);
 
 const itemsFiltrados = computed(() => {
     let list = props.orders || [];
@@ -247,7 +288,24 @@ const totalCalculado = computed(() => {
 // Solo se pueden editar artículos si el pedido sigue PENDIENTE (sin pagar)
 const editable = computed(() => form.value.estado === 'PENDIENTE');
 
+const esPickup = computed(() => (form.value.direccion || '').toLowerCase().includes('recoge') || (form.value.tipoEntrega || '') === 'PICKUP');
+
+const haycambios = computed(() => {
+    if (!originalForm.value) return false;
+    const o = originalForm.value;
+    const f = form.value;
+    if (o.estado !== f.estado) return true;
+    if (o.items.length !== f.items.length) return true;
+    for (let i = 0; i < f.items.length; i++) {
+        if (!o.items[i] || o.items[i].cantidad !== f.items[i].cantidad || o.items[i].productoId !== f.items[i].productoId) return true;
+    }
+    return false;
+});
+
 const abrirModal = (order) => {
+    codigoInput.value = '';
+    codigoError.value = '';
+    codigoVerificado.value = false;
     // Clonamos el objeto y mapeamos las llaves para que coincidan con lo que el modal espera (tu DTO)
     form.value = {
         id: order.id,
@@ -272,6 +330,7 @@ const abrirModal = (order) => {
             cantidad: Number(item.cantidad)
         }))
     };
+    originalForm.value = JSON.parse(JSON.stringify(form.value));
     showModal.value = true;
 };
 
@@ -286,10 +345,29 @@ const addProd = (p) => {
     searchProd.value = '';
 };
 
-const guardarCambios = async () => {
+const etiquetaEstado = (s) => ({ PENDIENTE: 'Pendiente', PAGADO: 'Pagado', EN_CAMINO: 'En Camino', ENTREGADO: 'Entregado', CANCELADO: 'Cancelado' }[s] || s);
+
+const verificarCodigo = async () => {
+    codigoError.value = '';
+    try {
+        const { data } = await api.get(`/pedidos/admin/${form.value.id}/codigo-retiro`);
+        if (String(data.codigo) === String(codigoInput.value).trim()) {
+            codigoVerificado.value = true;
+        } else {
+            codigoError.value = 'Código incorrecto. Pide al cliente que lo muestre en su WhatsApp.';
+        }
+    } catch (e) {
+        codigoError.value = 'Error al verificar el código.';
+    }
+};
+
+const confirmarAccion = (mensaje, fn) => {
+    confirmDialog.value = { show: true, mensaje, onConfirm: fn };
+};
+
+const ejecutarGuardado = async () => {
     isSaving.value = true;
     try {
-        // 1. Guardar items y estructura del pedido
         const payload = {
             id: form.value.id,
             estado: form.value.estado,
@@ -304,19 +382,30 @@ const guardarCambios = async () => {
         };
         await api.put(`/pedidos/admin/${form.value.id}`, payload);
 
-        // 2. Si el estado cambió, usar PATCH para que dispare emails y Telegram
-        const estadoOriginal = props.orders.find(o => o.id === form.value.id)?.estado;
+        const estadoOriginal = originalForm.value?.estado;
         if (estadoOriginal && estadoOriginal !== form.value.estado) {
             await api.patch(`/pedidos/admin/${form.value.id}/estado`, form.value.estado, {
                 headers: { 'Content-Type': 'application/json' }
             });
         }
-
         showModal.value = false;
         emit('refresh');
     } catch (e) {
         alert("Error al actualizar el pedido.");
     } finally { isSaving.value = false; }
+};
+
+const guardarCambios = () => {
+    const estadoOriginal = originalForm.value?.estado;
+    const estadoNuevo = form.value.estado;
+    if (estadoOriginal && estadoOriginal !== estadoNuevo) {
+        confirmarAccion(
+            `¿Confirmas cambiar el estado de este pedido a "${etiquetaEstado(estadoNuevo)}"? Se notificará al cliente.`,
+            ejecutarGuardado
+        );
+    } else {
+        ejecutarGuardado();
+    }
 };
 
 // Cancela un pedido pagado y dispara el flujo de reembolso (email + alerta Telegram)
