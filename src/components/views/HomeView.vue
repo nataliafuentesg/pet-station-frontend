@@ -7,22 +7,22 @@
 
         <div class="lg:col-span-8 bg-[#152C77] rounded-[1.8rem] md:rounded-[3.5rem] p-7 md:p-20 text-white relative overflow-hidden flex flex-col justify-center min-h-[300px] md:min-h-[550px]">
           <div class="relative z-10 space-y-4 md:space-y-8">
-            <div class="flex items-center gap-2">
+            <div class="hero-item flex items-center gap-2" style="--d:0">
               <span class="w-2 h-2 bg-[#DE1F27] rounded-full animate-pulse"></span>
               <span class="text-[8px] md:text-[11px] font-[1000] uppercase tracking-widest opacity-80">
                 Veterinaria • Chía
               </span>
             </div>
 
-            <h1 class="text-4xl md:text-[100px] font-[1000] uppercase italic leading-[0.8] tracking-tighter">
+            <h1 class="hero-item text-4xl md:text-[100px] font-[1000] uppercase italic leading-[0.8] tracking-tighter" style="--d:1">
               CIENCIA <br /> <span class="text-[#DE1F27]">QUE CUIDA.</span>
             </h1>
 
-            <p class="text-white/60 font-bold uppercase italic text-[11px] md:text-xl max-w-md leading-tight">
+            <p class="hero-item text-white/60 font-bold uppercase italic text-[11px] md:text-xl max-w-md leading-tight" style="--d:2">
               Brindamos la confianza médica que tu familia necesita. Salud real, sin rodeos.
             </p>
 
-            <div class="flex gap-3 md:gap-6 pt-2 md:pt-6">
+            <div class="hero-item flex gap-3 md:gap-6 pt-2 md:pt-6" style="--d:3">
               <button @click="router.push('/agendar')" class="flex-1 md:flex-none bg-[#DE1F27] text-white px-6 py-4 md:px-12 md:py-6 rounded-xl md:rounded-2xl font-[1000] uppercase text-[10px] md:text-sm tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl whitespace-nowrap">
                 Agendar Cita
               </button>
@@ -31,10 +31,10 @@
               </button>
             </div>
           </div>
-          <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-[#DE1F27]/20 blur-[120px] rounded-full"></div>
+          <div class="glow-blob absolute -right-20 -bottom-20 w-80 h-80 bg-[#DE1F27]/20 blur-[120px] rounded-full"></div>
         </div>
 
-        <div class="lg:col-span-4">
+        <div class="hero-item lg:col-span-4" style="--d:2">
           <div class="h-52 md:h-full bg-slate-100 dark:bg-white/5 rounded-[1.8rem] md:rounded-[3.5rem] overflow-hidden border border-slate-100 dark:border-white/10 group">
             <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80"
                  class="w-full h-full object-cover object-top grayscale-[0.3] group-hover:grayscale-0 transition-all duration-1000" />
@@ -45,7 +45,7 @@
     </section>
 
     <!-- AGENDAR CITA -->
-    <section class="py-6 px-3 md:px-6">
+    <section class="py-6 px-3 md:px-6" data-reveal>
       <div class="max-w-[1400px] mx-auto">
         <div class="bg-[#152C77] rounded-[2rem] md:rounded-[3.5rem] overflow-hidden">
           <div class="grid md:grid-cols-2">
@@ -59,7 +59,7 @@
                 Sin llamadas, sin esperas. Selecciona el servicio, elige tu horario y listo. Confirmación inmediata.
               </p>
               <div class="grid grid-cols-2 gap-3 mb-8">
-                <div v-for="s in serviciosCita" :key="s.nombre" class="bg-white/10 rounded-2xl p-4 border border-white/10 hover:border-[#DE1F27] transition-all cursor-pointer" @click="router.push('/agendar')">
+                <div v-for="(s, i) in serviciosCita" :key="s.nombre" class="bg-white/10 rounded-2xl p-4 border border-white/10 hover:border-[#DE1F27] hover:bg-white/20 transition-all cursor-pointer reveal-child" :style="`--cd:${i}`" @click="router.push('/agendar')">
                   <span class="text-2xl block mb-2">{{ s.icono }}</span>
                   <p class="text-white font-[1000] uppercase text-[10px] md:text-xs leading-tight">{{ s.nombre }}</p>
                   <p class="text-[#DE1F27] font-black text-[8px] uppercase mt-1">{{ s.detalle }}</p>
@@ -80,7 +80,7 @@
     </section>
 
     <!-- TIENDA: CARRUSEL CONVEYOR BELT -->
-    <section class="py-6">
+    <section class="py-6" data-reveal>
       <div class="max-w-[1400px] mx-auto px-3 md:px-6 mb-6 md:mb-10">
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
@@ -145,7 +145,7 @@
     </section>
 
     <!-- VIAJES INTERNACIONALES -->
-    <section class="py-6 px-3 md:px-6">
+    <section class="py-6 px-3 md:px-6" data-reveal>
       <div class="max-w-[1400px] mx-auto">
         <div class="bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/10 rounded-[2rem] md:rounded-[3.5rem] overflow-hidden">
           <div class="grid md:grid-cols-5">
@@ -186,7 +186,7 @@
     </section>
 
     <!-- APP FEATURES -->
-    <section class="py-6 px-3 md:px-6">
+    <section class="py-6 px-3 md:px-6" data-reveal>
       <div class="max-w-[1400px] mx-auto bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/10 rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-16 text-center relative overflow-hidden">
 
         <div class="relative z-10 mb-12">
@@ -201,7 +201,7 @@
         </div>
 
         <div class="relative z-10 grid md:grid-cols-3 gap-6 text-left">
-          <div class="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group">
+          <div class="reveal-child bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group" style="--cd:0">
             <div class="w-12 h-12 mb-5 text-[#152C77] dark:text-white group-hover:scale-110 transition-transform">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
@@ -211,7 +211,7 @@
             <h3 class="text-lg font-[1000] uppercase italic text-[#152C77] dark:text-white mb-2">Perfil Digital</h3>
             <p class="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">Centraliza la información básica, fotos y preferencias de tu mascota en un solo lugar seguro.</p>
           </div>
-          <div class="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group">
+          <div class="reveal-child bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group" style="--cd:1">
             <div class="w-12 h-12 mb-5 text-[#152C77] dark:text-white group-hover:scale-110 transition-transform">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -223,7 +223,7 @@
             <h3 class="text-lg font-[1000] uppercase italic text-[#152C77] dark:text-white mb-2">Smart Booking</h3>
             <p class="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">Agenda citas médicas y grooming en tiempo real sin llamadas.</p>
           </div>
-          <div class="bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group">
+          <div class="reveal-child bg-white dark:bg-white/5 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-[#DE1F27] transition-all group" style="--cd:2">
             <div class="w-12 h-12 mb-5 text-[#152C77] dark:text-white group-hover:scale-110 transition-transform">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
@@ -242,7 +242,7 @@
     </section>
 
     <!-- TESTIMONIOS -->
-    <section class="py-6 px-3 md:px-6">
+    <section class="py-6 px-3 md:px-6" data-reveal>
       <div class="max-w-[1400px] mx-auto">
 
         <!-- Header compacto -->
@@ -268,8 +268,9 @@
 
         <!-- Grid compacto 2x2 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div v-for="t in testimonios" :key="t.nombre"
-            class="flex gap-3 bg-slate-50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 hover:border-slate-200 dark:hover:border-white/10 transition-all">
+          <div v-for="(t, i) in testimonios" :key="t.nombre"
+            class="reveal-child flex gap-3 bg-slate-50 dark:bg-white/5 rounded-2xl p-4 border border-slate-100 dark:border-white/5 hover:border-slate-200 dark:hover:border-white/10 transition-all"
+            :style="`--cd:${i}`">
             <div class="w-8 h-8 rounded-full flex items-center justify-center font-[1000] text-[11px] shrink-0 text-white mt-0.5"
               :style="{ background: t.color }">
               {{ t.nombre[0] }}
@@ -290,11 +291,12 @@
     </section>
 
     <!-- SERVICIOS -->
-    <section class="pb-12 px-3 md:px-6">
+    <section class="pb-12 px-3 md:px-6" data-reveal>
       <div class="max-w-[1400px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-        <div v-for="s in serviciosHome" :key="s.name"
+        <div v-for="(s, i) in serviciosHome" :key="s.name"
              @click="router.push(s.link)"
-             class="group bg-white dark:bg-white/5 p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] border border-slate-100 dark:border-white/10 hover:border-[#DE1F27] transition-all cursor-pointer flex flex-col items-center text-center">
+             class="reveal-child group bg-white dark:bg-white/5 p-6 md:p-12 rounded-[1.8rem] md:rounded-[3rem] border border-slate-100 dark:border-white/10 hover:border-[#DE1F27] transition-all cursor-pointer flex flex-col items-center text-center"
+             :style="`--cd:${i}`">
           <span class="text-3xl md:text-6xl mb-3 md:mb-6 group-hover:rotate-12 transition-transform">{{ s.icon }}</span>
           <h3 class="text-[10px] md:text-sm font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight">{{ s.name }}</h3>
           <p class="text-[7px] md:text-[10px] font-black text-[#DE1F27] uppercase mt-2 opacity-0 group-hover:opacity-100 transition-all">Ver Más</p>
@@ -387,6 +389,23 @@ onMounted(async () => {
     descripcion: 'Veterinaria en Chía con consultas, vacunas, cirugía, peluquería, guardería canina y tienda de alimentos para mascotas.',
     url: 'https://petstationvet.com/'
   });
+
+  // Scroll reveal
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduced) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el));
+  } else {
+    document.querySelectorAll('[data-reveal]').forEach(el => el.classList.add('is-visible'));
+  }
+
   if (productStore.allProducts.length === 0) {
     await productStore.fetchTienda();
   }
@@ -397,17 +416,62 @@ onMounted(async () => {
 <style scoped>
 @reference "../../style.css";
 
+/* ── Conveyor belt ── */
 .conveyor-track {
   animation: conveyor 30s linear infinite;
   width: max-content;
 }
-
-.conveyor-track:hover {
-  animation-play-state: paused;
+.conveyor-track:hover { animation-play-state: paused; }
+@keyframes conveyor {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
-@keyframes conveyor {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+/* ── Hero entrance (staggered fade-up) ── */
+.hero-item {
+  opacity: 0;
+  transform: translateY(28px);
+  animation: heroFadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--d, 0) * 120ms + 80ms);
+}
+@keyframes heroFadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Glow blob float ── */
+.glow-blob {
+  animation: blobFloat 6s ease-in-out infinite;
+}
+@keyframes blobFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(-12px, -16px) scale(1.05); }
+  66%       { transform: translate(8px, -8px) scale(0.97); }
+}
+
+/* ── Scroll reveal (sections) ── */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Staggered children inside revealed sections ── */
+[data-reveal].is-visible .reveal-child {
+  animation: childPop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--cd, 0) * 90ms + 200ms);
+}
+@keyframes childPop {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Reduced motion override ── */
+@media (prefers-reduced-motion: reduce) {
+  .hero-item, [data-reveal], .glow-blob { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
 }
 </style>
