@@ -10,7 +10,7 @@
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 bg-[#DE1F27] rounded-full animate-pulse"></span>
               <span class="text-[8px] md:text-[11px] font-[1000] uppercase tracking-widest opacity-80">
-                Respaldo Médico Ético • Chía
+                Veterinaria • Chía
               </span>
             </div>
 
@@ -34,26 +34,10 @@
           <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-[#DE1F27]/20 blur-[120px] rounded-full"></div>
         </div>
 
-        <div class="lg:col-span-4 grid grid-cols-1 gap-3 md:gap-6">
-          <div class="h-52 md:h-full bg-slate-100 dark:bg-white/5 rounded-[1.8rem] md:rounded-[3.5rem] overflow-hidden border border-slate-100 dark:border-white/10 relative group">
+        <div class="lg:col-span-4">
+          <div class="h-52 md:h-full bg-slate-100 dark:bg-white/5 rounded-[1.8rem] md:rounded-[3.5rem] overflow-hidden border border-slate-100 dark:border-white/10 group">
             <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80"
                  class="w-full h-full object-cover object-top grayscale-[0.3] group-hover:grayscale-0 transition-all duration-1000" />
-            <div class="absolute inset-0 bg-gradient-to-t from-[#152C77]/80 via-transparent flex items-end p-6 md:p-10">
-               <p class="text-white font-[1000] italic uppercase text-lg md:text-2xl leading-none">
-                 Compromiso <br/><span class="text-[#DE1F27]">Garantizado.</span>
-               </p>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div class="bg-slate-50 dark:bg-white/5 rounded-[1.5rem] md:rounded-[2.5rem] p-5 md:p-10 flex flex-col justify-center border border-slate-100 dark:border-white/10">
-              <span class="text-2xl md:text-4xl font-[1000] text-[#152C77] dark:text-white italic leading-none">100%</span>
-              <span class="text-[7px] md:text-[10px] font-black uppercase text-slate-400 tracking-widest mt-2">Ética Profesional</span>
-            </div>
-            <div class="bg-[#DE1F27] rounded-[1.5rem] md:rounded-[2.5rem] p-5 md:p-10 flex flex-col justify-center shadow-xl shadow-[#DE1F27]/10">
-              <span class="text-2xl md:text-4xl font-[1000] text-white italic leading-none">CHÍA</span>
-              <span class="text-[7px] md:text-[10px] font-black uppercase text-white/80 tracking-widest mt-2">Variante Chía-Cota</span>
-            </div>
           </div>
         </div>
 
