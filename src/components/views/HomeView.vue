@@ -73,11 +73,6 @@
             <div class="relative hidden md:block">
               <img src="https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover opacity-60" />
               <div class="absolute inset-0 bg-gradient-to-r from-[#152C77] via-[#152C77]/30 to-transparent"></div>
-              <div class="absolute bottom-10 right-10 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-                <p class="text-white font-[1000] uppercase text-xs mb-1">Próxima disponibilidad</p>
-                <p class="text-[#DE1F27] font-[1000] uppercase text-2xl italic">HOY</p>
-                <p class="text-white/60 font-bold text-[10px] uppercase mt-1">Consulta general y grooming</p>
-              </div>
             </div>
           </div>
         </div>
