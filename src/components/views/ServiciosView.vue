@@ -3,7 +3,7 @@
     <div class="max-w-7xl mx-auto space-y-6">
 
       <!-- Header -->
-      <div class="mb-8">
+      <div class="page-hero mb-8">
         <span class="text-[#DE1F27] font-black uppercase tracking-[0.3em] text-[9px] md:text-[10px]">Pet Station · Chía</span>
         <h1 class="text-3xl md:text-5xl font-[1000] uppercase italic tracking-tighter leading-[0.95] text-[#152C77] dark:text-white mt-2">
           NUESTROS <br /><span class="text-[#DE1F27]">SERVICIOS.</span>
@@ -11,10 +11,10 @@
       </div>
 
       <!-- Medicina y Peluquería — cards grandes -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" data-reveal>
 
         <!-- Medicina -->
-        <div class="group relative overflow-hidden rounded-[2.5rem] border-2 border-slate-100 dark:border-white/10 bg-white dark:bg-white/5 p-8 md:p-10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+        <div class="reveal-child group relative overflow-hidden rounded-[2.5rem] border-2 border-slate-100 dark:border-white/10 bg-white dark:bg-white/5 p-8 md:p-10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300" style="--cd:0">
           <div class="space-y-4">
             <div class="w-14 h-14 bg-[#152C77] rounded-2xl flex items-center justify-center text-2xl shadow-md">🩺</div>
             <div>
@@ -40,7 +40,7 @@
         </div>
 
         <!-- Peluquería -->
-        <div class="group relative overflow-hidden rounded-[2.5rem] bg-[#152C77] p-8 md:p-10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+        <div class="reveal-child group relative overflow-hidden rounded-[2.5rem] bg-[#152C77] p-8 md:p-10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300" style="--cd:1">
           <div class="space-y-4 text-white">
             <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">✂️</div>
             <div>
@@ -68,11 +68,11 @@
       </div>
 
       <!-- Viajes y Guardería -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" data-reveal>
 
         <!-- Viajes -->
         <router-link to="/servicios/viajes"
-          class="group flex items-center justify-between gap-6 bg-slate-50 dark:bg-white/5 rounded-[2rem] p-7 border border-slate-100 dark:border-white/10 hover:border-[#152C77] dark:hover:border-[#DE1F27] hover:shadow-lg transition-all duration-300">
+          class="reveal-child group flex items-center justify-between gap-6 bg-slate-50 dark:bg-white/5 rounded-[2rem] p-7 border border-slate-100 dark:border-white/10 hover:border-[#152C77] dark:hover:border-[#DE1F27] hover:shadow-lg transition-all duration-300" style="--cd:0">
           <div class="space-y-2">
             <span class="text-[8px] font-black uppercase text-[#DE1F27] tracking-widest">ICA · CDC · UE</span>
             <h3 class="text-xl md:text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight">
@@ -90,7 +90,7 @@
 
         <!-- Guardería -->
         <router-link to="/servicios/guarderia"
-          class="group flex items-center justify-between gap-6 bg-green-50 dark:bg-green-900/10 rounded-[2rem] p-7 border border-green-100 dark:border-green-800/20 hover:border-green-500 hover:shadow-lg transition-all duration-300">
+          class="reveal-child group flex items-center justify-between gap-6 bg-green-50 dark:bg-green-900/10 rounded-[2rem] p-7 border border-green-100 dark:border-green-800/20 hover:border-green-500 hover:shadow-lg transition-all duration-300" style="--cd:1">
           <div class="space-y-2">
             <span class="text-[8px] font-black uppercase text-green-600 tracking-widest">Hotel & Fun</span>
             <h3 class="text-xl md:text-2xl font-[1000] uppercase italic text-green-800 dark:text-green-400 leading-tight">
@@ -130,6 +130,7 @@
 
 <script setup>
 import { onMounted } from 'vue';
+import { useReveal } from '@/composables/useReveal';
 import { useRouter } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
 import { useSeo } from '@/composables/useSeo';
@@ -144,5 +145,6 @@ onMounted(() => {
     descripcion: 'Consultas veterinarias, vacunación, cirugía, laboratorio clínico y farmacia en Chía. Agenda tu cita por WhatsApp.',
     url: 'https://petstationvet.com/servicios'
   });
+  useReveal();
 });
 </script>

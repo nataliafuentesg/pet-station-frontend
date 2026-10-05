@@ -3,8 +3,8 @@
     <div class="max-w-7xl mx-auto px-4 md:px-6 space-y-10">
 
       <!-- HERO -->
-      <div class="flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
-        <div class="space-y-4 md:space-y-6 text-center lg:text-left">
+      <div class="flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-12 items-center" data-reveal>
+        <div class="reveal-child space-y-4 md:space-y-6 text-center lg:text-left" style="--cd:0">
           <router-link to="/servicios"
             class="text-[#DE1F27] font-[1000] uppercase text-[10px] tracking-[0.3em] inline-flex items-center gap-2 hover:gap-4 transition-all">
             ← Volver a servicios
@@ -50,7 +50,7 @@
         </div>
 
         <!-- Selector de talla -->
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 w-full">
+        <div class="reveal-child grid grid-cols-2 md:grid-cols-3 gap-3 w-full" style="--cd:1">
           <div v-for="p in preciosPeluqueria" :key="p.talla"
             @click="seleccionarTalla(p)"
             :class="[
@@ -160,6 +160,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useReveal } from '@/composables/useReveal';
 import { useRouter } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
 import { useSeo } from '@/composables/useSeo';
@@ -195,6 +196,7 @@ const irAAgendar = () => {
 
 onMounted(() => {
   trackViewService('Peluquería Canina');
+  useReveal();
   useSeo({
     titulo: 'Peluquería Canina y Felina en Chía | Pet Station',
     descripcion: 'Baño, corte y spa para perros y gatos en Chía. Agenda tu turno fácil por WhatsApp — Pet Station Chía.',

@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted } from 'vue';
+import { useReveal } from '@/composables/useReveal';
 import { useRouter } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
 import { useSeo } from '@/composables/useSeo';
@@ -62,6 +63,7 @@ const servicios = [
 ];
 onMounted(() => {
   trackViewService('Consulta Médica Veterinaria');
+  useReveal();
   useSeo({
     titulo: 'Medicina Veterinaria en Chía | Pet Station',
     descripcion: 'Consulta veterinaria, diagnóstico, laboratorio clínico y cirugía en Chía. Atención integral para perros, gatos y exóticos.',
@@ -74,7 +76,7 @@ onMounted(() => {
   <div class="min-h-screen bg-white dark:bg-[#050505] pt-5 md:pt-32 pb-20 transition-colors duration-500 font-sans">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       
-      <div class="max-w-4xl mb-16 space-y-6 text-center md:text-left">
+      <div class="page-hero max-w-4xl mb-16 space-y-6 text-center md:text-left">
         <router-link to="/servicios" class="text-[#DE1F27] font-black uppercase text-[10px] tracking-widest block hover:translate-x-1 transition-transform">
             ← Volver a Servicios
         </router-link>
@@ -88,9 +90,10 @@ onMounted(() => {
         </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
-        <div v-for="s in servicios" :key="s.titulo" 
-          class="bg-slate-50 dark:bg-white/5 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/10 hover:border-[#152C77] dark:hover:border-[#DE1F27] transition-all group flex flex-col hover:shadow-xl">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20" data-reveal>
+        <div v-for="(s, i) in servicios" :key="s.titulo"
+          class="reveal-child bg-slate-50 dark:bg-white/5 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/10 hover:border-[#152C77] dark:hover:border-[#DE1F27] transition-all group flex flex-col hover:shadow-xl"
+          :style="`--cd:${i}`">
           
           <div class="mb-6 w-14 h-14 bg-white dark:bg-white/10 rounded-2xl flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">
             {{ s.icon }}
@@ -115,7 +118,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="bg-[#152C77] rounded-[3rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
+      <div class="bg-[#152C77] rounded-[3rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl" data-reveal>
         <div class="relative z-10 grid lg:grid-cols-2 gap-10 items-center">
           <div>
             <span class="text-[#DE1F27] font-black uppercase text-[9px] tracking-widest italic mb-2 block">Nuestras Instalaciones</span>

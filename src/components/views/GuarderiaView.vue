@@ -6,8 +6,8 @@
         ← Volver a Servicios
       </router-link>
 
-      <div class="grid lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-2 space-y-6">
+      <div class="grid lg:grid-cols-3 gap-8" data-reveal>
+        <div class="reveal-child lg:col-span-2 space-y-6" style="--cd:0">
           <div class="bg-white dark:bg-white/5 rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-12 shadow-xl border border-green-100 dark:border-green-900/20">
             <h1 class="text-3xl md:text-5xl font-[1000] uppercase italic text-green-800 dark:text-green-400 leading-[0.95] tracking-tighter">
               FUN & <br/> <span class="text-[#DE1F27]">SAFE.</span>
@@ -42,7 +42,7 @@
           </div>
         </div>
 
-        <div class="space-y-6">
+        <div class="reveal-child space-y-6" style="--cd:1">
           <div class="bg-[#152C77] p-8 md:p-10 rounded-[2.5rem] md:rounded-[4rem] text-white shadow-2xl relative overflow-hidden">
             <div class="relative z-10">
               <h3 class="text-2xl font-black italic uppercase text-[#DE1F27] mb-8 tracking-tighter">Checklist de <br/> Admisión</h3>
@@ -85,9 +85,11 @@
 import { onMounted } from 'vue';
 import { useTracking } from '@/composables/useTracking';
 import { useSeo } from '@/composables/useSeo';
+import { useReveal } from '@/composables/useReveal';
 const { trackViewService } = useTracking();
 onMounted(() => {
   trackViewService('Guardería Canina');
+  useReveal();
   useSeo({
     titulo: 'Guardería y Colegio Canino en Chía | Pet Station',
     descripcion: 'Guardería canina y colegio para perros en Chía. Cuidado diario, socialización y entrenamiento. Vía Guaymaral, Chía.',

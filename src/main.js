@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './style.css'
+import './assets/animations.css'
 import App from './App.vue'
 import router from './router'
 import vue3GoogleLogin from 'vue3-google-login'

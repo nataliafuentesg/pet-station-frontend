@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useTracking } from '@/composables/useTracking';
 import { useSeo } from '@/composables/useSeo';
+import { useReveal } from '@/composables/useReveal';
 const { trackViewService } = useTracking();
 
 const trackWhatsApp = (posicion) => {
@@ -129,6 +130,7 @@ const destinos = [
 const destinoActual = ref(destinos[0]);
 onMounted(() => {
   trackViewService('Viajes Internacional Mascotas');
+  useReveal();
   useSeo({
     titulo: 'Trámites de Viaje con Mascotas | Pet Station Chía',
     descripcion: 'Certificados de salud, vacunas y trámites para viajar con tu perro o gato desde Colombia. Asesoría completa en Pet Station Chía.',
@@ -148,8 +150,8 @@ const whatsappLink = computed(() => {
   <div class="min-h-screen bg-white dark:bg-[#050505] pt-5 md:pt-32 pb-20 transition-colors duration-500 font-sans">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       
-      <div class="grid lg:grid-cols-2 gap-8 md:gap-16 items-start mb-12">
-        <div class="space-y-6 md:space-y-8 text-center md:text-left">
+      <div class="grid lg:grid-cols-2 gap-8 md:gap-16 items-start mb-12" data-reveal>
+        <div class="reveal-child space-y-6 md:space-y-8 text-center md:text-left" style="--cd:0">
           <router-link to="/servicios" class="text-[#DE1F27] font-[1000] uppercase text-[10px] tracking-[0.3em] inline-flex items-center gap-2 hover:gap-4 transition-all">
             ← Volver a servicios
           </router-link>
@@ -161,7 +163,7 @@ const whatsappLink = computed(() => {
           </p>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 md:gap-4">
+        <div class="reveal-child grid grid-cols-2 gap-3 md:gap-4" style="--cd:1">
           <div v-for="d in destinos" :key="d.nombre" 
             @click="destinoActual = d"
             :class="[
