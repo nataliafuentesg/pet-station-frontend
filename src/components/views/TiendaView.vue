@@ -491,6 +491,7 @@ import { useProductStore } from '../../stores/productStore';
 import { useCartStore } from '../../stores/cartStore';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
+import { useSeo } from '@/composables/useSeo';
 import { TIENDA_ACTIVA } from '@/config';
 
 const productStore = useProductStore();
@@ -832,6 +833,11 @@ const onSearch = () => {
 };
 
 onMounted(async () => {
+  useSeo({
+    titulo: 'Tienda de Mascotas en Chía | Pet Station',
+    descripcion: 'Alimentos, accesorios y medicamentos para mascotas en Chía. Hills, Royal Canin y más marcas. Envío a domicilio en Chía.',
+    url: 'https://petstationvet.com/tienda'
+  });
   isLoading.value = true;
   try {
     if (productStore.allProducts.length === 0) await productStore.fetchTienda();

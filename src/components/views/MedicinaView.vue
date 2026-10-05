@@ -2,6 +2,7 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
+import { useSeo } from '@/composables/useSeo';
 const { trackViewService } = useTracking();
 
 const router = useRouter();
@@ -59,7 +60,14 @@ const servicios = [
     tipo: "wsp"
   }
 ];
-onMounted(() => trackViewService('Consulta Médica Veterinaria'));
+onMounted(() => {
+  trackViewService('Consulta Médica Veterinaria');
+  useSeo({
+    titulo: 'Medicina Veterinaria en Chía | Pet Station',
+    descripcion: 'Consulta veterinaria, diagnóstico, laboratorio clínico y cirugía en Chía. Atención integral para perros, gatos y exóticos.',
+    url: 'https://petstationvet.com/medicina'
+  });
+});
 </script>
 
 <template>

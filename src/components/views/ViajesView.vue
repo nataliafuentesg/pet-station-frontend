@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useTracking } from '@/composables/useTracking';
+import { useSeo } from '@/composables/useSeo';
 const { trackViewService } = useTracking();
 
 const trackWhatsApp = (posicion) => {
@@ -126,7 +127,14 @@ const destinos = [
 ];
 
 const destinoActual = ref(destinos[0]);
-onMounted(() => trackViewService('Viajes Internacional Mascotas'));
+onMounted(() => {
+  trackViewService('Viajes Internacional Mascotas');
+  useSeo({
+    titulo: 'Trámites de Viaje con Mascotas | Pet Station Chía',
+    descripcion: 'Certificados de salud, vacunas y trámites para viajar con tu perro o gato desde Colombia. Asesoría completa en Pet Station Chía.',
+    url: 'https://petstationvet.com/viajes'
+  });
+});
 
 // --- WHATSAPP ESPECÍFICO PARA VIAJES ---
 const whatsappLink = computed(() => {

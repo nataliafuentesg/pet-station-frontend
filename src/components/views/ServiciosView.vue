@@ -132,9 +132,17 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
+import { useSeo } from '@/composables/useSeo';
 
 const router = useRouter();
 const { trackViewService } = useTracking();
 
-onMounted(() => trackViewService('Servicios'));
+onMounted(() => {
+  trackViewService('Servicios');
+  useSeo({
+    titulo: 'Servicios Veterinarios en Chía | Pet Station',
+    descripcion: 'Consultas veterinarias, vacunación, cirugía, laboratorio clínico y farmacia en Chía. Agenda tu cita por WhatsApp.',
+    url: 'https://petstationvet.com/servicios'
+  });
+});
 </script>

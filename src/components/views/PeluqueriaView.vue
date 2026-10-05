@@ -162,6 +162,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
+import { useSeo } from '@/composables/useSeo';
 
 const router = useRouter();
 const { trackViewService, trackSelectTalla, trackClickAgendarCita } = useTracking();
@@ -194,6 +195,11 @@ const irAAgendar = () => {
 
 onMounted(() => {
   trackViewService('Peluquería Canina');
+  useSeo({
+    titulo: 'Peluquería Canina y Felina en Chía | Pet Station',
+    descripcion: 'Baño, corte y spa para perros y gatos en Chía. Agenda tu turno fácil por WhatsApp — Pet Station Chía.',
+    url: 'https://petstationvet.com/peluqueria'
+  });
 });
 </script>
 

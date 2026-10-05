@@ -330,6 +330,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useProductStore } from '@/stores/productStore';
+import { useSeo } from '@/composables/useSeo';
 
 const router = useRouter();
 const productStore = useProductStore();
@@ -402,6 +403,11 @@ const productosFiltrados = computed(() => {
 });
 
 onMounted(async () => {
+  useSeo({
+    titulo: 'Pet Station | Veterinaria y Tienda de Mascotas en Chía',
+    descripcion: 'Veterinaria en Chía con consultas, vacunas, cirugía, peluquería, guardería canina y tienda de alimentos para mascotas.',
+    url: 'https://petstationvet.com/'
+  });
   if (productStore.allProducts.length === 0) {
     await productStore.fetchTienda();
   }

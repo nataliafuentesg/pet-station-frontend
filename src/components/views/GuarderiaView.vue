@@ -84,8 +84,16 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useTracking } from '@/composables/useTracking';
+import { useSeo } from '@/composables/useSeo';
 const { trackViewService } = useTracking();
-onMounted(() => trackViewService('Guardería Canina'));
+onMounted(() => {
+  trackViewService('Guardería Canina');
+  useSeo({
+    titulo: 'Guardería y Colegio Canino en Chía | Pet Station',
+    descripcion: 'Guardería canina y colegio para perros en Chía. Cuidado diario, socialización y entrenamiento. Vía Guaymaral, Chía.',
+    url: 'https://petstationvet.com/guarderia'
+  });
+});
 
 const modalidades = [
   { 
