@@ -14,7 +14,6 @@ import AdminLeads from './AdminLeads.vue';
 import AdminMarketing from './AdminMarketing.vue';
 import AdminVeterinarios from './AdminVeterinarios.vue';
 import AdminHealth from './AdminHealth.vue';
-import AdminClinica from './AdminClinica.vue';
 import { suscribirNotificaciones } from '@/composables/usePushNotifications';
 
 const notifActivas = ref(typeof Notification !== 'undefined' && Notification.permission === 'granted');
@@ -56,7 +55,6 @@ const tabs = [
     { id: 'leads', label: 'Leads', icon: '📡' },
     { id: 'marketing', label: 'Marketing', icon: '📣' },
     { id: 'veterinarios', label: 'Veterinarios', icon: '👨‍⚕️' },
-    { id: 'clinica', label: 'Clínica', icon: '🏥' },
     { id: 'health', label: 'Sistema', icon: '🖥️' }
 ];
 
@@ -204,7 +202,6 @@ const doLogout = () => {
                         <AdminLeads v-if="currentTab === 'leads'" :data="data.leads" />
                         <AdminMarketing v-if="currentTab === 'marketing'" />
                         <AdminVeterinarios v-if="currentTab === 'veterinarios'" />
-                        <AdminClinica v-if="currentTab === 'clinica'" />
                         <AdminHealth v-if="currentTab === 'health'" />
                     </div>
                 </Transition>
