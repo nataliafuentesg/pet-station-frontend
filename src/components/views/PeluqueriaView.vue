@@ -203,7 +203,29 @@ onMounted(() => {
     descripcion: 'Baño, corte y spa para perros y gatos en Chía. Agenda tu turno fácil por WhatsApp — Pet Station Chía.',
     url: 'https://petstationvet.com/peluqueria'
   });
-  useJsonLd({
+  useJsonLd([
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: '¿Por qué el precio de la peluquería es "desde"?',
+        acceptedAnswer: { '@type': 'Answer', text: 'El precio base aplica para un manto en condiciones estándar. Factores como pelaje enredado o con nudos, pelo muy largo o de doble manto, o estrés del animal durante el servicio pueden ajustar el costo final. El estilista confirma el precio al recibir a tu mascota.' }
+      },
+      {
+        '@type': 'Question',
+        name: '¿Qué pasa si mi mascota se estresa durante la peluquería?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Si detectamos estrés excesivo durante el servicio, lo detenemos de inmediato por el bienestar del animal. En ese caso solo se cobra lo que se alcanzó a realizar. Nunca forzamos el proceso.' }
+      },
+      {
+        '@type': 'Question',
+        name: '¿El precio varía según el largo del pelo?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Sí. Razas con pelo muy largo, doble manto o de crecimiento rápido requieren más tiempo de trabajo. El precio base aplica para un largo y densidad estándar.' }
+      }
+    ]
+  },
+  {
     '@context': 'https://schema.org',
     '@type': 'Service',
     name: 'Peluquería Canina y Felina — Pet Station Chía',
@@ -216,7 +238,8 @@ onMounted(() => {
       { '@type': 'Offer', name: 'Baño y peluquería Mediano', description: 'Razas medianas como Beagle y Cocker', price: '119700', priceCurrency: 'COP' },
       { '@type': 'Offer', name: 'Baño y peluquería Grande', description: 'Razas grandes como Golden y Husky', price: '188500', priceCurrency: 'COP' },
     ]
-  });
+  }
+  ]);
 });
 </script>
 
