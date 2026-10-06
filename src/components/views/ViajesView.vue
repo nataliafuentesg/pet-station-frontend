@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useTracking } from '@/composables/useTracking';
 import { useSeo } from '@/composables/useSeo';
 import { useReveal } from '@/composables/useReveal';
+import { useJsonLd } from '@/composables/useJsonLd';
 const { trackViewService } = useTracking();
 
 const trackWhatsApp = (posicion) => {
@@ -131,6 +132,25 @@ const destinoActual = ref(destinos[0]);
 onMounted(() => {
   trackViewService('Viajes Internacional Mascotas');
   useReveal();
+  useJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: 'Trámites de Viaje con Mascotas — Pet Station Chía',
+    description: 'Gestión de certificados zoosanitarios, serología de rabia, microchip y permisos CDC para viajar con perros y gatos desde Colombia a USA, Europa y Latinoamérica.',
+    url: 'https://petstationvet.com/servicios/viajes',
+    provider: { '@type': 'LocalBusiness', name: 'Pet Station', telephone: '+573053462413', address: { '@type': 'PostalAddress', addressLocality: 'Chía', addressRegion: 'Cundinamarca', addressCountry: 'CO' } },
+    areaServed: { '@type': 'City', name: 'Chía' },
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Destinos de Viaje con Mascotas',
+      itemListElement: [
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Viaje a Estados Unidos con Mascota', description: 'Microchip, vacuna antirrábica, serología CDC, permiso de importación y CIS ICA para ingresar a EE.UU.' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Viaje a la Unión Europea con Mascota', description: 'Microchip ISO, serología > 0.5 UI/ml, espera 90 días, certificado zoosanitario UE y CIS ICA.' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Viaje por Suramérica con Mascota', description: 'Certificado de salud, vacunación completa, desparasitación e inspección ICA para países MERCOSUR/CAN.' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Viaje Nacional en Colombia con Mascota', description: 'Carnet de vacunación, vacuna antirrábica vigente y certificado de salud veterinario para vuelos domésticos.' } },
+      ]
+    }
+  });
   useSeo({
     titulo: 'Trámites de Viaje con Mascotas | Pet Station Chía',
     descripcion: 'Certificados de salud, vacunas y trámites para viajar con tu perro o gato desde Colombia. Asesoría completa en Pet Station Chía.',

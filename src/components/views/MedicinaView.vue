@@ -4,6 +4,7 @@ import { useReveal } from '@/composables/useReveal';
 import { useRouter } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
 import { useSeo } from '@/composables/useSeo';
+import { useJsonLd } from '@/composables/useJsonLd';
 const { trackViewService } = useTracking();
 
 const router = useRouter();
@@ -68,6 +69,24 @@ onMounted(() => {
     titulo: 'Medicina Veterinaria en Chía | Pet Station',
     descripcion: 'Consulta veterinaria, diagnóstico, laboratorio clínico y cirugía en Chía. Atención integral para perros, gatos y exóticos.',
     url: 'https://petstationvet.com/medicina'
+  });
+  useJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'MedicalBusiness',
+    name: 'Pet Station — Medicina Veterinaria',
+    url: 'https://petstationvet.com/servicios/medicina',
+    telephone: '+573053462413',
+    address: { '@type': 'PostalAddress', addressLocality: 'Chía', addressRegion: 'Cundinamarca', addressCountry: 'CO' },
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Servicios Médicos Veterinarios',
+      itemListElement: [
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Consulta Veterinaria', description: 'Valoración clínica completa, medicina preventiva y desparasitación.' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Cirugía Veterinaria', description: 'Cirugía de tejidos blandos y esterilizaciones con anestesia monitoreada.' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Vacunación', description: 'Esquemas completos para cachorros y refuerzos anuales en Chía.' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Laboratorio Clínico', description: 'Cuadros hemáticos y químicas sanguíneas para diagnóstico veterinario.' } },
+      ]
+    }
   });
 });
 </script>

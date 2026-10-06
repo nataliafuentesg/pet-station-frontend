@@ -37,6 +37,7 @@
         <div class="hero-item lg:col-span-4" style="--d:2">
           <div class="h-52 md:h-full bg-slate-100 dark:bg-white/5 rounded-[1.8rem] md:rounded-[3.5rem] overflow-hidden border border-slate-100 dark:border-white/10 group">
             <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80"
+                 alt="Perro feliz en la veterinaria Pet Station Chía"
                  class="w-full h-full object-cover object-top grayscale-[0.3] group-hover:grayscale-0 transition-all duration-1000" />
           </div>
         </div>
@@ -71,7 +72,7 @@
             </div>
             <!-- Visual -->
             <div class="relative hidden md:block">
-              <img src="https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover opacity-60" />
+              <img src="https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&q=80&w=800" alt="Agenda tu cita veterinaria en Pet Station Chía" class="w-full h-full object-cover opacity-60" />
               <div class="absolute inset-0 bg-gradient-to-r from-[#152C77] via-[#152C77]/30 to-transparent"></div>
             </div>
           </div>
@@ -152,6 +153,7 @@
             <!-- Visual izquierda -->
             <div class="md:col-span-2 relative min-h-[200px] md:min-h-0">
               <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&q=80&w=800"
+                alt="Avión representando el servicio de trámites de viaje con mascotas"
                 class="w-full h-full object-cover" />
               <div class="absolute inset-0 bg-gradient-to-r from-transparent to-slate-50 dark:to-[#0A0A0A] hidden md:block"></div>
               <div class="absolute inset-0 bg-gradient-to-t from-slate-50 dark:from-[#0A0A0A] to-transparent md:hidden"></div>

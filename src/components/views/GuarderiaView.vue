@@ -86,10 +86,29 @@ import { onMounted } from 'vue';
 import { useTracking } from '@/composables/useTracking';
 import { useSeo } from '@/composables/useSeo';
 import { useReveal } from '@/composables/useReveal';
+import { useJsonLd } from '@/composables/useJsonLd';
 const { trackViewService } = useTracking();
 onMounted(() => {
   trackViewService('Guardería Canina');
   useReveal();
+  useJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: 'Guardería y Hotel Canino — Pet Station Chía',
+    description: 'Guardería canina, hotel para perros y colegio en Chía. Socialización controlada, supervisión veterinaria 24/7, cámaras y zonas verdes.',
+    url: 'https://petstationvet.com/servicios/guarderia',
+    provider: { '@type': 'LocalBusiness', name: 'Pet Station', telephone: '+573053462413', address: { '@type': 'PostalAddress', addressLocality: 'Chía', addressRegion: 'Cundinamarca', addressCountry: 'CO' } },
+    areaServed: { '@type': 'City', name: 'Chía' },
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Modalidades de Guardería',
+      itemListElement: [
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Pasa Día Canino', description: 'Socialización y juego durante la jornada diurna. Ideal para perros que pasan solos el día.' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Hotel Canino', description: 'Alojamiento seguro con monitoreo profesional nocturno y áreas de descanso higienizadas.' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Internado Médico y Conductual', description: 'Cuidado especializado para mascotas que requieren adiestramiento o recuperación bajo vigilancia médica.' } },
+      ]
+    }
+  });
   useSeo({
     titulo: 'Guardería y Colegio Canino en Chía | Pet Station',
     descripcion: 'Guardería canina y colegio para perros en Chía. Cuidado diario, socialización y entrenamiento. Vía Guaymaral, Chía.',

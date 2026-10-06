@@ -161,6 +161,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useReveal } from '@/composables/useReveal';
+import { useJsonLd } from '@/composables/useJsonLd';
 import { useRouter } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
 import { useSeo } from '@/composables/useSeo';
@@ -201,6 +202,20 @@ onMounted(() => {
     titulo: 'Peluquería Canina y Felina en Chía | Pet Station',
     descripcion: 'Baño, corte y spa para perros y gatos en Chía. Agenda tu turno fácil por WhatsApp — Pet Station Chía.',
     url: 'https://petstationvet.com/peluqueria'
+  });
+  useJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: 'Peluquería Canina y Felina — Pet Station Chía',
+    description: 'Servicio de peluquería para perros y gatos en Chía: baño medicado, corte, limpieza de oídos, corte de uñas y perfume. Precios desde $90.500.',
+    url: 'https://petstationvet.com/servicios/peluqueria',
+    provider: { '@type': 'LocalBusiness', name: 'Pet Station', telephone: '+573053462413', address: { '@type': 'PostalAddress', addressLocality: 'Chía', addressRegion: 'Cundinamarca', addressCountry: 'CO' } },
+    areaServed: { '@type': 'City', name: 'Chía' },
+    offers: [
+      { '@type': 'Offer', name: 'Baño y peluquería Mini', description: 'Razas miniatura como Yorkie y Maltés', price: '90500', priceCurrency: 'COP' },
+      { '@type': 'Offer', name: 'Baño y peluquería Mediano', description: 'Razas medianas como Beagle y Cocker', price: '119700', priceCurrency: 'COP' },
+      { '@type': 'Offer', name: 'Baño y peluquería Grande', description: 'Razas grandes como Golden y Husky', price: '188500', priceCurrency: 'COP' },
+    ]
   });
 });
 </script>
