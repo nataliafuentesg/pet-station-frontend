@@ -17,7 +17,6 @@ const stateConfig = {
 const serviceLabels = {
   database:  { icon: '🗄️',  name: 'Base de Datos' },
   openai:    { icon: '🤖',  name: 'OpenAI' },
-  cloudinary:{ icon: '☁️',  name: 'Cloudinary' },
   telegram:  { icon: '📲',  name: 'Telegram Bot' },
 };
 
