@@ -97,10 +97,13 @@
             <div v-if="fotosCompartidas.length === 0" class="col-span-3 text-white/30 text-xs py-4 text-center">
               Sin fotos
             </div>
-            <img v-for="m in fotosCompartidas" :key="m.id"
-              :src="mediaUrl(m.mediaId)"
-              class="w-full aspect-square object-cover rounded cursor-pointer hover:opacity-80"
-              @click="verImagen(m.mediaId)" loading="lazy" />
+            <template v-for="m in fotosCompartidas" :key="m.id">
+              <img v-if="mediaUrl(m.mediaId, m.mediaMime)"
+                :src="mediaUrl(m.mediaId, m.mediaMime)"
+                class="w-full aspect-square object-cover rounded cursor-pointer hover:opacity-80"
+                @click="verImagen(m.mediaId)" />
+              <div v-else class="w-full aspect-square rounded bg-white/5 flex items-center justify-center text-lg">📷</div>
+            </template>
           </div>
         </div>
       </div>
@@ -170,11 +173,14 @@
                   <p class="text-sm text-white whitespace-pre-wrap">{{ m.contenido }}</p>
                 </div>
                 <div v-else-if="m.tipo === 'audio'" class="wa-audio">
-                  <audio controls :src="mediaUrl(m.mediaId)" class="h-8 max-w-[220px]" preload="none" />
+                  <audio controls :src="mediaUrl(m.mediaId, m.mediaMime)" class="h-8 max-w-[220px]" preload="none" />
                 </div>
                 <!-- Imagen -->
                 <div v-else-if="m.tipo === 'image'">
-                  <img :src="mediaUrl(m.mediaId)" class="rounded-lg max-w-[220px] cursor-pointer" @click="verImagen(m.mediaId)" alt="imagen" loading="lazy" />
+                  <img v-if="mediaUrl(m.mediaId, m.mediaMime)" :src="mediaUrl(m.mediaId, m.mediaMime)" class="rounded-lg max-w-[220px] cursor-pointer" @click="verImagen(m.mediaId)" alt="imagen" />
+                  <div v-else class="w-[180px] h-[120px] rounded-lg bg-white/5 flex items-center justify-center text-xs text-white/50">
+                    {{ mediaFallida[m.mediaId] ? '📷 No se pudo cargar' : '📷 Cargando…' }}
+                  </div>
                   <p v-if="m.contenido && m.contenido !== '[Imagen]'" class="text-xs mt-1 text-white/80">{{ m.contenido }}</p>
                 </div>
                 <!-- Documento -->
@@ -182,7 +188,7 @@
                   <span class="text-2xl">📄</span>
                   <div>
                     <p class="text-xs font-bold text-white">{{ m.contenido }}</p>
-                    <a :href="mediaUrl(m.mediaId)" target="_blank" class="text-[10px] text-[#de1f27]">Descargar</a>
+                    <a :href="mediaUrl(m.mediaId, m.mediaMime) || undefined" :download="m.contenido || 'archivo'" target="_blank" class="text-[10px] text-[#de1f27]">Descargar</a>
                   </div>
                 </div>
                 <!-- Texto / otros -->
@@ -252,7 +258,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import api from '@/api/axios.js';
 
 const conversaciones = ref([]);
@@ -432,14 +438,32 @@ function conectarWS() {
 
 // ── HELPERS ─────────────────────────────────────────────────────────
 
-function mediaUrl(mediaId) {
+// El endpoint de media requiere el JWT en el header Authorization, que un <img src> no envía.
+// Por eso se descarga con axios y se muestra como blob URL (cacheado por mediaId).
+const mediaBlobs = reactive({});
+const mediaFallida = reactive({});
+const mediaPendiente = new Set();
+
+async function cargarMedia(mediaId, mime) {
+  mediaPendiente.add(mediaId);
+  try {
+    const { data } = await api.get(`/admin/wa/media/${mediaId}`, { responseType: 'blob' });
+    const blob = mime ? new Blob([data], { type: mime }) : data;
+    mediaBlobs[mediaId] = URL.createObjectURL(blob);
+  } catch (e) {
+    mediaFallida[mediaId] = true;
+  }
+}
+
+function mediaUrl(mediaId, mime) {
   if (!mediaId) return '';
-  const base = import.meta.env.VITE_API_URL || 'https://api.petstationvet.com/api';
-  return `${base}/admin/wa/media/${mediaId}`;
+  if (mediaBlobs[mediaId]) return mediaBlobs[mediaId];
+  if (!mediaPendiente.has(mediaId)) cargarMedia(mediaId, mime);
+  return '';
 }
 
 function verImagen(mediaId) {
-  imagenModal.value = mediaUrl(mediaId);
+  imagenModal.value = mediaBlobs[mediaId] || null;
 }
 
 function getMsgByWamid(wamid) {
@@ -542,6 +566,7 @@ onMounted(async () => {
     clearInterval(interval);
     clearTimeout(wsReconnectTimer);
     ws?.close();
+    Object.values(mediaBlobs).forEach(url => URL.revokeObjectURL(url));
   });
 });
 </script>
