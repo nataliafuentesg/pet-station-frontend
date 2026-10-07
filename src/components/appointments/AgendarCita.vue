@@ -118,6 +118,11 @@
             <textarea v-model="form.motivo" placeholder="Describe brevemente el motivo..." class="input-style h-28 resize-none p-6"></textarea>
           </div>
 
+          <!-- Anti-spam Cloudflare Turnstile -->
+          <div v-if="CF_SITE_KEY !== 'PENDING'" class="flex justify-center">
+            <CfTurnstile :site-key="CF_SITE_KEY" @verified="turnstileToken = $event" @error="turnstileToken = ''" />
+          </div>
+
           <!-- Autorización Ley 1581 -->
           <div class="flex items-start gap-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4">
             <input type="checkbox" id="autorizo-datos" v-model="autorizoDatos"
@@ -131,7 +136,7 @@
 
           <button
             type="submit"
-            :disabled="loading || (props.tutor && !form.mascotaId) || !tempTime || !autorizoDatos"
+            :disabled="loading || (props.tutor && !form.mascotaId) || !tempTime || !autorizoDatos || (CF_SITE_KEY !== 'PENDING' && !turnstileToken)"
             class="w-full bg-[#DE1F27] text-white py-8 rounded-[2.5rem] font-[1000] uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Confirmar Cita
@@ -148,6 +153,7 @@ import { useRouter } from 'vue-router';
 import api from '@/api/axios';
 import { useTracking } from '@/composables/useTracking';
 import { useFestivos } from '@/composables/useFestivos';
+import CfTurnstile from '@/components/shared/CfTurnstile.vue';
 
 const { trackCitaAgendada } = useTracking();
 const { esFestivo } = useFestivos();
@@ -158,6 +164,8 @@ const router = useRouter();
 const loading = ref(false);
 const cargandoHoras = ref(false);
 const autorizoDatos = ref(false);
+const turnstileToken = ref('');
+const CF_SITE_KEY = import.meta.env.VITE_CF_TURNSTILE_KEY || 'PENDING';
 
 const tempDate = ref('');
 const tempTime = ref(''); // Cambiado para que empiece vacío y obligue a seleccionar
