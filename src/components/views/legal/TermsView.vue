@@ -57,8 +57,7 @@
             <p class="text-[12px] font-black uppercase tracking-widest text-green-600 mb-3">✅ Se aceptan devoluciones en:</p>
             <ul class="legal-list">
               <li><strong>Accesorios</strong> (collares, arneses, ropa, juguetes, etc.) sin uso, con empaque original, dentro de los <strong>5 días hábiles</strong> siguientes a la recepción.</li>
-              <li><strong>Alimentos sellados</strong> recibidos con referencia, sabor o tamaño diferente a lo pedido, con sello intacto.</li>
-              <li><strong>Productos con defecto de fábrica</strong>, dentro de los 5 días hábiles de recibido.</li>
+              <li><strong>Productos con defecto de fábrica</strong> (accesorios), dentro de los 5 días hábiles de recibido.</li>
             </ul>
           </div>
 
