@@ -121,6 +121,7 @@
 </template>
 
 <style scoped>
+@reference "../../../style.css";
 .section-title {
   @apply text-lg font-black uppercase text-[#152C77] dark:text-white mt-8 mb-3 tracking-wide;
 }
