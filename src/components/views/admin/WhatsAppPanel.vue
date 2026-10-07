@@ -178,8 +178,9 @@
                 <!-- Imagen -->
                 <div v-else-if="m.tipo === 'image'">
                   <img v-if="mediaUrl(m.mediaId, m.mediaMime)" :src="mediaUrl(m.mediaId, m.mediaMime)" class="rounded-lg max-w-[220px] cursor-pointer" @click="verImagen(m.mediaId)" alt="imagen" />
-                  <div v-else class="w-[180px] h-[120px] rounded-lg bg-white/5 flex items-center justify-center text-xs text-white/50">
-                    {{ mediaFallida[m.mediaId] ? '📷 No se pudo cargar' : '📷 Cargando…' }}
+                  <div v-else class="w-[180px] h-[120px] rounded-lg bg-white/5 flex items-center justify-center text-xs text-white/50 text-center px-2"
+                    :class="{ 'cursor-pointer': mediaFallida[m.mediaId] }" @click="reintentarMedia(m.mediaId, m.mediaMime)">
+                    {{ mediaFallida[m.mediaId] ? '📷 No se pudo cargar · toca para reintentar' : '📷 Cargando…' }}
                   </div>
                   <p v-if="m.contenido && m.contenido !== '[Imagen]'" class="text-xs mt-1 text-white/80">{{ m.contenido }}</p>
                 </div>
@@ -446,13 +447,19 @@ const mediaPendiente = new Set();
 
 async function cargarMedia(mediaId, mime) {
   mediaPendiente.add(mediaId);
+  delete mediaFallida[mediaId];
   try {
-    const { data } = await api.get(`/admin/wa/media/${mediaId}`, { responseType: 'blob' });
+    const { data } = await api.get(`/admin/wa/media/${mediaId}`, { responseType: 'blob', timeout: 60000 });
     const blob = mime ? new Blob([data], { type: mime }) : data;
     mediaBlobs[mediaId] = URL.createObjectURL(blob);
   } catch (e) {
     mediaFallida[mediaId] = true;
   }
+}
+
+function reintentarMedia(mediaId, mime) {
+  if (!mediaFallida[mediaId]) return;
+  cargarMedia(mediaId, mime);
 }
 
 function mediaUrl(mediaId, mime) {
