@@ -204,8 +204,16 @@ const routes = [
     meta: { title: 'Portal Domiciliario | Pet Station' }
   },
   {
+    path: '/aviso-legal',
+    name: 'AvisoLegal',
+    component: () => import('@/components/views/legal/AvisoLegal.vue'),
+    meta: { title: 'Aviso Legal | Pet Station' }
+  },
+  {
     path: '/:pathMatch(.*)*',
-    redirect: '/'
+    name: 'NotFound',
+    component: () => import('@/components/views/NotFoundView.vue'),
+    meta: { title: 'Página no encontrada | Pet Station' }
   }
 ]
 

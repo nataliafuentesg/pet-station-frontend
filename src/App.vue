@@ -313,6 +313,8 @@
 
     <WhatsappButton v-if="!isAdminRoute" class="hidden lg:flex" />
 
+    <CookieBanner v-if="!isAdminRoute" />
+
     <CartDrawer :is-open="isCartOpen" :tutor="tutorData" @close="isCartOpen = false" />
 
     <Transition name="fade">
@@ -338,6 +340,7 @@ import PetOnboarding from './components/auth/PetOnboarding.vue';
 import CartDrawer from './components/cart/CartDrawer.vue';
 import TheFooter from './components/TheFooter.vue';
 import WhatsappButton from './components/shared/WhatsappButton.vue';
+import CookieBanner from './components/shared/CookieBanner.vue';
 import { useRoute } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
 
