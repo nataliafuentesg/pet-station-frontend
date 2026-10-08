@@ -6,6 +6,8 @@ const health = ref(null);
 const loading = ref(true);
 const error = ref(null);
 const lastUpdated = ref(null);
+const errors = ref([]);
+const clearingErrors = ref(false);
 let interval = null;
 
 const stateConfig = {
@@ -22,8 +24,12 @@ const serviceLabels = {
 
 const fetchHealth = async () => {
   try {
-    const { data } = await api.get('/health');
-    health.value = data;
+    const [h, e] = await Promise.all([
+      api.get('/health'),
+      api.get('/health/errors')
+    ]);
+    health.value = h.data;
+    errors.value = e.data;
     lastUpdated.value = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     error.value = null;
   } catch (e) {
@@ -33,6 +39,18 @@ const fetchHealth = async () => {
     loading.value = false;
   }
 };
+
+const limpiarErrores = async () => {
+  clearingErrors.value = true;
+  try {
+    await api.delete('/health/errors');
+    errors.value = [];
+  } finally {
+    clearingErrors.value = false;
+  }
+};
+
+const formatFecha = (ts) => new Date(ts).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
 
 const services = (h) => Object.entries(h)
   .filter(([k]) => k in serviceLabels)
@@ -99,6 +117,45 @@ onUnmounted(() => clearInterval(interval));
       <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-white/20"></span>
       Hora servidor: {{ health.timestamp?.replace('T', ' ').substring(0, 19) }}
       <span class="ml-2">· Refresco automático cada 30s</span>
+    </div>
+
+    <!-- Tabla de errores -->
+    <div class="bg-slate-50 dark:bg-white/5 rounded-[2rem] p-6 border border-slate-200 dark:border-white/10">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500">⚠️ Errores recientes</h3>
+          <p class="text-[9px] text-slate-400 mt-0.5">Últimos 50 errores del servidor · Ya no se envían a Telegram</p>
+        </div>
+        <button v-if="errors.length" @click="limpiarErrores" :disabled="clearingErrors"
+          class="px-4 py-2 text-[9px] font-black uppercase tracking-widest bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-200 transition-colors disabled:opacity-50">
+          🗑 Limpiar
+        </button>
+      </div>
+
+      <div v-if="errors.length" class="overflow-x-auto">
+        <table class="w-full text-[11px]">
+          <thead>
+            <tr class="text-left text-slate-400 font-black uppercase tracking-widest text-[9px] border-b border-slate-200 dark:border-white/10">
+              <th class="pb-2 pr-4">Fecha</th>
+              <th class="pb-2 pr-4">Ruta</th>
+              <th class="pb-2 pr-4">Tipo</th>
+              <th class="pb-2">Mensaje</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="e in errors" :key="e.id"
+              class="border-b border-slate-100 dark:border-white/5 text-slate-600 dark:text-slate-300">
+              <td class="py-2 pr-4 whitespace-nowrap text-slate-400">{{ formatFecha(e.timestamp) }}</td>
+              <td class="py-2 pr-4 font-mono text-[10px] text-[#152C77] dark:text-blue-300">{{ e.path }}</td>
+              <td class="py-2 pr-4 whitespace-nowrap">
+                <span class="bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase">{{ e.tipo }}</span>
+              </td>
+              <td class="py-2 max-w-[300px] truncate text-slate-500 dark:text-slate-400">{{ e.mensaje }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p v-else class="text-slate-400 text-sm text-center py-6">✅ Sin errores registrados</p>
     </div>
 
   </div>
