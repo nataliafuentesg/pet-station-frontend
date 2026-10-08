@@ -335,10 +335,12 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useLead } from '@/composables/useLead';
+import { useWaTracking } from '@/composables/useWaTracking';
 import api from '@/api/axios';
 
 const router = useRouter();
 const { track } = useLead();
+const { trackWaClick } = useWaTracking();
 const isOpen = ref(false);
 const hasOpened = ref(false);
 const chatStep = ref('menu');
@@ -521,6 +523,7 @@ const handleOption = (opcion) => {
     ? '🚨 URGENCIA VETERINARIA: Necesito atención inmediata por favor.'
     : 'Hola Pet Station, me gustaría hablar con un asesor.';
 
+  trackWaClick('chatbot-asesor');
   isOpen.value = false;
   window.open(`https://wa.me/${numeroWhatsAppGeneral}?text=${encodeURIComponent(textoWA)}`, '_blank');
 };
@@ -530,6 +533,7 @@ const sendViajeWA = () => {
   trackChatbot(`viaje_${formViaje.value.destino}`);
   track('CHATBOT_VIAJE', { ...formViaje.value });
   const textoWA = `Hola Pet Station! ✈️ Necesito asesoría y cotización para viajar con mi mascota. Aquí están los datos del pasajero:\n\n🌍 *Destino:* ${formViaje.value.destino}\n🐾 *Especie:* ${formViaje.value.especie}\n🎂 *Edad:* ${formViaje.value.edad}\n📅 *Fecha Tentativa:* ${formViaje.value.fecha}\n\nQuedo atento(a) a los requisitos. ¡Gracias!`;
+  trackWaClick('chatbot-viajes');
   isOpen.value = false;
   formViaje.value = { destino: '', especie: '', edad: '', fecha: '' };
   window.open(`https://wa.me/${numeroWhatsAppGeneral}?text=${encodeURIComponent(textoWA)}`, '_blank');
@@ -540,6 +544,7 @@ const sendProductoWA = () => {
   trackChatbot('busqueda_tienda_wa');
   track('CHATBOT_TIENDA', { producto: productoBuscado.value.trim() });
   const textoWA = `Hola Pet Station! 🛍️ Quiero confirmar si tienen disponibilidad o precio de: *${productoBuscado.value}*`;
+  trackWaClick('chatbot-tienda');
   isOpen.value = false;
   productoBuscado.value = '';
   window.open(`https://wa.me/${numeroWhatsAppGeneral}?text=${encodeURIComponent(textoWA)}`, '_blank');

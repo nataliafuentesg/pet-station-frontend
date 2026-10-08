@@ -252,11 +252,13 @@ import { useCartStore } from '../../stores/cartStore';
 import { useProductStore } from '../../stores/productStore';
 import { useTracking } from '@/composables/useTracking';
 import { useLead } from '@/composables/useLead';
+import { useWaTracking } from '@/composables/useWaTracking';
 import api from '@/api/axios';
 import { TIENDA_ACTIVA } from '@/config';
 
 const { trackAddToCart } = useTracking();
 const { track } = useLead();
+const { trackWaClick } = useWaTracking();
 
 const route = useRoute();
 const router = useRouter();
@@ -275,6 +277,7 @@ const abrirWhatsapp = (tipo, extra = {}) => {
   if (!product.value) return;
   track(tipo, { productoId: product.value.id, nombre: product.value.nombre, precio: product.value.precio, ...extra });
   const msg = `Hola! Me interesa este producto: *${product.value.nombre}*\nRef: ${product.value.id}`;
+  trackWaClick('producto-detalle');
   window.open(`https://wa.me/573053462413?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
