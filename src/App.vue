@@ -343,9 +343,11 @@ import WhatsappButton from './components/shared/WhatsappButton.vue';
 import CookieBanner from './components/shared/CookieBanner.vue';
 import { useRoute } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
+import { useWaTracking } from '@/composables/useWaTracking';
 
 
 const { trackLogin, trackRegistro } = useTracking();
+const { trackWaClick } = useWaTracking();
 const route = useRoute();
 // Rutas "fullscreen" sin nav/footer (paneles internos)
 const isAdminRoute = computed(() =>
@@ -398,6 +400,7 @@ const handleMobileOption = (opcion) => {
   if (opcion === 'urgencia') textoWA = "🚨 URGENCIA VETERINARIA: Necesito atención inmediata por favor.";
 
   isSupportSheetOpen.value = false;
+  trackWaClick(opcion === 'urgencia' ? 'sheet-urgencia' : 'sheet-asesor');
   window.open(`https://wa.me/573053462413?text=${encodeURIComponent(textoWA)}`, '_blank');
 };
 
@@ -405,6 +408,7 @@ const sendMobileViajeWA = () => {
   if (!isViajeFormValid.value) return;
   const textoWA = `Hola Pet Station! ✈️ Necesito asesoría de viaje:\n\n🌍 *Destino:* ${formViaje.value.destino}\n🐾 *Especie:* ${formViaje.value.especie}\n🎂 *Edad:* ${formViaje.value.edad}\n📅 *Fecha:* ${formViaje.value.fecha}`;
   isSupportSheetOpen.value = false;
+  trackWaClick('sheet-viajes');
   window.open(`https://wa.me/573053462413?text=${encodeURIComponent(textoWA)}`, '_blank');
 };
 
@@ -412,6 +416,7 @@ const sendMobileProductoWA = () => {
   if (!productoBuscado.value.trim()) return;
   const textoWA = `Hola Pet Station! 🛍️ Busco disponibilidad/precio de: *${productoBuscado.value}*`;
   isSupportSheetOpen.value = false;
+  trackWaClick('sheet-producto');
   window.open(`https://wa.me/573053462413?text=${encodeURIComponent(textoWA)}`, '_blank');
 };
 // ---------------------------------

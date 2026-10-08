@@ -315,7 +315,7 @@
             <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wide text-center">
               ¿Prefieres pagar en efectivo o por transferencia?
               <a href="https://wa.me/573053462413?text=Hola%20Pet%20Station!%20Quiero%20hacer%20un%20pedido%20y%20pagar%20en%20efectivo%20o%20transferencia."
-                target="_blank" class="text-[#25D366] underline ml-1">Escríbenos por WhatsApp →</a>
+                target="_blank" @click="trackWaClick('checkout')" class="text-[#25D366] underline ml-1">Escríbenos por WhatsApp →</a>
             </p>
           </div>
         </div>
@@ -400,8 +400,10 @@ import api from '../../api/axios';
 import Swal from 'sweetalert2';
 import { useConfigStore } from '../../stores/configStore';
 import { useTracking } from '@/composables/useTracking';
+import { useWaTracking } from '@/composables/useWaTracking';
 
 const { trackInicioCheckout, trackCompraCompletada } = useTracking();
+const { trackWaClick } = useWaTracking();
 
 const cartStore = useCartStore();
 const router = useRouter();

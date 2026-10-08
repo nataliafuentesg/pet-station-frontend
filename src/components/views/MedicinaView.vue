@@ -7,7 +7,7 @@ import { useWaTracking } from '@/composables/useWaTracking';
 import { useSeo } from '@/composables/useSeo';
 import { useJsonLd } from '@/composables/useJsonLd';
 const { trackViewService } = useTracking();
-const { trackView } = useWaTracking();
+const { trackView, trackWaClick } = useWaTracking();
 
 const router = useRouter();
 const telefonoBase = '573053462413'; // WhatsApp de la clínica
@@ -16,6 +16,10 @@ const telefonoBase = '573053462413'; // WhatsApp de la clínica
 const getWspLink = (servicio) => {
   const msj = `Hola Pet Station! 🐾\nQuisiera información o agendar una cita para: *${servicio}*.`;
   return `https://wa.me/${telefonoBase}?text=${encodeURIComponent(msj)}`;
+};
+
+const handleWspClick = (servicio) => {
+  trackWaClick('medicina-' + servicio.toLowerCase().replace(/\s+/g, '-').substring(0, 30));
 };
 
 const servicios = [
@@ -134,6 +138,7 @@ onMounted(() => {
             <span>📅</span> {{ s.action }}
           </router-link>
           <a v-else :href="getWspLink(s.titulo)" target="_blank"
+            @click="handleWspClick(s.titulo)"
             class="w-full py-3 flex items-center justify-center gap-2 bg-[#152C77] text-white rounded-xl font-[1000] uppercase text-[9px] tracking-widest hover:bg-[#DE1F27] transition-colors">
             <span>💬</span> {{ s.action }}
           </a>
@@ -151,6 +156,7 @@ onMounted(() => {
               Disponemos de equipos de monitoreo anestésico, ecografía y laboratorio clínico para brindar el soporte necesario en cada procedimiento.
             </p>
             <a :href="getWspLink('INSTALACIONES')" target="_blank"
+               @click="trackWaClick('medicina-instalaciones')"
                class="inline-block bg-white text-[#152C77] px-8 py-3 rounded-xl font-[1000] uppercase text-[9px] tracking-widest hover:scale-105 transition-transform">
               Contactar a la Clínica
             </a>

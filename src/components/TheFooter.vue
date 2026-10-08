@@ -120,6 +120,10 @@
 </template>
 
 <script setup>
+import { useWaTracking } from '@/composables/useWaTracking';
+
+const { trackWaClick } = useWaTracking();
+
 const socials = [
   { name: 'Instagram', icon: 'fab fa-instagram', link: 'https://instagram.com/petstationvet' },
   { name: 'TikTok', icon: 'fab fa-tiktok', link: 'https://www.tiktok.com/@petstationvet' },
@@ -128,6 +132,7 @@ const socials = [
 ];
 
 const trackWhatsApp = (posicion) => {
+  trackWaClick(posicion);
   if (window.dataLayer) {
     window.dataLayer.push({
       event: 'contacto_whatsapp',

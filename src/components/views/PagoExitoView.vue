@@ -55,6 +55,7 @@
           </router-link>
           <a href="https://wa.me/573053462413?text=Hola%20Pet%20Station!%20Acabo%20de%20pagar%20mi%20pedido."
             target="_blank"
+            @click="trackWaClick('pago-exitoso')"
             class="w-full bg-[#25D366] text-white py-5 rounded-2xl font-[1000] uppercase text-[10px] tracking-widest hover:bg-green-600 active:scale-95 transition-all">
             💬 Contactar por WhatsApp
           </a>
@@ -84,6 +85,7 @@
           </router-link>
           <a href="https://wa.me/573053462413?text=Hola%20Pet%20Station!%20Tuve%20un%20problema%20con%20el%20pago%20de%20mi%20pedido."
             target="_blank"
+            @click="trackWaClick('pago-rechazado')"
             class="w-full bg-[#25D366] text-white py-5 rounded-2xl font-[1000] uppercase text-[10px] tracking-widest hover:bg-green-600 active:scale-95 transition-all">
             💬 Contactar por WhatsApp
           </a>
@@ -98,9 +100,11 @@
 import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
+import { useWaTracking } from '@/composables/useWaTracking';
 
 const route = useRoute();
 const { trackCompraCompletada } = useTracking();
+const { trackWaClick } = useWaTracking();
 
 const pedidoId = computed(() => {
   const boldOrder = route.query['bold-order-id'];

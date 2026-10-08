@@ -145,6 +145,7 @@
             ← Buscar otro pedido
           </button>
           <a href="https://wa.me/573053462413" target="_blank"
+            @click="trackWaClick('rastrear-pedido')"
             class="w-full bg-[#25D366] text-white py-4 rounded-2xl font-[1000] uppercase text-[10px] tracking-widest text-center">
             💬 ¿Dudas? Escríbenos
           </a>
@@ -158,6 +159,8 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useWaTracking } from '@/composables/useWaTracking';
+const { trackWaClick } = useWaTracking();
 import { nextTick } from 'vue';
 import api from '@/api/axios';
 

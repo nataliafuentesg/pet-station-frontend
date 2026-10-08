@@ -23,6 +23,7 @@
           </p>
           <a href="https://wa.me/573053462413?text=Hola,%20necesito%20activar%20mi%20cuenta%20en%20Pet%20Station"
             target="_blank"
+            @click="trackWaClick('activar-cuenta')"
             class="inline-block bg-[#152C77] text-white font-black uppercase text-[11px] tracking-widest px-6 py-3 rounded-2xl">
             Contactar por WhatsApp
           </a>
@@ -104,6 +105,8 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/api/axios';
+import { useWaTracking } from '@/composables/useWaTracking';
+const { trackWaClick } = useWaTracking();
 
 const route = useRoute();
 const router = useRouter();

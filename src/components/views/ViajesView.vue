@@ -6,9 +6,10 @@ import { useSeo } from '@/composables/useSeo';
 import { useReveal } from '@/composables/useReveal';
 import { useJsonLd } from '@/composables/useJsonLd';
 const { trackViewService } = useTracking();
-const { trackView } = useWaTracking();
+const { trackView, trackWaClick } = useWaTracking();
 
 const trackWhatsApp = (posicion) => {
+  trackWaClick(posicion);
   if (window.dataLayer) {
     window.dataLayer.push({
       event: 'contacto_whatsapp',

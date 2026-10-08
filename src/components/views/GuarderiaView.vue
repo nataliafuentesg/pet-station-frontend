@@ -72,6 +72,7 @@
 
           <a href="https://wa.me/573053462413?text=Hola%20Pet%20Station!%20Quiero%20información%20sobre%20la%20guardería%20canina."
             target="_blank"
+            @click="trackWaClick('guarderia')"
             class="block w-full text-center py-6 bg-green-600 hover:bg-green-700 text-white rounded-[2rem] font-[1000] uppercase text-xs tracking-[0.2em] shadow-xl transition-all hover:scale-[1.02] active:scale-95">
             💬 Ver Disponibilidad
           </a>
@@ -89,7 +90,7 @@ import { useSeo } from '@/composables/useSeo';
 import { useReveal } from '@/composables/useReveal';
 import { useJsonLd } from '@/composables/useJsonLd';
 const { trackViewService } = useTracking();
-const { trackView } = useWaTracking();
+const { trackView, trackWaClick } = useWaTracking();
 onMounted(() => {
   trackViewService('Guardería Canina');
   trackView('servicio', 'Guardería Canina', '/guarderia');

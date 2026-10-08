@@ -135,6 +135,7 @@
                 <p class="text-[9px] font-bold text-amber-600 dark:text-amber-500 mt-0.5">Pronto habilitaremos las compras en línea.</p>
               </div>
               <a href="https://wa.me/573053462413?text=Hola%20Pet%20Station!%20Quiero%20hacer%20un%20pedido." target="_blank"
+                @click="trackWaClick('carrito')"
                 class="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white py-5 rounded-[2rem] font-[1000] uppercase text-[10px] tracking-widest hover:bg-green-600 active:scale-95 transition-all">
                 💬 Pedir por WhatsApp
               </a>
@@ -158,6 +159,8 @@ import { useRouter } from 'vue-router';
 import { useCartStore } from '../../stores/cartStore';
 import { useConfigStore } from '../../stores/configStore';
 import { TIENDA_ACTIVA } from '@/config';
+import { useWaTracking } from '@/composables/useWaTracking';
+const { trackWaClick } = useWaTracking();
 
 const props = defineProps(['isOpen', 'tutor']);
 const emit = defineEmits(['close', 'notify']);

@@ -119,6 +119,7 @@
         </div>
         <a href="https://wa.me/573053462413?text=Hola%20Pet%20Station!%20Quiero%20información%20sobre%20sus%20servicios."
           target="_blank"
+          @click="trackWaClick('servicios-cta')"
           class="shrink-0 w-full md:w-auto bg-white text-[#DE1F27] px-10 py-5 rounded-2xl font-[1000] uppercase text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl text-center">
           💬 Hablar con un Asesor
         </a>
@@ -138,7 +139,7 @@ import { useSeo } from '@/composables/useSeo';
 
 const router = useRouter();
 const { trackViewService } = useTracking();
-const { trackView } = useWaTracking();
+const { trackView, trackWaClick } = useWaTracking();
 
 onMounted(() => {
   trackViewService('Servicios');
