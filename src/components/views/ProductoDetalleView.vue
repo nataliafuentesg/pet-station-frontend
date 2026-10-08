@@ -258,7 +258,7 @@ import { TIENDA_ACTIVA } from '@/config';
 
 const { trackAddToCart } = useTracking();
 const { track } = useLead();
-const { trackWaClick } = useWaTracking();
+const { trackWaClick, trackView } = useWaTracking();
 
 const route = useRoute();
 const router = useRouter();
@@ -378,6 +378,7 @@ const fetchData = async (id) => {
     product.value = data;
     isExpanded.value = false;
     currentImage.value = null;
+    trackView('producto', data.nombre, String(data.id));
 
     if (window.dataLayer) {
       window.dataLayer.push({

@@ -3,9 +3,11 @@ import { onMounted } from 'vue';
 import { useReveal } from '@/composables/useReveal';
 import { useRouter } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
+import { useWaTracking } from '@/composables/useWaTracking';
 import { useSeo } from '@/composables/useSeo';
 import { useJsonLd } from '@/composables/useJsonLd';
 const { trackViewService } = useTracking();
+const { trackView } = useWaTracking();
 
 const router = useRouter();
 const telefonoBase = '573053462413'; // WhatsApp de la clínica
@@ -64,6 +66,7 @@ const servicios = [
 ];
 onMounted(() => {
   trackViewService('Consulta Médica Veterinaria');
+  trackView('servicio', 'Medicina Veterinaria', '/medicina');
   useReveal();
   useSeo({
     titulo: 'Medicina Veterinaria en Chía | Pet Station',

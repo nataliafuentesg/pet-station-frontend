@@ -164,6 +164,7 @@ import { useReveal } from '@/composables/useReveal';
 import { useJsonLd } from '@/composables/useJsonLd';
 import { useRouter } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
+import { useWaTracking } from '@/composables/useWaTracking';
 import { useSeo } from '@/composables/useSeo';
 
 const router = useRouter();
@@ -197,6 +198,7 @@ const irAAgendar = () => {
 
 onMounted(() => {
   trackViewService('Peluquería Canina');
+  trackView('servicio', 'Peluquería', '/peluqueria');
   useReveal();
   useSeo({
     titulo: 'Peluquería Canina y Felina en Chía | Pet Station',

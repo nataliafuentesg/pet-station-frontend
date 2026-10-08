@@ -39,5 +39,16 @@ export function useWaTracking() {
     }).catch(() => {})
   }
 
-  return { trackWaClick }
+  const trackView = (tipo, nombre, slug) => {
+    const { fuente } = detectarFuente()
+    api.post('/tracking/view', {
+      tipo,
+      nombre,
+      slug: slug || '',
+      fuente,
+      referrer: document.referrer,
+    }).catch(() => {})
+  }
+
+  return { trackWaClick, trackView }
 }

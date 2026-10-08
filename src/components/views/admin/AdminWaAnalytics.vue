@@ -4,13 +4,18 @@ import api from '@/api/axios'
 
 const dias = ref(30)
 const stats = ref(null)
+const viewStats = ref(null)
 const loading = ref(true)
 
 const cargar = async () => {
   loading.value = true
   try {
-    const { data } = await api.get(`/tracking/wa-stats?dias=${dias.value}`)
-    stats.value = data
+    const [r1, r2] = await Promise.all([
+      api.get(`/tracking/wa-stats?dias=${dias.value}`),
+      api.get(`/tracking/view-stats?dias=${dias.value}`)
+    ])
+    stats.value = r1.data
+    viewStats.value = r2.data
   } catch (e) {
     console.error(e)
   } finally {
@@ -56,6 +61,30 @@ const formatFecha = (ts) => new Date(ts).toLocaleString('es-CO', { dateStyle: 's
           class="bg-slate-50 dark:bg-white/5 rounded-2xl p-4 border border-slate-200 dark:border-white/10">
           <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{{ fuenteEmoji(f.fuente) }} {{ f.fuente }}</p>
           <p class="text-3xl font-[1000] text-[#152C77] dark:text-white">{{ f.clicks }}</p>
+        </div>
+      </div>
+
+      <!-- Top productos y servicios -->
+      <div v-if="viewStats" class="grid md:grid-cols-2 gap-4">
+        <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-5 border border-slate-200 dark:border-white/10">
+          <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-4">🛍️ Productos más vistos</h3>
+          <div class="space-y-2">
+            <div v-for="p in viewStats.topProductos" :key="p.slug" class="flex justify-between items-center">
+              <span class="text-sm font-medium text-slate-600 dark:text-slate-300 truncate max-w-[75%]">{{ p.nombre }}</span>
+              <span class="text-sm font-black text-[#152C77] dark:text-white">{{ p.vistas }}</span>
+            </div>
+            <p v-if="!viewStats.topProductos.length" class="text-slate-400 text-sm">Sin datos aún</p>
+          </div>
+        </div>
+        <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-5 border border-slate-200 dark:border-white/10">
+          <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-4">🏥 Servicios más vistos</h3>
+          <div class="space-y-2">
+            <div v-for="s in viewStats.topServicios" :key="s.slug" class="flex justify-between items-center">
+              <span class="text-sm font-medium text-slate-600 dark:text-slate-300 truncate max-w-[75%]">{{ s.nombre }}</span>
+              <span class="text-sm font-black text-[#152C77] dark:text-white">{{ s.vistas }}</span>
+            </div>
+            <p v-if="!viewStats.topServicios.length" class="text-slate-400 text-sm">Sin datos aún</p>
+          </div>
         </div>
       </div>
 

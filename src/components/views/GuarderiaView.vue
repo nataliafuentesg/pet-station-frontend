@@ -84,12 +84,15 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useTracking } from '@/composables/useTracking';
+import { useWaTracking } from '@/composables/useWaTracking';
 import { useSeo } from '@/composables/useSeo';
 import { useReveal } from '@/composables/useReveal';
 import { useJsonLd } from '@/composables/useJsonLd';
 const { trackViewService } = useTracking();
+const { trackView } = useWaTracking();
 onMounted(() => {
   trackViewService('Guardería Canina');
+  trackView('servicio', 'Guardería Canina', '/guarderia');
   useReveal();
   useJsonLd({
     '@context': 'https://schema.org',

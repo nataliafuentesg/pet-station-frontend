@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useTracking } from '@/composables/useTracking';
+import { useWaTracking } from '@/composables/useWaTracking';
 import { useSeo } from '@/composables/useSeo';
 import { useReveal } from '@/composables/useReveal';
 import { useJsonLd } from '@/composables/useJsonLd';
 const { trackViewService } = useTracking();
+const { trackView } = useWaTracking();
 
 const trackWhatsApp = (posicion) => {
   if (window.dataLayer) {
@@ -131,6 +133,7 @@ const destinos = [
 const destinoActual = ref(destinos[0]);
 onMounted(() => {
   trackViewService('Viajes Internacional Mascotas');
+  trackView('servicio', 'Viajes Internacional', '/viajes');
   useReveal();
   useJsonLd({
     '@context': 'https://schema.org',
