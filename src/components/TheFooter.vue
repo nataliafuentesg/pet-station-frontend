@@ -29,7 +29,7 @@
                 305 346 2413
               </p>
             </a>
-            <a href="https://wa.me/573187076798" @click="trackWhatsApp('footer_seguimiento')" target="_blank" class="group block border-t border-slate-200 dark:border-white/5 pt-4">
+            <a href="https://wa.me/573053462413" @click="trackWhatsApp('footer_seguimiento')" target="_blank" class="group block border-t border-slate-200 dark:border-white/5 pt-4">
               <p class="text-[9px] font-black text-slate-400 uppercase mb-1">Seguimiento Médico</p>
               <p class="text-xl font-[1000] text-[#152C77] dark:text-white group-hover:text-[#DE1F27] transition-colors tracking-tighter italic leading-none">
                 318 707 6798

@@ -8,7 +8,7 @@ import { useJsonLd } from '@/composables/useJsonLd';
 const { trackViewService } = useTracking();
 
 const router = useRouter();
-const telefonoBase = '573187076798'; // WhatsApp de la clínica
+const telefonoBase = '573053462413'; // WhatsApp de la clínica
 
 // Función simple para el link de WhatsApp
 const getWspLink = (servicio) => {

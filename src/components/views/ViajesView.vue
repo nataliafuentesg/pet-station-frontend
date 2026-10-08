@@ -160,7 +160,7 @@ onMounted(() => {
 
 // --- WHATSAPP ESPECÍFICO PARA VIAJES ---
 const whatsappLink = computed(() => {
-  const telefono = '573208221778'; // Número exclusivo de viajes
+  const telefono = '573053462413'; // Número exclusivo de viajes
   const mensaje = `Hola Pet Station! ✈️\nEstuve revisando la guía de viaje para *${destinoActual.value.nombre}*.\nMe gustaría iniciar el proceso o recibir asesoría personalizada.`;
   return `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
 });

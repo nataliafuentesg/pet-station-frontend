@@ -405,7 +405,7 @@ const sendMobileViajeWA = () => {
   if (!isViajeFormValid.value) return;
   const textoWA = `Hola Pet Station! ✈️ Necesito asesoría de viaje:\n\n🌍 *Destino:* ${formViaje.value.destino}\n🐾 *Especie:* ${formViaje.value.especie}\n🎂 *Edad:* ${formViaje.value.edad}\n📅 *Fecha:* ${formViaje.value.fecha}`;
   isSupportSheetOpen.value = false;
-  window.open(`https://wa.me/573208221778?text=${encodeURIComponent(textoWA)}`, '_blank');
+  window.open(`https://wa.me/573053462413?text=${encodeURIComponent(textoWA)}`, '_blank');
 };
 
 const sendMobileProductoWA = () => {

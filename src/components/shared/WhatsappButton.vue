@@ -385,7 +385,7 @@ const isViajeFormValid = computed(() =>
 );
 
 const numeroWhatsAppGeneral = "573053462413";
-const numeroWhatsAppViajes = "573208221778";
+const numeroWhatsAppViajes = "573053462413";
 
 // ─── Base de conocimiento FAQ ───────────────────────────────────────────────
 // Cada entrada: { palabras: [...keywords], texto: '...', wa: 'url o null' }

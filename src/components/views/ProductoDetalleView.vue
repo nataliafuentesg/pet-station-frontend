@@ -275,7 +275,7 @@ const abrirWhatsapp = (tipo, extra = {}) => {
   if (!product.value) return;
   track(tipo, { productoId: product.value.id, nombre: product.value.nombre, precio: product.value.precio, ...extra });
   const msg = `Hola! Me interesa este producto: *${product.value.nombre}*\nRef: ${product.value.id}`;
-  window.open(`https://wa.me/573213501873?text=${encodeURIComponent(msg)}`, '_blank');
+  window.open(`https://wa.me/573053462413?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
 // --- FUNCIONES DE UUID Y SLUG (Déjalas tal cual las tienes) ---

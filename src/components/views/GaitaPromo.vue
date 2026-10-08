@@ -162,7 +162,7 @@ const aceptarYRedimir = () => {
   if (!acceptedTerms.value) return;
 
   showTermsModal.value = false;
-  const phone = "573208221778";
+  const phone = "573053462413";
   const msg = encodeURIComponent("¡Hola Pet Station! 🐾 Soy de la comunidad de @lagaita. Ya leí las condiciones y quiero usar mi código GAITAPETS para agendar y aprovechar mi beneficio.");
 
   if (window.dataLayer) {
