@@ -141,8 +141,9 @@
             </button>
           </div>
           <p v-if="!guarderia.adentro.length" class="text-[12px] text-white/30">No hay perros registrados adentro.</p>
-          <div v-for="p in guarderia.adentro" :key="p.id" class="flex items-center justify-between gap-3 bg-white/5 rounded-xl px-4 py-3 border border-white/5">
-            <div class="min-w-0">
+          <div v-for="p in guarderia.adentro" :key="p.id" class="flex items-center justify-between gap-3 bg-white/5 rounded-xl px-4 py-3 border"
+            :class="p.comidaNoAlcanza || p.comidaPorAcabarse || p.salidaVencida ? 'border-red-500/50' : 'border-white/5'">
+            <button type="button" @click="abrirFicha(p)" class="min-w-0 text-left flex-1">
               <p class="text-[14px] font-bold truncate">
                 {{ p.perro }}
                 <span class="ml-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full align-middle"
@@ -151,7 +152,14 @@
                 </span>
               </p>
               <p class="text-[10px] text-white/30">Entró {{ desde(p.entrada) }}<span v-if="p.recibidoPor"> · {{ p.recibidoPor }}</span></p>
-            </div>
+              <p v-if="p.salidaEsperada" class="text-[10px] font-bold" :class="p.salidaVencida ? 'text-red-300' : 'text-purple-300/80'">
+                {{ p.salidaVencida ? '⚠️ Debía salir el' : 'Sale el' }} {{ fechaCorta(p.salidaEsperada) }}
+              </p>
+              <p v-if="p.diasComida != null" class="text-[10px] font-bold"
+                :class="p.comidaNoAlcanza || p.comidaPorAcabarse ? 'text-red-300' : 'text-amber-300/70'">
+                🍖 {{ textoComida(p) }}
+              </p>
+            </button>
             <button @click="entregar(p)" :disabled="enviando"
               class="shrink-0 bg-white/10 px-3 py-2 rounded-xl font-black uppercase tracking-widest text-[9px] active:scale-95 disabled:opacity-40">
               Entregado
@@ -194,7 +202,7 @@
     <Teleport to="body">
       <div v-if="recepcion" class="fixed inset-0 z-[9001] flex items-end sm:items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="recepcion = null"></div>
-        <div class="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
+        <div class="relative w-full max-w-sm max-h-[92vh] overflow-y-auto bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
           <p class="text-lg font-[1000] leading-tight">🐕 ¿Qué perro llegó?</p>
           <input v-model="recepcion.perro" maxlength="100" placeholder="Nombre del perro" autocapitalize="words"
             class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-blue-500 placeholder:text-white/20" />
@@ -204,13 +212,8 @@
               {{ n }}
             </button>
           </div>
-          <div class="grid grid-cols-2 gap-2">
-            <button v-for="t in [['DIA', '☀️ Guardería día'], ['HOTEL', '🌙 Hotel']]" :key="t[0]" @click="recepcion.tipo = t[0]"
-              class="py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] border transition-colors"
-              :class="recepcion.tipo === t[0] ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white/5 border-white/10 text-white/60'">
-              {{ t[1] }}
-            </button>
-          </div>
+          <PerroDatosForm :model-value="recepcion" />
+          <p v-if="error" class="text-[11px] text-red-300 font-bold">{{ error }}</p>
           <p v-if="tareaActual" class="text-[11px] text-white/40">Se cerrará "{{ tareaActual.descripcion }}" y empieza la recepción.</p>
           <div class="grid grid-cols-2 gap-3">
             <button @click="recepcion = null" class="bg-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
@@ -219,6 +222,44 @@
               Empezar recepción
             </button>
           </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Ficha del perro: corregir datos, agregar comida, anular -->
+    <Teleport to="body">
+      <div v-if="ficha" class="fixed inset-0 z-[9001] flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="ficha = null"></div>
+        <div class="relative w-full max-w-sm max-h-[92vh] overflow-y-auto bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-lg font-[1000] leading-tight">✏️ Corregir datos</p>
+            <button @click="ficha = null" class="w-8 h-8 flex items-center justify-center bg-white/10 rounded-lg text-white/50">✕</button>
+          </div>
+          <input v-model="ficha.datos.perro" maxlength="100" placeholder="Nombre del perro"
+            class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-blue-500" />
+          <PerroDatosForm :model-value="ficha.datos" :dias-transcurridos="ficha.diasTranscurridos" :entrada="ficha.entrada" />
+          <p v-if="error" class="text-[11px] text-red-300 font-bold">{{ error }}</p>
+          <button @click="guardarFicha" :disabled="!ficha.datos.perro.trim() || enviando"
+            class="w-full bg-blue-500 py-4 rounded-2xl font-[1000] uppercase tracking-widest text-[11px] active:scale-95 disabled:opacity-40">
+            Guardar cambios
+          </button>
+
+          <div class="border-t border-white/10 pt-4 space-y-2">
+            <p class="text-[10px] font-black uppercase tracking-widest text-white/40">🍖 Le trajeron más comida</p>
+            <div class="flex gap-2">
+              <input v-model="ficha.masComida" inputmode="decimal" :placeholder="ficha.datos.comidaUnidad === 'GRAMOS' ? 'Gramos' : 'Porciones'"
+                class="flex-1 min-w-0 bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-amber-500 placeholder:text-white/20" />
+              <button @click="sumarComida" :disabled="!ficha.masComida || enviando"
+                class="bg-amber-500 text-black px-4 rounded-2xl font-black uppercase tracking-widest text-[10px] disabled:opacity-40">
+                Sumar
+              </button>
+            </div>
+          </div>
+
+          <button @click="anularPerro" :disabled="enviando"
+            class="w-full text-red-300/80 py-2 font-black uppercase tracking-widest text-[10px] disabled:opacity-40">
+            🗑 Anular registro (fue un error)
+          </button>
         </div>
       </div>
     </Teleport>
@@ -295,6 +336,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import api from '@/api/axios'
 import { messaging, onMessage } from '@/firebase'
 import { obtenerTokenPush } from '@/composables/usePushNotifications'
+import PerroDatosForm from './equipo/PerroDatosForm.vue'
 
 const ROLES_PERMITIDOS = ['ROLE_EMPLEADO', 'ROLE_VET', 'ROLE_ADMIN', 'ADMIN']
 
@@ -311,6 +353,7 @@ const mostrarCheck = ref(false)
 const cierre = ref(null)
 
 const recepcion = ref(null)
+const ficha = ref(null)
 const CHECKLIST = [
   { id: 'comidaMarcada', label: 'Recibí y marqué la comida' },
   { id: 'revisado', label: 'Revisé al perro' },
@@ -438,7 +481,53 @@ function pedirNota(tipo) {
 }
 
 function abrirRecepcion() {
-  recepcion.value = { perro: '', tipo: 'DIA' }
+  error.value = ''
+  recepcion.value = { perro: '', tipo: 'DIA', salidaEsperada: '', comidaCantidad: '', comidaUnidad: 'PORCIONES', comidaPorDia: '' }
+}
+
+function abrirFicha(p) {
+  error.value = ''
+  ficha.value = {
+    id: p.id,
+    nombre: p.perro,
+    entrada: p.entrada,
+    diasTranscurridos: Math.max(0, (Date.now() - new Date(p.entrada)) / 86400000),
+    masComida: '',
+    datos: {
+      perro: p.perro,
+      tipo: p.tipo,
+      salidaEsperada: p.salidaEsperada || '',
+      comidaCantidad: p.comidaCantidad ?? '',
+      comidaUnidad: p.comidaUnidad || 'PORCIONES',
+      comidaPorDia: p.comidaPorDia ?? '',
+    },
+  }
+}
+
+async function guardarFicha() {
+  if (await accion(`/jornada/guarderia/${ficha.value.id}/editar`, ficha.value.datos)) ficha.value = null
+}
+
+async function sumarComida() {
+  if (await accion(`/jornada/guarderia/${ficha.value.id}/comida`, { cantidad: ficha.value.masComida })) ficha.value = null
+}
+
+async function anularPerro() {
+  if (!confirm(`¿Anular el registro de ${ficha.value.nombre}? No contará en los reportes.`)) return
+  if (await accion(`/jornada/guarderia/${ficha.value.id}/anular`)) ficha.value = null
+}
+
+function textoComida(p) {
+  const u = p.comidaUnidad === 'GRAMOS' ? 'g' : 'porc.'
+  const dias = p.diasComida < 1 ? 'menos de 1 día' : `${p.diasComida} días`
+  const base = `Comida para ${dias} (quedan ~${p.comidaRestante} ${u})`
+  if (p.comidaNoAlcanza) return `${base} · ⚠️ no alcanza hasta la salida`
+  if (p.comidaPorAcabarse) return `${base} · ⚠️ se está acabando`
+  return base
+}
+
+function fechaCorta(f) {
+  return new Date(f + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
 // Si hay una tarea en curso, primero se cierra con su nota (y checklist si era otra recepción)
@@ -451,8 +540,7 @@ function confirmarRecepcion() {
 }
 
 async function recibirPerro(extra = {}) {
-  const { perro, tipo } = recepcion.value
-  const ok = await accion('/jornada/guarderia/recibir', { perro, tipo, ...extra })
+  const ok = await accion('/jornada/guarderia/recibir', { ...recepcion.value, ...extra })
   if (ok) recepcion.value = null
   return ok
 }

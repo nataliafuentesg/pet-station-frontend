@@ -28,10 +28,23 @@
       <div v-if="loadingEmpleados" class="py-16 text-center">
         <div class="w-8 h-8 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
       </div>
-      <div v-else-if="!activos.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">
+      <div v-else-if="!activos.length && !guarderiaAhora?.adentro?.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">
         Sin empleados. Crea el primero con "Nuevo empleado".
       </div>
-      <div v-else class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div v-if="guarderiaAhora?.adentro?.length" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-2">
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">
+          🐕 Perros adentro · {{ guarderiaAhora.adentro.length }}
+          <span class="text-purple-500">({{ guarderiaAhora.adentro.filter(p => p.tipo === 'HOTEL').length }} hotel)</span>
+        </p>
+        <div v-for="p in alertasPerros" :key="p.id" class="text-[12px] font-bold text-red-600 dark:text-red-300">
+          ⚠️ {{ p.perro }}:
+          <span v-if="p.salidaVencida">debía salir el {{ diaCorto(p.salidaEsperada) }}. </span>
+          <span v-if="p.comidaNoAlcanza">la comida alcanza hasta el {{ diaCorto(p.comidaAlcanzaHasta) }} y sale el {{ diaCorto(p.salidaEsperada) }}. </span>
+          <span v-else-if="p.comidaPorAcabarse">le queda comida para menos de un día. </span>
+        </div>
+        <p v-if="!alertasPerros.length" class="text-[11px] text-slate-400 dark:text-white/30">Sin alertas de comida ni de salidas.</p>
+      </div>
+      <div v-if="activos.length" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <div v-for="e in activos" :key="e.tutorId"
           class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-3">
           <div class="flex items-start justify-between gap-3">
@@ -344,7 +357,10 @@
                 <div v-for="p in perfil.perros" :key="p.perro + p.entrada" class="flex items-center justify-between gap-3 py-1.5 border-b border-slate-100 dark:border-white/5 last:border-0">
                   <div class="min-w-0">
                     <p class="text-[12px] font-bold dark:text-white truncate">{{ p.perro }} <span class="text-[9px] uppercase" :class="p.tipo === 'HOTEL' ? 'text-purple-500' : 'text-blue-500'">{{ p.tipo === 'HOTEL' ? 'Hotel' : 'Día' }}</span></p>
-                    <p class="text-[10px] text-slate-400 dark:text-white/40">{{ fechaHora(p.entrada) }} – {{ p.salida ? fechaHora(p.salida) : 'sigue adentro' }}</p>
+                    <p class="text-[10px] text-slate-400 dark:text-white/40">{{ fechaHora(p.entrada) }} – {{ p.salida ? fechaHora(p.salida) : 'sigue adentro' }}<span v-if="p.salidaEsperada"> · sale {{ diaCorto(p.salidaEsperada) }}</span></p>
+                    <p v-if="p.comidaCantidad" class="text-[10px]" :class="p.comidaNoAlcanza || p.comidaPorAcabarse ? 'text-red-500' : 'text-slate-400 dark:text-white/40'">
+                      🍖 Trajo {{ p.comidaCantidad }} {{ p.comidaUnidad === 'GRAMOS' ? 'g' : 'porciones' }}<span v-if="p.comidaPorDia">, come {{ p.comidaPorDia }}/día</span><span v-if="p.diasComida != null && !p.salida"> · alcanza {{ p.diasComida }} días más</span>
+                    </p>
                   </div>
                   <div class="flex gap-1 text-[10px] shrink-0" title="Comida marcada · Revisado · Uñas">
                     <span v-for="c in ['comidaMarcada','revisado','unasCortadas']" :key="c"
@@ -487,6 +503,9 @@ const errorForm = ref('')
 const guardando = ref(false)
 const detalle = ref(null)
 const ocupacion = ref(null)
+const guarderiaAhora = ref(null)
+const alertasPerros = computed(() => (guarderiaAhora.value?.adentro || [])
+  .filter(p => p.salidaVencida || p.comidaNoAlcanza || p.comidaPorAcabarse))
 const loadingOcupacion = ref(false)
 const perfil = ref(null)
 
@@ -538,8 +557,12 @@ function estadoVivo(e) {
 async function cargarEmpleados() {
   loadingEmpleados.value = true
   try {
-    const { data } = await api.get('/admin/jornada/empleados')
+    const [{ data }, g] = await Promise.all([
+      api.get('/admin/jornada/empleados'),
+      api.get('/admin/jornada/guarderia').catch(() => ({ data: null })),
+    ])
     empleados.value = data
+    guarderiaAhora.value = g.data
   } finally {
     loadingEmpleados.value = false
   }
