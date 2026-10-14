@@ -169,6 +169,93 @@
       </template>
     </div>
 
+    <!-- GUARDERÍA: ocupación vs tiempo del equipo -->
+    <div v-if="vista === 'guarderia'" class="space-y-5">
+      <div class="flex flex-wrap items-end gap-3">
+        <div class="flex gap-1">
+          <button v-for="p in presets" :key="p.id" @click="aplicarPreset(p.id)"
+            class="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors"
+            :class="preset === p.id ? 'bg-[#DE1F27] text-white' : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10'">
+            {{ p.label }}
+          </button>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="date" v-model="desde" @change="preset = null; recargar()" :class="inputClass" class="!py-2 !text-xs" />
+          <span class="text-slate-400 text-xs">a</span>
+          <input type="date" v-model="hasta" @change="preset = null; recargar()" :class="inputClass" class="!py-2 !text-xs" />
+        </div>
+      </div>
+
+      <div v-if="loadingOcupacion" class="py-16 text-center">
+        <div class="w-8 h-8 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
+      </div>
+      <template v-else-if="ocupacion">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div v-for="k in kpisGuarderia" :key="k.label" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-4">
+            <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">{{ k.label }}</p>
+            <p class="text-2xl font-[1000] mt-1 tabular-nums dark:text-white">{{ k.valor }}</p>
+            <p v-if="k.nota" class="text-[10px] text-slate-400 dark:text-white/30 mt-0.5">{{ k.nota }}</p>
+          </div>
+        </div>
+
+        <!-- Comparación días con pocos perros vs días llenos -->
+        <div v-if="comparacion" class="grid gap-3 lg:grid-cols-2">
+          <div v-for="g in comparacion" :key="g.titulo" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-3">
+            <div>
+              <p class="font-[1000] uppercase italic text-sm dark:text-white">{{ g.titulo }}</p>
+              <p class="text-[10px] text-slate-400 dark:text-white/40">
+                {{ g.dias }} día(s) · {{ g.perros }} perros en promedio · {{ dur(g.segTareas) }} en tareas y {{ dur(g.segMuerto) }} sin tarea por día
+              </p>
+            </div>
+            <div v-for="t in g.tareas" :key="t.descripcion" class="space-y-1">
+              <div class="flex justify-between gap-3 text-[11px] font-bold dark:text-white/80">
+                <span class="truncate">{{ t.descripcion }}</span>
+                <span class="tabular-nums shrink-0">{{ dur(t.seg) }}/día</span>
+              </div>
+              <div class="h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
+                <div class="h-full rounded-full bg-[#152C77] dark:bg-blue-400" :style="{ width: (t.seg * 100 / g.maxSeg) + '%' }"></div>
+              </div>
+            </div>
+            <p v-if="!g.tareas.length" class="text-[11px] text-slate-400 dark:text-white/30">Sin tareas terminadas.</p>
+          </div>
+        </div>
+        <p v-else class="text-[11px] text-slate-400 dark:text-white/30">Con al menos 2 días de datos aparece la comparación entre días con pocos perros y días llenos.</p>
+
+        <!-- Por día -->
+        <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-x-auto">
+          <table class="w-full text-left min-w-[820px]">
+            <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
+              <tr>
+                <th v-for="h in ['Día','Perros día','Hotel','Máx. a la vez','Personas','En tareas','Sin tarea','Horas por perro','Recepciones (uñas)','']" :key="h"
+                  class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-white/5">
+              <tr v-for="d in [...ocupacion].reverse()" :key="d.fecha" class="hover:bg-slate-50 dark:hover:bg-white/3">
+                <td class="px-4 py-3 text-[12px] font-[1000] uppercase italic dark:text-white whitespace-nowrap">{{ diaCorto(d.fecha) }}</td>
+                <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">{{ d.perrosDia }}</td>
+                <td class="px-4 py-3 text-[12px] font-bold text-purple-600 dark:text-purple-300 tabular-nums">{{ d.perrosHotel }}</td>
+                <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">{{ d.maxSimultaneo }}</td>
+                <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">{{ d.personas }}</td>
+                <td class="px-4 py-3 text-[12px] font-bold text-green-600 dark:text-green-400 tabular-nums">{{ dur(d.segTareas) }}</td>
+                <td class="px-4 py-3 text-[12px] font-bold tabular-nums" :class="d.segMuerto > 3600 ? 'text-red-500' : 'dark:text-white/70'">{{ dur(d.segMuerto) }}</td>
+                <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">{{ horasPorPerro(d) }}</td>
+                <td class="px-4 py-3 text-[12px] font-bold tabular-nums" :class="d.recepciones && d.conUnas < d.recepciones ? 'text-amber-500' : 'dark:text-white/70'">
+                  {{ d.recepciones }}<span v-if="d.recepciones" class="opacity-50"> ({{ d.conUnas }})</span>
+                </td>
+                <td class="px-4 py-3">
+                  <button @click="abrirPerfil(d)" class="text-[9px] font-black uppercase text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27] whitespace-nowrap">Ver día →</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-[10px] text-slate-400 dark:text-white/30">
+          Solo cuenta al equipo con cargo de guardería. Horas por perro = horas en tareas ÷ perros atendidos ese día (día + hotel). Un perro de hotel cuenta todos los días que está.
+        </p>
+      </template>
+    </div>
+
     <!-- EQUIPO -->
     <div v-if="vista === 'equipo'" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-x-auto">
       <div v-if="!empleados.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">Sin empleados</div>
@@ -201,6 +288,77 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Modal perfil del día de guardería -->
+    <Teleport to="body">
+      <div v-if="perfil" class="fixed inset-0 z-[9000] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="perfil = null"></div>
+        <div class="relative w-full max-w-2xl max-h-[88vh] flex flex-col bg-white dark:bg-[#0D1425] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+          <div class="flex items-center justify-between gap-3 px-6 py-4 border-b border-slate-100 dark:border-white/5">
+            <h3 class="font-[1000] uppercase italic text-sm dark:text-white">Guardería · {{ diaCorto(perfil.dia.fecha) }}</h3>
+            <button @click="perfil = null" class="w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-white/5 rounded-lg text-slate-400 dark:text-white/50">✕</button>
+          </div>
+          <div class="p-6 overflow-y-auto space-y-6">
+            <div v-if="perfil.cargando" class="py-10 text-center">
+              <div class="w-6 h-6 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            </div>
+            <template v-else>
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 mb-2">Por hora: perros adentro vs. personas con tarea</p>
+                <div class="flex gap-3 text-[10px] font-bold text-slate-500 dark:text-white/50 mb-2">
+                  <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-blue-400 align-middle"></span> Perros día</span>
+                  <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-purple-400 align-middle"></span> Hotel</span>
+                  <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-green-500 align-middle"></span> Personas con tarea</span>
+                  <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-slate-300 dark:bg-white/20 align-middle"></span> En jornada</span>
+                </div>
+                <div class="space-y-1">
+                  <div v-for="h in horasVisibles" :key="h.hora" class="flex items-center gap-2">
+                    <span class="w-10 text-[10px] font-bold tabular-nums text-slate-400 dark:text-white/40 shrink-0">{{ h.hora }}:00</span>
+                    <div class="flex-1 space-y-0.5">
+                      <div class="flex h-2.5">
+                        <div class="bg-blue-400 rounded-l-sm" :style="{ width: (h.perrosDia * 100 / maxPerrosHora) + '%' }"></div>
+                        <div class="bg-purple-400 rounded-r-sm" :style="{ width: (h.perrosHotel * 100 / maxPerrosHora) + '%' }"></div>
+                      </div>
+                      <div class="relative h-2.5">
+                        <div class="absolute inset-y-0 left-0 bg-slate-200 dark:bg-white/15 rounded-sm" :style="{ width: (h.enJornada * 100 / maxPersonasHora) + '%' }"></div>
+                        <div class="absolute inset-y-0 left-0 bg-green-500 rounded-sm" :style="{ width: (h.conTarea * 100 / maxPersonasHora) + '%' }"></div>
+                      </div>
+                    </div>
+                    <span class="w-20 text-[10px] font-bold tabular-nums text-slate-500 dark:text-white/50 text-right shrink-0">{{ h.perrosDia + h.perrosHotel }} 🐕 · {{ h.conTarea }}/{{ h.enJornada }} 👤</span>
+                  </div>
+                </div>
+                <p v-if="!horasVisibles.length" class="text-[11px] text-slate-400 dark:text-white/30">Sin actividad registrada.</p>
+              </div>
+
+              <div v-if="perfil.dia.tareas?.length">
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 mb-2">En qué se fue el tiempo del equipo</p>
+                <div v-for="t in perfil.dia.tareas.slice(0, 12)" :key="t.descripcion" class="flex justify-between gap-3 text-[12px] font-bold py-1 dark:text-white/80">
+                  <span class="truncate">{{ t.descripcion }} <span class="opacity-40">×{{ t.veces }}</span></span>
+                  <span class="tabular-nums shrink-0">{{ dur(t.segTotal) }}</span>
+                </div>
+              </div>
+
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 mb-2">Perros</p>
+                <p v-if="!perfil.perros.length" class="text-[11px] text-slate-400 dark:text-white/30">No se registraron perros.</p>
+                <div v-for="p in perfil.perros" :key="p.perro + p.entrada" class="flex items-center justify-between gap-3 py-1.5 border-b border-slate-100 dark:border-white/5 last:border-0">
+                  <div class="min-w-0">
+                    <p class="text-[12px] font-bold dark:text-white truncate">{{ p.perro }} <span class="text-[9px] uppercase" :class="p.tipo === 'HOTEL' ? 'text-purple-500' : 'text-blue-500'">{{ p.tipo === 'HOTEL' ? 'Hotel' : 'Día' }}</span></p>
+                    <p class="text-[10px] text-slate-400 dark:text-white/40">{{ fechaHora(p.entrada) }} – {{ p.salida ? fechaHora(p.salida) : 'sigue adentro' }}</p>
+                  </div>
+                  <div class="flex gap-1 text-[10px] shrink-0" title="Comida marcada · Revisado · Uñas">
+                    <span v-for="c in ['comidaMarcada','revisado','unasCortadas']" :key="c"
+                      :class="p[c] ? 'text-green-500' : p[c] === false ? 'text-red-400' : 'text-slate-300 dark:text-white/20'">
+                      {{ { comidaMarcada: '🍖', revisado: '🩺', unasCortadas: '✂️' }[c] }}{{ p[c] ? '✓' : p[c] === false ? '✗' : '' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Modal crear / editar -->
     <Teleport to="body">
@@ -296,12 +454,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import api from '@/api/axios'
 
 const vistas = [
   { id: 'ahora', label: '🟢 Ahora' },
   { id: 'reporte', label: '📊 Reporte' },
+  { id: 'guarderia', label: '🐕 Guardería' },
   { id: 'equipo', label: '👥 Equipo' },
 ]
 const presets = [
@@ -327,6 +486,9 @@ const form = ref(null)
 const errorForm = ref('')
 const guardando = ref(false)
 const detalle = ref(null)
+const ocupacion = ref(null)
+const loadingOcupacion = ref(false)
+const perfil = ref(null)
 
 const activos = computed(() => empleados.value.filter(e => e.activo))
 const cargos = computed(() => [...new Set(empleados.value.map(e => e.cargo).filter(Boolean))])
@@ -391,8 +553,106 @@ function aplicarPreset(id) {
   if (id === 'mes') ini.setDate(hoy.getDate() - 29)
   desde.value = fechaLocal(ini)
   hasta.value = fechaLocal(hoy)
-  cargarResumen()
+  recargar()
 }
+
+// Las dos vistas comparten el rango de fechas: la que no está visible se recarga al volver a ella
+function recargar() {
+  if (vista.value === 'guarderia') {
+    resumen.value = null
+    cargarOcupacion()
+  } else {
+    ocupacion.value = null
+    cargarResumen()
+  }
+}
+
+watch(vista, v => {
+  if (v === 'guarderia' && !ocupacion.value) cargarOcupacion()
+  if (v === 'reporte' && !resumen.value) cargarResumen()
+})
+
+async function cargarOcupacion() {
+  if (!desde.value || !hasta.value) return
+  loadingOcupacion.value = true
+  try {
+    const { data } = await api.get('/admin/jornada/ocupacion', { params: { desde: desde.value, hasta: hasta.value } })
+    ocupacion.value = data
+  } finally {
+    loadingOcupacion.value = false
+  }
+}
+
+async function abrirPerfil(dia) {
+  perfil.value = { dia, cargando: true, horas: [], perros: [] }
+  try {
+    const { data } = await api.get('/admin/jornada/ocupacion/dia', { params: { fecha: dia.fecha } })
+    Object.assign(perfil.value, data)
+  } finally {
+    perfil.value.cargando = false
+  }
+}
+
+const totalPerros = d => d.perrosDia + d.perrosHotel
+function horasPorPerro(d) {
+  const n = totalPerros(d)
+  return n ? (d.segTareas / 3600 / n).toFixed(1) + ' h' : '—'
+}
+function diaCorto(f) {
+  return new Date(f + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+function fechaHora(iso) {
+  return new Date(iso).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
+}
+
+const diasConDatos = computed(() => (ocupacion.value || []).filter(d => d.personas > 0 || totalPerros(d) > 0))
+
+const kpisGuarderia = computed(() => {
+  const ds = diasConDatos.value
+  if (!ds.length) return [{ label: 'Días con datos', valor: 0, nota: 'Aún no hay registros en este periodo' }]
+  const prom = k => ds.reduce((a, d) => a + k(d), 0) / ds.length
+  const recepciones = ds.reduce((a, d) => a + d.recepciones, 0)
+  const pct = k => recepciones ? Math.round(ds.reduce((a, d) => a + d[k], 0) * 100 / recepciones) + '%' : '—'
+  const perrosTot = ds.reduce((a, d) => a + totalPerros(d), 0)
+  return [
+    { label: 'Perros por día', valor: prom(totalPerros).toFixed(1), nota: `Hotel: ${prom(d => d.perrosHotel).toFixed(1)} · Máx. a la vez: ${Math.max(...ds.map(d => d.maxSimultaneo))}` },
+    { label: 'Horas en tareas por perro', valor: perrosTot ? (ds.reduce((a, d) => a + d.segTareas, 0) / 3600 / perrosTot).toFixed(1) + ' h' : '—' },
+    { label: 'Sin tarea por día', valor: dur(prom(d => d.segMuerto)), nota: 'Suma de todo el equipo de guardería' },
+    { label: 'Recepciones completas', valor: pct('completas'), nota: `Comida ${pct('conComidaMarcada')} · Revisión ${pct('conRevision')} · Uñas ${pct('conUnas')}` },
+  ]
+})
+
+// Parte los días en dos según la mediana de perros para ver en qué se va el tiempo cuando hay poca carga
+const comparacion = computed(() => {
+  const ds = diasConDatos.value.filter(d => d.personas > 0)
+  if (ds.length < 2) return null
+  const orden = [...ds].sort((a, b) => totalPerros(a) - totalPerros(b))
+  const mitad = Math.floor(orden.length / 2)
+  const grupo = (titulo, dias) => {
+    const acum = {}
+    dias.forEach(d => (d.tareas || []).forEach(t => { acum[t.descripcion] = (acum[t.descripcion] || 0) + t.segTotal }))
+    const tareas = Object.entries(acum).map(([descripcion, seg]) => ({ descripcion, seg: seg / dias.length }))
+      .sort((a, b) => b.seg - a.seg).slice(0, 8)
+    return {
+      titulo, dias: dias.length,
+      perros: (dias.reduce((a, d) => a + totalPerros(d), 0) / dias.length).toFixed(1),
+      segTareas: dias.reduce((a, d) => a + d.segTareas, 0) / dias.length,
+      segMuerto: dias.reduce((a, d) => a + d.segMuerto, 0) / dias.length,
+      tareas, maxSeg: Math.max(1, ...tareas.map(t => t.seg)),
+    }
+  }
+  return [grupo('🟡 Días con menos perros', orden.slice(0, mitad)), grupo('🟢 Días con más perros', orden.slice(mitad))]
+})
+
+const horasVisibles = computed(() => {
+  const hs = perfil.value?.horas || []
+  // Los perros de hotel están las 24 h; el rango útil es el de los perros de día y el equipo
+  const activas = hs.filter(h => h.perrosDia + h.enJornada > 0).map(h => h.hora)
+  if (!activas.length) return []
+  return hs.filter(h => h.hora >= Math.min(...activas) && h.hora <= Math.max(...activas))
+})
+const maxPerrosHora = computed(() => Math.max(1, ...horasVisibles.value.map(h => h.perrosDia + h.perrosHotel)))
+const maxPersonasHora = computed(() => Math.max(1, ...horasVisibles.value.map(h => h.enJornada)))
 
 async function cargarResumen() {
   if (!desde.value || !hasta.value) return

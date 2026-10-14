@@ -131,6 +131,34 @@
           </button>
         </div>
 
+        <!-- Guardería: entrada y salida de perros -->
+        <div v-if="guarderia" class="bg-white/5 rounded-[2rem] p-6 border border-white/10 space-y-4">
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-[10px] font-black uppercase tracking-widest text-white/40">🐕 Perros adentro · {{ guarderia.adentro.length }}</p>
+            <button v-if="sesion.estado === 'ACTIVA'" @click="abrirRecepcion" :disabled="enviando"
+              class="bg-blue-500 text-white px-4 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
+              ➕ Recibir perro
+            </button>
+          </div>
+          <p v-if="!guarderia.adentro.length" class="text-[12px] text-white/30">No hay perros registrados adentro.</p>
+          <div v-for="p in guarderia.adentro" :key="p.id" class="flex items-center justify-between gap-3 bg-white/5 rounded-xl px-4 py-3 border border-white/5">
+            <div class="min-w-0">
+              <p class="text-[14px] font-bold truncate">
+                {{ p.perro }}
+                <span class="ml-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full align-middle"
+                  :class="p.tipo === 'HOTEL' ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'">
+                  {{ p.tipo === 'HOTEL' ? 'Hotel' : 'Día' }}
+                </span>
+              </p>
+              <p class="text-[10px] text-white/30">Entró {{ desde(p.entrada) }}<span v-if="p.recibidoPor"> · {{ p.recibidoPor }}</span></p>
+            </div>
+            <button @click="entregar(p)" :disabled="enviando"
+              class="shrink-0 bg-white/10 px-3 py-2 rounded-xl font-black uppercase tracking-widest text-[9px] active:scale-95 disabled:opacity-40">
+              Entregado
+            </button>
+          </div>
+        </div>
+
         <p v-if="error" class="text-[11px] text-[#DE1F27] font-bold text-center">{{ error }}</p>
 
         <!-- Acciones de jornada -->
@@ -162,6 +190,39 @@
       </template>
     </div>
 
+    <!-- Recibir un perro -->
+    <Teleport to="body">
+      <div v-if="recepcion" class="fixed inset-0 z-[9001] flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="recepcion = null"></div>
+        <div class="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
+          <p class="text-lg font-[1000] leading-tight">🐕 ¿Qué perro llegó?</p>
+          <input v-model="recepcion.perro" maxlength="100" placeholder="Nombre del perro" autocapitalize="words"
+            class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-blue-500 placeholder:text-white/20" />
+          <div v-if="perrosSugeridos.length" class="flex flex-wrap gap-2">
+            <button v-for="n in perrosSugeridos" :key="n" @click="recepcion.perro = n"
+              class="text-[11px] font-bold bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-white/70 active:bg-white/20">
+              {{ n }}
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button v-for="t in [['DIA', '☀️ Guardería día'], ['HOTEL', '🌙 Hotel']]" :key="t[0]" @click="recepcion.tipo = t[0]"
+              class="py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] border transition-colors"
+              :class="recepcion.tipo === t[0] ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white/5 border-white/10 text-white/60'">
+              {{ t[1] }}
+            </button>
+          </div>
+          <p v-if="tareaActual" class="text-[11px] text-white/40">Se cerrará "{{ tareaActual.descripcion }}" y empieza la recepción.</p>
+          <div class="grid grid-cols-2 gap-3">
+            <button @click="recepcion = null" class="bg-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
+            <button @click="confirmarRecepcion" :disabled="!recepcion.perro.trim() || enviando"
+              class="bg-blue-500 py-4 rounded-2xl font-[1000] uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
+              Empezar recepción
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Nota de imprevistos al cerrar una tarea -->
     <Teleport to="body">
       <div v-if="cierre && tareaActual" class="fixed inset-0 z-[9001] flex items-end sm:items-center justify-center p-4">
@@ -169,8 +230,18 @@
         <div class="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
           <div>
             <p class="text-[10px] font-black uppercase tracking-widest text-white/40">Cerrando: {{ tareaActual.descripcion }} · {{ dur(segTareaActual) }}</p>
-            <p class="text-lg font-[1000] leading-tight mt-1">¿Pasó algo que te retrasó?</p>
+            <p v-if="tareaActual.recepcion" class="text-lg font-[1000] leading-tight mt-1">¿Qué le hiciste a {{ tareaActual.recepcion }}?</p>
           </div>
+          <div v-if="tareaActual.recepcion" class="space-y-2">
+            <button v-for="c in CHECKLIST" :key="c.id" @click="cierre.checklist[c.id] = !cierre.checklist[c.id]"
+              class="w-full flex items-center gap-3 rounded-2xl px-4 py-3 border text-left text-[13px] font-bold transition-colors"
+              :class="cierre.checklist[c.id] ? 'bg-green-500/15 border-green-500/40 text-green-200' : 'bg-white/5 border-white/10 text-white/60'">
+              <span class="w-5 h-5 rounded-md border flex items-center justify-center text-[12px]"
+                :class="cierre.checklist[c.id] ? 'bg-green-500 border-green-500 text-black' : 'border-white/30'">{{ cierre.checklist[c.id] ? '✓' : '' }}</span>
+              {{ c.label }}
+            </button>
+          </div>
+          <p class="text-lg font-[1000] leading-tight" :class="tareaActual.recepcion ? 'text-base' : ''">¿Pasó algo que te retrasó?</p>
           <div class="flex flex-wrap gap-2">
             <button v-for="imp in IMPREVISTOS" :key="imp" @click="agregarImprevisto(imp)"
               class="text-[11px] font-bold rounded-full px-3 py-1.5 border transition-colors"
@@ -239,6 +310,13 @@ const nuevaTarea = ref('')
 const mostrarCheck = ref(false)
 const cierre = ref(null)
 
+const recepcion = ref(null)
+const CHECKLIST = [
+  { id: 'comidaMarcada', label: 'Recibí y marqué la comida' },
+  { id: 'revisado', label: 'Revisé al perro' },
+  { id: 'unasCortadas', label: 'Le corté las uñas' },
+]
+
 const IMPREVISTOS = [
   'Me llamaron a ayudar en hospital',
   'Me llamaron a limpiar algo',
@@ -260,6 +338,14 @@ const iosSinInstalar = esIos && !instalada
 const puedePedirPermiso = typeof Notification !== 'undefined' && 'serviceWorker' in navigator
 
 const sesion = computed(() => estado.value?.sesion || null)
+const guarderia = computed(() => estado.value?.guarderia || null)
+const perrosSugeridos = computed(() => {
+  const adentro = new Set((guarderia.value?.adentro || []).map(p => p.perro.toLowerCase()))
+  const q = recepcion.value?.perro.trim().toLowerCase() || ''
+  return (guarderia.value?.sugerencias || [])
+    .filter(n => !adentro.has(n.toLowerCase()) && (!q || (n.toLowerCase().includes(q) && n.toLowerCase() !== q)))
+    .slice(0, 10)
+})
 const tareaActual = computed(() => estado.value?.tareaActual || null)
 const tareasHoy = computed(() => [...(estado.value?.tareas || [])].reverse())
 const tareasTerminadas = computed(() => (estado.value?.tareas || []).filter(t => t.estado === 'TERMINADA').length)
@@ -294,6 +380,12 @@ function reloj(seg) {
   const m = Math.floor((seg % 3600) / 60)
   const s = seg % 60
   return (h > 0 ? `${h}:` : '') + `${String(m).padStart(h > 0 ? 2 : 1, '0')}:${String(s).padStart(2, '0')}`
+}
+function desde(iso) {
+  const d = new Date(iso)
+  const dias = Math.floor((Date.now() - d) / 86400000)
+  if (dias >= 1) return `hace ${dias} día${dias > 1 ? 's' : ''}`
+  return 'a las ' + hora(iso)
 }
 function hora(iso) {
   return iso ? new Date(iso).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' }) : ''
@@ -335,14 +427,38 @@ function iniciarTarea() {
   crearTarea()
 }
 
-async function crearTarea(notaAnterior) {
-  const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior })
+async function crearTarea(notaAnterior, checklist) {
+  const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior, checklist })
   if (ok) nuevaTarea.value = ''
   return ok
 }
 
 function pedirNota(tipo) {
-  cierre.value = { tipo, nota: '' }
+  cierre.value = { tipo, nota: '', checklist: { comidaMarcada: false, revisado: false, unasCortadas: false } }
+}
+
+function abrirRecepcion() {
+  recepcion.value = { perro: '', tipo: 'DIA' }
+}
+
+// Si hay una tarea en curso, primero se cierra con su nota (y checklist si era otra recepción)
+function confirmarRecepcion() {
+  if (tareaActual.value) {
+    pedirNota('recibir')
+    return
+  }
+  recibirPerro()
+}
+
+async function recibirPerro(extra = {}) {
+  const { perro, tipo } = recepcion.value
+  const ok = await accion('/jornada/guarderia/recibir', { perro, tipo, ...extra })
+  if (ok) recepcion.value = null
+  return ok
+}
+
+function entregar(p) {
+  if (confirm(`¿Entregaste a ${p.perro}?`)) accion(`/jornada/guarderia/${p.id}/entregar`)
 }
 
 function agregarImprevisto(imp) {
@@ -353,9 +469,11 @@ function agregarImprevisto(imp) {
 
 async function confirmarCierre(nota) {
   const { tipo } = cierre.value
-  const ok = tipo === 'cambiar'
-    ? await crearTarea(nota)
-    : await accion('/jornada/tarea/terminar', { nota })
+  const checklist = tareaActual.value?.recepcion ? cierre.value.checklist : undefined
+  let ok
+  if (tipo === 'cambiar') ok = await crearTarea(nota, checklist)
+  else if (tipo === 'recibir') ok = await recibirPerro({ notaAnterior: nota, checklist })
+  else ok = await accion('/jornada/tarea/terminar', { nota, checklist })
   if (ok) cierre.value = null
 }
 
