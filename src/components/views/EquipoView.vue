@@ -52,6 +52,16 @@
           {{ permiso === 'denied' ? 'Los avisos están bloqueados. Actívalos en los ajustes del navegador.' : 'Te avisaremos cada 15 minutos para preguntarte si ya terminaste.' }}
         </p>
       </button>
+      <div v-else-if="permiso === 'granted'" class="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-2">
+        <div class="flex items-center justify-between gap-3">
+          <p class="font-black uppercase text-[10px] tracking-widest text-green-400">🔔 Avisos activados</p>
+          <button @click="probarAviso" :disabled="probando"
+            class="text-[10px] font-black uppercase tracking-widest bg-white/10 rounded-xl px-3 py-2 active:scale-95 disabled:opacity-40">
+            {{ probando ? 'Probando...' : 'Probar aviso' }}
+          </button>
+        </div>
+        <p v-if="pruebaMsg" class="text-[12px] leading-relaxed" :class="pruebaOk ? 'text-green-300' : 'text-red-300'">{{ pruebaMsg }}</p>
+      </div>
 
       <div v-if="!estado" class="py-20 text-center">
         <div class="w-8 h-8 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -237,6 +247,9 @@ const estado = ref(null)
 const nuevaTarea = ref('')
 const mostrarCheck = ref(false)
 const cierre = ref(null)
+const probando = ref(false)
+const pruebaMsg = ref('')
+const pruebaOk = ref(false)
 
 const IMPREVISTOS = [
   'Me llamaron a ayudar en hospital',
@@ -424,9 +437,33 @@ function tick() {
 async function registrarPush() {
   try {
     const token = await getToken(messaging, { vapidKey: VAPID_KEY })
-    if (token) await api.post('/jornada/push-token', { token })
+    if (!token) return 'Firebase no entregó token'
+    await api.post('/jornada/push-token', { token })
+    return null
   } catch (e) {
-    console.warn('No se pudo registrar push de jornada:', e)
+    return e?.message || String(e)
+  }
+}
+
+async function probarAviso() {
+  probando.value = true
+  pruebaMsg.value = ''
+  try {
+    const errorRegistro = await registrarPush()
+    const { data } = await api.post('/jornada/push-prueba')
+    pruebaOk.value = data.validos > 0
+    if (data.validos > 0) {
+      pruebaMsg.value = 'Listo. Ahora cierra la app o bloquea el celular: el aviso llega en unos 10 segundos.'
+    } else if (data.dispositivos === 0) {
+      pruebaMsg.value = 'Este celular no quedó registrado para avisos. ' + (errorRegistro ? `Detalle: ${errorRegistro}` : '')
+    } else {
+      pruebaMsg.value = 'Firebase rechazó el envío: ' + data.errores.join(' | ')
+    }
+  } catch (e) {
+    pruebaOk.value = false
+    pruebaMsg.value = 'No se pudo probar: ' + (e.response?.data?.message || e.message)
+  } finally {
+    probando.value = false
   }
 }
 
@@ -501,6 +538,10 @@ onMounted(() => {
   try {
     quitarOnMessage = onMessage(messaging, (payload) => {
       if (payload.data?.tag === 'jornada') cargar()
+      if (payload.data?.tag === 'prueba') {
+        pruebaOk.value = true
+        pruebaMsg.value = 'El aviso llegó ✅ (con la app abierta no aparece arriba; ciérrala para verlo como notificación).'
+      }
     })
   } catch { /* navegador sin soporte de push */ }
 })
