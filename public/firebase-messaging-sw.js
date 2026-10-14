@@ -13,13 +13,8 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  if (payload.notification) {
-    self.registration.showNotification(payload.notification.title, {
-      body: payload.notification.body,
-      icon: '/favicon.ico',
-    });
-    return;
-  }
+  // Con bloque notification el SDK ya la muestra solo; pintarla aquí la duplicaba
+  if (payload.notification) return;
   // Mensajes data-only (control de jornada): renotify para que vibre aunque reemplace la anterior
   const d = payload.data || {};
   if (!d.title) return;

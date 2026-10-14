@@ -452,8 +452,9 @@ async function probarAviso() {
     const errorRegistro = await registrarPush()
     const { data } = await api.post('/jornada/push-prueba')
     pruebaOk.value = data.validos > 0
+    const anterior = data.ultimaPrueba ? ` (Prueba anterior: ${data.ultimaPrueba})` : ''
     if (data.validos > 0) {
-      pruebaMsg.value = 'Listo. Ahora cierra la app o bloquea el celular: el aviso llega en unos 10 segundos.'
+      pruebaMsg.value = 'Listo. Ahora cierra la app o bloquea el celular: el aviso llega en unos 10 segundos.' + anterior
     } else if (data.dispositivos === 0) {
       pruebaMsg.value = 'Este celular no quedó registrado para avisos. ' + (errorRegistro ? `Detalle: ${errorRegistro}` : '')
     } else {
