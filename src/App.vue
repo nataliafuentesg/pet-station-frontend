@@ -351,7 +351,7 @@ const { trackWaClick } = useWaTracking();
 const route = useRoute();
 // Rutas "fullscreen" sin nav/footer (paneles internos)
 const isAdminRoute = computed(() =>
-  route.path.startsWith('/admin') || route.path.startsWith('/domiciliario')
+  route.path.startsWith('/admin') || route.path.startsWith('/domiciliario') || route.path.startsWith('/equipo')
 );
 const isPromoRoute = computed(() => route.path.toLowerCase().includes('gaita'));
 

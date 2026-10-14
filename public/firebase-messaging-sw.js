@@ -13,8 +13,34 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  self.registration.showNotification(payload.notification.title, {
-    body: payload.notification.body,
-    icon: '/favicon.ico',
+  if (payload.notification) {
+    self.registration.showNotification(payload.notification.title, {
+      body: payload.notification.body,
+      icon: '/favicon.ico',
+    });
+    return;
+  }
+  // Mensajes data-only (control de jornada): renotify para que vibre aunque reemplace la anterior
+  const d = payload.data || {};
+  if (!d.title) return;
+  self.registration.showNotification(d.title, {
+    body: d.body,
+    icon: '/images/logo-pet-station.png',
+    tag: d.tag || undefined,
+    renotify: !!d.tag,
+    requireInteraction: true,
+    data: { link: d.link },
   });
+});
+
+self.addEventListener('notificationclick', (event) => {
+  const link = event.notification.data && event.notification.data.link;
+  if (!link) return;
+  event.notification.close();
+  event.waitUntil((async () => {
+    const wins = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const abierta = wins.find(w => w.url.startsWith(link));
+    if (abierta) return abierta.focus();
+    return clients.openWindow(link);
+  })());
 });

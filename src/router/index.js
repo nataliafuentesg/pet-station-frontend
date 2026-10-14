@@ -204,6 +204,12 @@ const routes = [
     meta: { title: 'Portal Domiciliario | Pet Station' }
   },
   {
+    path: '/equipo',
+    name: 'Equipo',
+    component: () => import('@/components/views/EquipoView.vue'),
+    meta: { title: 'Mi Jornada | Pet Station' }
+  },
+  {
     path: '/aviso-legal',
     name: 'AvisoLegal',
     component: () => import('@/components/views/legal/AvisoLegal.vue'),

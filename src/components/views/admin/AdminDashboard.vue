@@ -15,7 +15,9 @@ import AdminMarketing from './AdminMarketing.vue';
 import AdminWaAnalytics from './AdminWaAnalytics.vue';
 import AdminVeterinarios from './AdminVeterinarios.vue';
 import AdminHealth from './AdminHealth.vue';
+import AdminJornada from './AdminJornada.vue';
 import { suscribirNotificaciones } from '@/composables/usePushNotifications';
+import { messaging, onMessage } from '@/firebase';
 
 const notifActivas = ref(typeof Notification !== 'undefined' && Notification.permission === 'granted');
 const activandoNotif = ref(false);
@@ -56,6 +58,7 @@ const tabs = [
     { id: 'leads', label: 'Leads', icon: '📡' },
     { id: 'marketing', label: 'Marketing', icon: '📣' },
     { id: 'veterinarios', label: 'Veterinarios', icon: '👨‍⚕️' },
+    { id: 'jornada', label: 'Productividad', icon: '⏱️' },
     { id: 'wa-analytics', label: 'WA Analytics', icon: '📲' },
     { id: 'health', label: 'Sistema', icon: '🖥️' }
 ];
@@ -103,6 +106,19 @@ const fetchData = async () => {
 
 watch(currentTab, fetchData);
 onMounted(fetchData);
+
+// Con el panel abierto FCM no muestra nada por sí solo: el mensaje llega aquí y hay que mostrarlo
+onMounted(() => {
+  try {
+    onMessage(messaging, async (payload) => {
+      const n = payload.notification;
+      if (!n || Notification.permission !== 'granted') return;
+      const reg = await navigator.serviceWorker?.getRegistration('/firebase-cloud-messaging-push-scope');
+      if (reg) reg.showNotification(n.title, { body: n.body, icon: '/images/logo-pet-station.png' });
+      else new Notification(n.title, { body: n.body });
+    });
+  } catch { /* navegador sin soporte de push */ }
+});
 
 const tabClass = (active) => [
     'flex items-center gap-3 px-4 py-4 rounded-2xl text-left text-[10px] font-black uppercase tracking-widest transition-all duration-300 w-full',
@@ -205,6 +221,7 @@ const doLogout = () => {
                         <AdminMarketing v-if="currentTab === 'marketing'" />
                         <AdminVeterinarios v-if="currentTab === 'veterinarios'" />
                         <AdminWaAnalytics v-if="currentTab === 'wa-analytics'" />
+                        <AdminJornada v-if="currentTab === 'jornada'" />
                         <AdminHealth v-if="currentTab === 'health'" />
                     </div>
                 </Transition>

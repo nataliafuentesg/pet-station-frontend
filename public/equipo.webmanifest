@@ -1,0 +1,12 @@
+{
+  "name": "Pet Station · Mi Jornada",
+  "short_name": "Mi Jornada",
+  "start_url": "/equipo",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    { "src": "/images/logo-pet-station.png", "sizes": "800x800", "type": "image/png", "purpose": "any" }
+  ]
+}

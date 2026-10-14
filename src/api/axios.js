@@ -33,7 +33,8 @@ api.interceptors.response.use(
         localStorage.removeItem('ps_token');
         localStorage.removeItem('ps_session');
         localStorage.removeItem('ps_active_pet');
-        window.location.href = '/?sesion_expirada=true';
+        // El portal de empleados se usa como app instalada: debe volver a su propio login
+        window.location.href = window.location.pathname.startsWith('/equipo') ? '/equipo' : '/?sesion_expirada=true';
       }
     }
     return Promise.reject(error);

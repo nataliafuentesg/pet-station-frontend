@@ -7,6 +7,7 @@ Disallow: /expediente
 Disallow: /checkout
 Disallow: /seleccionar-perfil
 Disallow: /reset-password
+Disallow: /equipo
 
 # Indicar dónde está el mapa
 Sitemap: https://petstationvet.com/sitemap.xml
