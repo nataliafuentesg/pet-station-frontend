@@ -110,6 +110,19 @@
             ✅ Ya terminé
           </button>
           <p class="text-[10px] text-white/30 text-center">Te preguntaremos de nuevo en {{ Math.ceil(segParaCheck / 60) }} min</p>
+          <p v-if="tareaQueSeRetoma" class="text-[11px] text-white/50 text-center">Al terminar, retomas <b class="text-white/80">{{ tareaQueSeRetoma.descripcion }}</b></p>
+        </div>
+
+        <!-- Tareas interrumpidas (ej: por recibir un perro) -->
+        <div v-for="t in tareasEnEspera" :key="t.id" class="flex items-center justify-between gap-3 bg-white/5 rounded-2xl px-4 py-3 border border-white/10">
+          <div class="min-w-0">
+            <p class="text-[9px] font-black uppercase tracking-widest text-white/40">⏸ En espera · {{ dur(t.segundos) }}</p>
+            <p class="text-[13px] font-bold truncate">{{ t.descripcion }}</p>
+          </div>
+          <button @click="terminarEnEspera(t)" :disabled="enviando"
+            class="shrink-0 text-[9px] font-black uppercase tracking-widest text-white/40 bg-white/5 rounded-xl px-3 py-2 disabled:opacity-40">
+            Ya la terminé
+          </button>
         </div>
 
         <!-- Nueva tarea -->
@@ -214,7 +227,7 @@
           </div>
           <PerroDatosForm :model-value="recepcion" />
           <p v-if="error" class="text-[11px] text-red-300 font-bold">{{ error }}</p>
-          <p v-if="tareaActual" class="text-[11px] text-white/40">Se cerrará "{{ tareaActual.descripcion }}" y empieza la recepción.</p>
+          <p v-if="tareaActual" class="text-[11px] text-white/40">"{{ tareaActual.descripcion }}" queda en espera y se retoma sola cuando termines la recepción.</p>
           <div class="grid grid-cols-2 gap-3">
             <button @click="recepcion = null" class="bg-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
             <button @click="confirmarRecepcion" :disabled="!recepcion.perro.trim() || enviando"
@@ -382,6 +395,8 @@ const puedePedirPermiso = typeof Notification !== 'undefined' && 'serviceWorker'
 
 const sesion = computed(() => estado.value?.sesion || null)
 const guarderia = computed(() => estado.value?.guarderia || null)
+const tareasEnEspera = computed(() => estado.value?.tareasEnEspera || [])
+const tareaQueSeRetoma = computed(() => tareasEnEspera.value.find(t => t.id === tareaActual.value?.reanuda) || null)
 const perrosSugeridos = computed(() => {
   const adentro = new Set((guarderia.value?.adentro || []).map(p => p.perro.toLowerCase()))
   const q = recepcion.value?.perro.trim().toLowerCase() || ''
@@ -530,19 +545,12 @@ function fechaCorta(f) {
   return new Date(f + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
-// Si hay una tarea en curso, primero se cierra con su nota (y checklist si era otra recepción)
-function confirmarRecepcion() {
-  if (tareaActual.value) {
-    pedirNota('recibir')
-    return
-  }
-  recibirPerro()
+async function confirmarRecepcion() {
+  if (await accion('/jornada/guarderia/recibir', recepcion.value)) recepcion.value = null
 }
 
-async function recibirPerro(extra = {}) {
-  const ok = await accion('/jornada/guarderia/recibir', { ...recepcion.value, ...extra })
-  if (ok) recepcion.value = null
-  return ok
+function terminarEnEspera(t) {
+  if (confirm(`¿Ya terminaste "${t.descripcion}"?`)) accion(`/jornada/tarea/${t.id}/terminar-espera`)
 }
 
 function entregar(p) {
@@ -560,7 +568,6 @@ async function confirmarCierre(nota) {
   const checklist = tareaActual.value?.recepcion ? cierre.value.checklist : undefined
   let ok
   if (tipo === 'cambiar') ok = await crearTarea(nota, checklist)
-  else if (tipo === 'recibir') ok = await recibirPerro({ notaAnterior: nota, checklist })
   else ok = await accion('/jornada/tarea/terminar', { nota, checklist })
   if (ok) cierre.value = null
 }
