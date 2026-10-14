@@ -231,7 +231,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import api from '@/api/axios'
-import { messaging, getToken, onMessage } from '@/firebase'
+import { messaging, onMessage } from '@/firebase'
+import { obtenerTokenPush } from '@/composables/usePushNotifications'
 
 const ROLES_PERMITIDOS = ['ROLE_EMPLEADO', 'ROLE_VET', 'ROLE_ADMIN', 'ADMIN']
 
@@ -435,7 +436,7 @@ function tick() {
 
 async function registrarPush() {
   try {
-    const token = await getToken(messaging)
+    const token = await obtenerTokenPush()
     if (!token) return 'Firebase no entregó token'
     await api.post('/jornada/push-token', { token })
     return null
