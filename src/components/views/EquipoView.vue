@@ -233,7 +233,6 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import api from '@/api/axios'
 import { messaging, getToken, onMessage } from '@/firebase'
 
-const VAPID_KEY = 'BEhpSSQEGLKGKWXJBlorQCQWzAjvDNsmiTPbQtlf6O65OweHeQ5ALxnnmzapctZfJw9W7FM4b-5jDQvOEIJFcmc'
 const ROLES_PERMITIDOS = ['ROLE_EMPLEADO', 'ROLE_VET', 'ROLE_ADMIN', 'ADMIN']
 
 const usuario = ref('')
@@ -436,7 +435,7 @@ function tick() {
 
 async function registrarPush() {
   try {
-    const token = await getToken(messaging, { vapidKey: VAPID_KEY })
+    const token = await getToken(messaging)
     if (!token) return 'Firebase no entregó token'
     await api.post('/jornada/push-token', { token })
     return null
