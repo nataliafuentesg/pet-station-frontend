@@ -104,7 +104,7 @@
           </div>
           <p class="text-xl font-[1000] leading-tight break-words">{{ tareaActual.descripcion }}</p>
           <p class="text-5xl font-[1000] tabular-nums text-center py-2">{{ reloj(segTareaActual) }}</p>
-          <button @click="accion('/jornada/tarea/terminar')" :disabled="enviando"
+          <button @click="pedirNota('terminar')" :disabled="enviando"
             class="w-full bg-green-500 text-black py-5 rounded-2xl font-[1000] uppercase tracking-widest text-[12px] active:scale-95 transition-all disabled:opacity-40">
             ✅ Ya terminé
           </button>
@@ -151,6 +151,7 @@
             <div class="min-w-0">
               <p class="text-[13px] font-bold truncate">{{ t.descripcion }}</p>
               <p class="text-[10px] text-white/30">{{ hora(t.inicio) }}<span v-if="t.fin"> – {{ hora(t.fin) }}</span></p>
+              <p v-if="t.nota" class="text-[10px] text-amber-300/80 truncate">⚠️ {{ t.nota }}</p>
             </div>
             <span class="text-[12px] font-black tabular-nums shrink-0" :class="t.estado === 'TERMINADA' ? 'text-white/60' : 'text-green-400'">
               {{ dur(t.estado === 'EN_CURSO' ? segTareaActual : t.segundos) }}
@@ -159,6 +160,38 @@
         </div>
       </template>
     </div>
+
+    <!-- Nota de imprevistos al cerrar una tarea -->
+    <Teleport to="body">
+      <div v-if="cierre && tareaActual" class="fixed inset-0 z-[9001] flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="cierre = null"></div>
+        <div class="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-white/40">Cerrando: {{ tareaActual.descripcion }} · {{ dur(segTareaActual) }}</p>
+            <p class="text-lg font-[1000] leading-tight mt-1">¿Pasó algo que te retrasó?</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button v-for="imp in IMPREVISTOS" :key="imp" @click="agregarImprevisto(imp)"
+              class="text-[11px] font-bold rounded-full px-3 py-1.5 border transition-colors"
+              :class="cierre.nota.includes(imp) ? 'bg-amber-500 text-black border-amber-500' : 'bg-white/5 border-white/10 text-white/70'">
+              {{ imp }}
+            </button>
+          </div>
+          <textarea v-model="cierre.nota" rows="2" maxlength="500" placeholder="Cuéntanos qué pasó (opcional)"
+            class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-amber-500 resize-none placeholder:text-white/20"></textarea>
+          <div class="grid grid-cols-2 gap-3">
+            <button @click="confirmarCierre('')" :disabled="enviando"
+              class="bg-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
+              No, todo normal
+            </button>
+            <button @click="confirmarCierre(cierre.nota)" :disabled="!cierre.nota.trim() || enviando"
+              class="bg-amber-500 text-black py-4 rounded-2xl font-[1000] uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
+              Guardar nota
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Pregunta de los 15 minutos -->
     <Teleport to="body">
@@ -203,6 +236,15 @@ const logueado = ref(false)
 const estado = ref(null)
 const nuevaTarea = ref('')
 const mostrarCheck = ref(false)
+const cierre = ref(null)
+
+const IMPREVISTOS = [
+  'Me llamaron a ayudar en hospital',
+  'Me llamaron a limpiar algo',
+  'Recibí un perrito que llegaba',
+  'Entregué un perrito',
+  'Atendí a un cliente',
+]
 
 // Los segundos vienen del servidor; localmente solo sumamos lo que pasó desde la última respuesta
 const recibidoEn = ref(0)
@@ -287,8 +329,33 @@ async function accion(url, body) {
   }
 }
 
-async function iniciarTarea() {
-  if (await accion('/jornada/tarea', { descripcion: nuevaTarea.value })) nuevaTarea.value = ''
+function iniciarTarea() {
+  if (tareaActual.value) return pedirNota('cambiar')
+  crearTarea()
+}
+
+async function crearTarea(notaAnterior) {
+  const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior })
+  if (ok) nuevaTarea.value = ''
+  return ok
+}
+
+function pedirNota(tipo) {
+  cierre.value = { tipo, nota: '' }
+}
+
+function agregarImprevisto(imp) {
+  const n = cierre.value.nota.trim()
+  if (n.includes(imp)) return
+  cierre.value.nota = n ? `${n}. ${imp}` : imp
+}
+
+async function confirmarCierre(nota) {
+  const { tipo } = cierre.value
+  const ok = tipo === 'cambiar'
+    ? await crearTarea(nota)
+    : await accion('/jornada/tarea/terminar', { nota })
+  if (ok) cierre.value = null
 }
 
 function salirAlmuerzo() {
@@ -300,12 +367,15 @@ function cerrarJornada() {
 }
 
 async function responderCheck(termino) {
-  const ok = await accion(termino ? '/jornada/tarea/terminar' : '/jornada/tarea/seguir')
-  if (ok) cerrarCheck()
+  if (termino) {
+    cerrarCheck()
+    return pedirNota('terminar')
+  }
+  if (await accion('/jornada/tarea/seguir')) cerrarCheck()
 }
 
 function abrirCheck() {
-  if (mostrarCheck.value) return
+  if (mostrarCheck.value || cierre.value) return
   mostrarCheck.value = true
   sonarAlarma()
   alarma = setInterval(sonarAlarma, 4000)
