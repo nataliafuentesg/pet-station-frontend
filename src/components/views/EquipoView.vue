@@ -62,7 +62,8 @@
       <div v-else-if="!sesion" class="bg-white/5 rounded-[2rem] p-8 border border-white/10 text-center space-y-5">
         <p class="text-5xl">☀️</p>
         <p class="text-sm text-white/60">Cuando llegues, inicia tu jornada.</p>
-        <button @click="accion('/jornada/iniciar')" :disabled="enviando"
+        <CuandoSelector v-model="haceMinutos" class="text-left" />
+        <button @click="iniciarJornada" :disabled="enviando"
           class="w-full bg-[#DE1F27] py-5 rounded-2xl font-[1000] uppercase tracking-widest text-[12px] active:scale-95 transition-all disabled:opacity-40">
           Iniciar jornada
         </button>
@@ -130,6 +131,13 @@
           <p class="text-[10px] font-black uppercase tracking-widest text-white/40">
             {{ tareaActual ? '¿Cambias de tarea?' : '¿Qué vas a hacer ahora?' }}
           </p>
+          <CuandoSelector v-model="haceMinutos" />
+          <div v-if="tareasRapidas.length" class="flex flex-wrap gap-2">
+            <button v-for="t in tareasRapidas" :key="t" @click="tareaRapida(t)" :disabled="enviando"
+              class="text-[12px] font-bold bg-[#DE1F27]/15 border border-[#DE1F27]/40 rounded-xl px-3 py-2 text-white active:scale-95 disabled:opacity-40">
+              {{ t }}
+            </button>
+          </div>
           <textarea v-model="nuevaTarea" rows="2" maxlength="300" placeholder="Ej: Bañar a Toby, limpiar caniles, paseo grupo 2..."
             class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-[#DE1F27] resize-none placeholder:text-white/20"></textarea>
           <div v-if="sugerenciasFiltradas.length" class="flex flex-wrap gap-2">
@@ -160,8 +168,8 @@
               <p class="text-[14px] font-bold truncate">
                 {{ p.perro }}
                 <span class="ml-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full align-middle"
-                  :class="p.tipo === 'HOTEL' ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'">
-                  {{ p.tipo === 'HOTEL' ? 'Hotel' : 'Día' }}
+                  :class="{ HOTEL: 'bg-purple-500/20 text-purple-300', BANO: 'bg-cyan-500/20 text-cyan-300', DIA: 'bg-blue-500/20 text-blue-300' }[p.tipo]">
+                  {{ { HOTEL: 'Hotel', BANO: 'Baño', DIA: 'Día' }[p.tipo] }}
                 </span>
               </p>
               <p class="text-[10px] text-white/30">Entró {{ desde(p.entrada) }}<span v-if="p.recibidoPor"> · {{ p.recibidoPor }}</span></p>
@@ -226,6 +234,7 @@
             </button>
           </div>
           <PerroDatosForm :model-value="recepcion" />
+          <CuandoSelector v-model="recepcion.haceMinutos" />
           <p v-if="error" class="text-[11px] text-red-300 font-bold">{{ error }}</p>
           <p v-if="tareaActual" class="text-[11px] text-white/40">"{{ tareaActual.descripcion }}" queda en espera y se retoma sola cuando termines la recepción.</p>
           <div class="grid grid-cols-2 gap-3">
@@ -284,9 +293,9 @@
         <div class="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
           <div>
             <p class="text-[10px] font-black uppercase tracking-widest text-white/40">Cerrando: {{ tareaActual.descripcion }} · {{ dur(segTareaActual) }}</p>
-            <p v-if="tareaActual.recepcion" class="text-lg font-[1000] leading-tight mt-1">¿Qué le hiciste a {{ tareaActual.recepcion }}?</p>
+            <p v-if="conChecklist" class="text-lg font-[1000] leading-tight mt-1">¿Qué le hiciste a {{ tareaActual.recepcion }}?</p>
           </div>
-          <div v-if="tareaActual.recepcion" class="space-y-2">
+          <div v-if="conChecklist" class="space-y-2">
             <button v-for="c in CHECKLIST" :key="c.id" @click="cierre.checklist[c.id] = !cierre.checklist[c.id]"
               class="w-full flex items-center gap-3 rounded-2xl px-4 py-3 border text-left text-[13px] font-bold transition-colors"
               :class="cierre.checklist[c.id] ? 'bg-green-500/15 border-green-500/40 text-green-200' : 'bg-white/5 border-white/10 text-white/60'">
@@ -295,7 +304,7 @@
               {{ c.label }}
             </button>
           </div>
-          <p class="text-lg font-[1000] leading-tight" :class="tareaActual.recepcion ? 'text-base' : ''">¿Pasó algo que te retrasó?</p>
+          <p class="text-lg font-[1000] leading-tight" :class="conChecklist ? 'text-base' : ''">¿Pasó algo que te retrasó?</p>
           <div class="flex flex-wrap gap-2">
             <button v-for="imp in IMPREVISTOS" :key="imp" @click="agregarImprevisto(imp)"
               class="text-[11px] font-bold rounded-full px-3 py-1.5 border transition-colors"
@@ -350,6 +359,7 @@ import api from '@/api/axios'
 import { messaging, onMessage } from '@/firebase'
 import { obtenerTokenPush } from '@/composables/usePushNotifications'
 import PerroDatosForm from './equipo/PerroDatosForm.vue'
+import CuandoSelector from './equipo/CuandoSelector.vue'
 
 const ROLES_PERMITIDOS = ['ROLE_EMPLEADO', 'ROLE_VET', 'ROLE_ADMIN', 'ADMIN']
 
@@ -362,6 +372,7 @@ const logueado = ref(false)
 
 const estado = ref(null)
 const nuevaTarea = ref('')
+const haceMinutos = ref(0)
 const mostrarCheck = ref(false)
 const cierre = ref(null)
 
@@ -395,6 +406,9 @@ const puedePedirPermiso = typeof Notification !== 'undefined' && 'serviceWorker'
 
 const sesion = computed(() => estado.value?.sesion || null)
 const guarderia = computed(() => estado.value?.guarderia || null)
+const tareasRapidas = computed(() => estado.value?.tareasRapidas || [])
+// Comida/revisión/uñas aplican a guardería y hotel, no a los perros que vienen a baño
+const conChecklist = computed(() => !!tareaActual.value?.recepcion && tareaActual.value.recepcionTipo !== 'BANO')
 const tareasEnEspera = computed(() => estado.value?.tareasEnEspera || [])
 const tareaQueSeRetoma = computed(() => tareasEnEspera.value.find(t => t.id === tareaActual.value?.reanuda) || null)
 const perrosSugeridos = computed(() => {
@@ -423,7 +437,9 @@ const segParaCheck = computed(() => Math.max(0, (tareaActual.value?.segundosPara
 const sugerenciasFiltradas = computed(() => {
   const q = nuevaTarea.value.trim().toLowerCase()
   const lista = (estado.value?.sugerencias || []).filter(s => s !== tareaActual.value?.descripcion)
-  return (q ? lista.filter(s => s.toLowerCase().includes(q) && s.toLowerCase() !== q) : lista).slice(0, 8)
+  const rapidas = new Set(tareasRapidas.value.map(t => t.toLowerCase()))
+  return (q ? lista.filter(s => s.toLowerCase().includes(q) && s.toLowerCase() !== q) : lista)
+    .filter(s => !rapidas.has(s.toLowerCase())).slice(0, 8)
 })
 
 const fechaHoy = new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -486,8 +502,11 @@ function iniciarTarea() {
 }
 
 async function crearTarea(notaAnterior, checklist) {
-  const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior, checklist })
-  if (ok) nuevaTarea.value = ''
+  const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior, checklist, haceMinutos: haceMinutos.value })
+  if (ok) {
+    nuevaTarea.value = ''
+    haceMinutos.value = 0
+  }
   return ok
 }
 
@@ -495,9 +514,18 @@ function pedirNota(tipo) {
   cierre.value = { tipo, nota: '', checklist: { comidaMarcada: false, revisado: false, unasCortadas: false } }
 }
 
+async function iniciarJornada() {
+  if (await accion('/jornada/iniciar', { haceMinutos: haceMinutos.value })) haceMinutos.value = 0
+}
+
+function tareaRapida(t) {
+  nuevaTarea.value = t
+  iniciarTarea()
+}
+
 function abrirRecepcion() {
   error.value = ''
-  recepcion.value = { perro: '', tipo: 'DIA', salidaEsperada: '', comidaCantidad: '', comidaUnidad: 'PORCIONES', comidaPorDia: '' }
+  recepcion.value = { perro: '', tipo: 'DIA', haceMinutos: 0, salidaEsperada: '', comidaCantidad: '', comidaUnidad: 'PORCIONES', comidaPorDia: '' }
 }
 
 function abrirFicha(p) {
@@ -565,7 +593,7 @@ function agregarImprevisto(imp) {
 
 async function confirmarCierre(nota) {
   const { tipo } = cierre.value
-  const checklist = tareaActual.value?.recepcion ? cierre.value.checklist : undefined
+  const checklist = conChecklist.value ? cierre.value.checklist : undefined
   let ok
   if (tipo === 'cambiar') ok = await crearTarea(nota, checklist)
   else ok = await accion('/jornada/tarea/terminar', { nota, checklist })

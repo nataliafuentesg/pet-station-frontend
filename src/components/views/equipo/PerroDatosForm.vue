@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-4">
-    <div class="grid grid-cols-2 gap-2">
+    <div class="grid grid-cols-3 gap-2">
       <button v-for="t in TIPOS" :key="t.id" type="button" @click="modelValue.tipo = t.id"
         class="py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] border transition-colors"
         :class="modelValue.tipo === t.id ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white/5 border-white/10 text-white/60'">
@@ -20,7 +20,7 @@
       </div>
     </div>
 
-    <div class="space-y-2">
+    <div v-if="modelValue.tipo !== 'BANO'" class="space-y-2">
       <p class="text-[10px] font-black uppercase tracking-widest text-white/40">Comida que trajo (opcional)</p>
       <div class="grid grid-cols-2 gap-2">
         <button v-for="u in UNIDADES" :key="u.id" type="button" @click="modelValue.comidaUnidad = u.id"
@@ -58,7 +58,7 @@ const props = defineProps({
   entrada: { type: String, default: null },
 })
 
-const TIPOS = [{ id: 'DIA', label: '☀️ Guardería día' }, { id: 'HOTEL', label: '🌙 Hotel' }]
+const TIPOS = [{ id: 'DIA', label: '☀️ Guardería' }, { id: 'HOTEL', label: '🌙 Hotel' }, { id: 'BANO', label: '🛁 Baño' }]
 const UNIDADES = [{ id: 'PORCIONES', label: 'Porciones / bolsitas' }, { id: 'GRAMOS', label: 'Gramos' }]
 
 const unidad = computed(() => props.modelValue.comidaUnidad || 'PORCIONES')

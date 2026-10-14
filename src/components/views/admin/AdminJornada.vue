@@ -239,7 +239,7 @@
           <table class="w-full text-left min-w-[820px]">
             <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
               <tr>
-                <th v-for="h in ['Día','Perros día','Hotel','Máx. a la vez','Personas','En tareas','Sin tarea','Horas por perro','Recepciones (uñas)','']" :key="h"
+                <th v-for="h in ['Día','Perros día','Hotel','Máx. a la vez','Personas','En tareas','Sin tarea','Horas por perro','Recepciones (uñas)','Baños','']" :key="h"
                   class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
               </tr>
             </thead>
@@ -255,6 +255,9 @@
                 <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">{{ horasPorPerro(d) }}</td>
                 <td class="px-4 py-3 text-[12px] font-bold tabular-nums" :class="d.recepciones && d.conUnas < d.recepciones ? 'text-amber-500' : 'dark:text-white/70'">
                   {{ d.recepciones }}<span v-if="d.recepciones" class="opacity-50"> ({{ d.conUnas }})</span>
+                </td>
+                <td class="px-4 py-3 text-[12px] font-bold text-cyan-600 dark:text-cyan-300 tabular-nums whitespace-nowrap">
+                  {{ d.banos }}<span v-if="d.segBanoPromedio" class="opacity-60 text-[10px]"> · {{ dur(d.segBanoPromedio) }} c/u</span>
                 </td>
                 <td class="px-4 py-3">
                   <button @click="abrirPerfil(d)" class="text-[9px] font-black uppercase text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27] whitespace-nowrap">Ver día →</button>
@@ -300,6 +303,26 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Botones de tarea rápida por cargo -->
+    <div v-if="vista === 'equipo'" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-4">
+      <div>
+        <p class="font-[1000] uppercase italic text-sm dark:text-white">⚡ Tareas rápidas por cargo</p>
+        <p class="text-[10px] text-slate-400 dark:text-white/40">Botones de un toque en Mi Jornada. Una tarea por línea. Los nombres iguales se agrupan mejor en el reporte.</p>
+      </div>
+      <p v-if="!Object.keys(rapidas).length" class="text-[11px] text-slate-400 dark:text-white/30">Crea empleados para configurar sus cargos.</p>
+      <div v-for="(lista, cargo) in rapidas" :key="cargo" class="space-y-2">
+        <p :class="labelClass">{{ cargo }}</p>
+        <textarea v-model="rapidasTexto[cargo]" rows="5" :class="inputClass" class="!text-xs !font-semibold"></textarea>
+        <div class="flex items-center gap-3">
+          <button @click="guardarRapidas(cargo)" :disabled="guardandoRapidas === cargo"
+            class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40">
+            {{ guardandoRapidas === cargo ? 'Guardando...' : 'Guardar' }}
+          </button>
+          <span v-if="rapidasOk === cargo" class="text-[10px] font-bold text-green-600 dark:text-green-400">✓ Guardado</span>
+        </div>
+      </div>
     </div>
 
     <!-- Modal perfil del día de guardería -->
@@ -408,6 +431,10 @@
                 <option v-for="c in cargosSugeridos" :key="c" :value="c" />
               </datalist>
             </div>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" v-model="form.recibePerros" class="w-4 h-4 accent-[#152C77]" />
+              <span class="text-[12px] font-bold text-slate-600 dark:text-white/70">Puede recibir y entregar perros <span class="font-normal opacity-60">(guardería ya lo tiene siempre)</span></span>
+            </label>
             <div class="space-y-1">
               <label :class="labelClass">{{ form.tutorId ? 'Nueva contraseña (opcional)' : 'Contraseña *' }}</label>
               <input v-model="form.password" type="text" placeholder="Mínimo 4 caracteres" :class="inputClass" />
@@ -503,6 +530,10 @@ const errorForm = ref('')
 const guardando = ref(false)
 const detalle = ref(null)
 const ocupacion = ref(null)
+const rapidas = ref({})
+const rapidasTexto = ref({})
+const guardandoRapidas = ref(null)
+const rapidasOk = ref(null)
 const guarderiaAhora = ref(null)
 const alertasPerros = computed(() => (guarderiaAhora.value?.adentro || [])
   .filter(p => p.salidaVencida || p.comidaNoAlcanza || p.comidaPorAcabarse))
@@ -590,7 +621,27 @@ function recargar() {
   }
 }
 
+async function cargarRapidas() {
+  const { data } = await api.get('/admin/jornada/tareas-rapidas')
+  rapidas.value = data
+  rapidasTexto.value = Object.fromEntries(Object.entries(data).map(([c, l]) => [c, l.join('\n')]))
+}
+
+async function guardarRapidas(cargo) {
+  guardandoRapidas.value = cargo
+  try {
+    const tareas = (rapidasTexto.value[cargo] || '').split('\n')
+    const { data } = await api.put('/admin/jornada/tareas-rapidas', { cargo, tareas })
+    rapidasTexto.value[cargo] = data.join('\n')
+    rapidasOk.value = cargo
+    setTimeout(() => { if (rapidasOk.value === cargo) rapidasOk.value = null }, 2500)
+  } finally {
+    guardandoRapidas.value = null
+  }
+}
+
 watch(vista, v => {
+  if (v === 'equipo') cargarRapidas()
   if (v === 'guarderia' && !ocupacion.value) cargarOcupacion()
   if (v === 'reporte' && !resumen.value) cargarResumen()
 })
@@ -710,8 +761,8 @@ async function cargarDetalle() {
 function abrirForm(e) {
   errorForm.value = ''
   form.value = e
-    ? { tutorId: e.tutorId, nombre: e.nombreCorto, apellido: e.apellido, usuario: e.usuario, cargo: e.cargo, password: '' }
-    : { nombre: '', apellido: '', usuario: '', cargo: 'Guardería', password: '' }
+    ? { tutorId: e.tutorId, nombre: e.nombreCorto, apellido: e.apellido, usuario: e.usuario, cargo: e.cargo, recibePerros: e.recibePerros, password: '' }
+    : { nombre: '', apellido: '', usuario: '', cargo: 'Guardería', recibePerros: false, password: '' }
 }
 
 async function guardar() {
@@ -720,11 +771,11 @@ async function guardar() {
   try {
     const f = form.value
     if (f.tutorId) {
-      const body = { nombre: f.nombre, apellido: f.apellido, cargo: f.cargo }
+      const body = { nombre: f.nombre, apellido: f.apellido, cargo: f.cargo, recibePerros: String(!!f.recibePerros) }
       if (f.password) body.password = f.password
       await api.patch(`/admin/jornada/empleados/${f.tutorId}`, body)
     } else {
-      await api.post('/admin/jornada/empleados', f)
+      await api.post('/admin/jornada/empleados', { ...f, recibePerros: String(!!f.recibePerros) })
     }
     form.value = null
     cargarEmpleados()
