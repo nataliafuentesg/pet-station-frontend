@@ -134,7 +134,7 @@
           <p class="text-[10px] font-black uppercase tracking-widest text-amber-300">En almuerzo</p>
           <p class="text-4xl font-[1000] tabular-nums">{{ reloj(segPausa) }}</p>
           <p v-if="tareaActual" class="text-[12px] text-white/50">Pausada: <b class="text-white/80">{{ tareaActual.descripcion }}</b></p>
-          <button @click="accion('/jornada/almuerzo/volver')" :disabled="enviando"
+          <button @click="volverAlmuerzo" :disabled="enviando"
             class="w-full bg-amber-500 text-black py-5 rounded-2xl font-[1000] uppercase tracking-widest text-[12px] active:scale-95 transition-all disabled:opacity-40">
             Ya volví
           </button>
@@ -228,10 +228,14 @@
 
         <!-- Acciones de jornada -->
         <div v-if="sesion.estado === 'ACTIVA'" class="grid grid-cols-2 gap-3">
-          <button @click="salirAlmuerzo" :disabled="enviando"
+          <button v-if="!sesion.almorzo" @click="salirAlmuerzo" :disabled="enviando"
             class="bg-amber-500/15 border border-amber-500/30 text-amber-300 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
             🍽️ Salgo a almorzar
           </button>
+          <div v-else class="bg-white/5 border border-white/10 rounded-2xl py-3 px-2 text-center">
+            <p class="text-[9px] font-black uppercase tracking-widest text-white/30">🍽️ Almuerzo</p>
+            <p class="text-[11px] font-bold text-white/60 tabular-nums">{{ hora(sesion.almuerzo?.inicio) }} – {{ hora(sesion.almuerzo?.fin) }}</p>
+          </div>
           <button @click="cerrarJornada" :disabled="enviando"
             class="bg-white/5 border border-white/10 text-white/60 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
             🏁 Terminar jornada
@@ -590,6 +594,7 @@ async function accion(url, body) {
 }
 
 function iniciarTarea() {
+  if (!confirmaRegreso()) return
   if (tareaActual.value) return pedirNota('cambiar')
   crearTarea()
 }
@@ -694,6 +699,7 @@ function fechaCorta(f) {
 }
 
 async function confirmarRecepcion() {
+  if (!confirmaRegreso()) return
   const anterior = tareaActual.value
   if (await accion('/jornada/guarderia/recibir', recepcion.value)) {
     recepcion.value = null
@@ -730,6 +736,15 @@ async function confirmarCierre(nota) {
     }
   }
   if (ok) cierre.value = null
+}
+
+function volverAlmuerzo() {
+  if (confirm(`¿Ya volviste del almuerzo? Llevas ${dur(segPausa.value)}.`)) accion('/jornada/almuerzo/volver')
+}
+
+// Iniciar algo estando en almuerzo marca el regreso: se confirma para que no pase por error
+function confirmaRegreso() {
+  return sesion.value?.estado !== 'ALMUERZO' || confirm('Esto marca tu regreso del almuerzo. ¿Continuar?')
 }
 
 function salirAlmuerzo() {
