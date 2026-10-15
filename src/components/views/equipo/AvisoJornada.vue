@@ -36,8 +36,17 @@
       <h3 class="text-[10px] font-black uppercase tracking-widest text-white/40">🎯 Para qué se usa y quién lo ve</h3>
       <p>
         Para medir la carga de trabajo, ver cómo se reparten las tareas y tomar decisiones de organización y de personal.
-        Lo ve únicamente la administración de Pet Station y no se comparte con terceros.
+        Lo ve únicamente la administración de Pet Station.
         Se conserva mientras dure este proceso de medición y tu relación laboral con la empresa.
+      </p>
+    </section>
+
+    <section class="space-y-1.5">
+      <h3 class="text-[10px] font-black uppercase tracking-widest text-white/40">🤖 Resúmenes con inteligencia artificial</h3>
+      <p>
+        Para hacer un resumen diario del trabajo del equipo usamos un servicio de inteligencia artificial (ChatGPT, de OpenAI).
+        Le enviamos las tareas, horarios y notas del día <b class="text-white">sin tu nombre</b>: apareces como "Persona A", "Persona B", etc.
+        Fuera de esto, tus datos no se comparten con nadie más.
       </p>
     </section>
 

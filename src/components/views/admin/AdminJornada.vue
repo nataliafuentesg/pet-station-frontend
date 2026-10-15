@@ -293,6 +293,31 @@
       </template>
     </div>
 
+    <!-- RESUMEN DEL DÍA CON IA -->
+    <div v-if="vista === 'ia'" class="space-y-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <input type="date" v-model="fechaIA" @change="cargarResumenIA" :class="inputClass" class="!w-auto !py-2 !text-xs" />
+        <button @click="generarResumenIA" :disabled="generandoIA"
+          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40">
+          {{ generandoIA ? 'Generando… (unos segundos)' : resumenIA ? '🔄 Volver a generar' : '✨ Generar resumen' }}
+        </button>
+        <span v-if="resumenIA" class="text-[10px] text-slate-400 dark:text-white/30">Generado {{ fechaHora(resumenIA.generadoEn) }}</span>
+      </div>
+      <p v-if="errorIA" class="text-[12px] font-bold text-red-500">{{ errorIA }}</p>
+      <div v-if="cargandoIA" class="py-16 text-center">
+        <div class="w-8 h-8 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
+      </div>
+      <div v-else-if="resumenIA" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-6 resumen-ia text-[13px] leading-relaxed text-slate-700 dark:text-white/80"
+        v-html="markdownSimple(resumenIA.texto)"></div>
+      <div v-else-if="!errorIA" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 py-14 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">
+        Aún no hay resumen para este día
+      </div>
+      <p class="text-[10px] text-slate-400 dark:text-white/30">
+        Se genera solo cada noche a las 10:45 p.m. con ChatGPT. A OpenAI se le envían los datos sin nombres ("Persona A", "Persona B"…); los nombres se ponen aquí.
+        Es un análisis automático: úsalo como guía y verifica los números en Reporte antes de tomar decisiones.
+      </p>
+    </div>
+
     <!-- EQUIPO -->
     <div v-if="vista === 'equipo'" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-x-auto">
       <div v-if="!empleados.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">Sin empleados</div>
@@ -543,6 +568,7 @@ const vistas = [
   { id: 'ahora', label: '🟢 Ahora' },
   { id: 'reporte', label: '📊 Reporte' },
   { id: 'guarderia', label: '🐕 Guardería' },
+  { id: 'ia', label: '🤖 Resumen IA' },
   { id: 'equipo', label: '👥 Equipo' },
 ]
 const presets = [
@@ -569,6 +595,11 @@ const errorForm = ref('')
 const guardando = ref(false)
 const detalle = ref(null)
 const ocupacion = ref(null)
+const fechaIA = ref(fechaLocal(new Date()))
+const resumenIA = ref(null)
+const cargandoIA = ref(false)
+const generandoIA = ref(false)
+const errorIA = ref('')
 const extrasPeriodo = computed(() => (resumen.value?.personas || [])
   .flatMap(p => (p.extras || []).map(x => ({ ...x, nombre: p.nombre })))
   .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha))))
@@ -687,7 +718,55 @@ watch(() => form.value?.cargo, cargo => {
   if (form.value && !form.value.tutorId && /veterin|m[eé]dic/i.test(cargo || '')) form.value.accesoClinico = true
 })
 
+async function cargarResumenIA() {
+  cargandoIA.value = true
+  errorIA.value = ''
+  resumenIA.value = null
+  try {
+    const { data, status } = await api.get('/admin/jornada/resumen-ia', { params: { fecha: fechaIA.value } })
+    resumenIA.value = status === 204 ? null : data
+  } catch (e) {
+    errorIA.value = e.response?.status === 404 ? 'El servidor todavía no tiene esta función (falta desplegar el backend).' : 'No se pudo cargar el resumen'
+  } finally {
+    cargandoIA.value = false
+  }
+}
+
+async function generarResumenIA() {
+  generandoIA.value = true
+  errorIA.value = ''
+  try {
+    const { data } = await api.post('/admin/jornada/resumen-ia', null, { params: { fecha: fechaIA.value }, timeout: 90000 })
+    resumenIA.value = data
+  } catch (e) {
+    errorIA.value = e.response?.data?.message || 'No se pudo generar el resumen'
+  } finally {
+    generandoIA.value = false
+  }
+}
+
+// Markdown mínimo (títulos, viñetas, negritas) sobre texto ya escapado: no se inserta HTML del modelo
+function markdownSimple(md) {
+  const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const inline = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+  let html = ''
+  let enLista = false
+  for (const linea of (md || '').split('\n')) {
+    const l = linea.trim()
+    const vineta = /^[-*•]\s+/.test(l)
+    if (!vineta && enLista) { html += '</ul>'; enLista = false }
+    if (!l) continue
+    if (/^#{1,4}\s+/.test(l)) html += `<h3>${inline(l.replace(/^#{1,4}\s+/, ''))}</h3>`
+    else if (vineta) {
+      if (!enLista) { html += '<ul>'; enLista = true }
+      html += `<li>${inline(l.replace(/^[-*•]\s+/, ''))}</li>`
+    } else html += `<p>${inline(l)}</p>`
+  }
+  return html + (enLista ? '</ul>' : '')
+}
+
 watch(vista, v => {
+  if (v === 'ia' && !resumenIA.value) cargarResumenIA()
   if (v === 'equipo') cargarRapidas()
   if (v === 'guarderia' && !ocupacion.value) cargarOcupacion()
   if (v === 'reporte' && !resumen.value) cargarResumen()
@@ -861,3 +940,10 @@ onMounted(() => {
   aplicarPreset('semana')
 })
 </script>
+
+<style scoped>
+.resumen-ia :deep(h3) { font-weight: 1000; text-transform: uppercase; font-style: italic; font-size: 12px; letter-spacing: .05em; margin: 1.25rem 0 .5rem; }
+.resumen-ia :deep(h3:first-child) { margin-top: 0; }
+.resumen-ia :deep(ul) { list-style: disc; padding-left: 1.25rem; display: grid; gap: .35rem; }
+.resumen-ia :deep(p) { margin: .35rem 0; }
+</style>
