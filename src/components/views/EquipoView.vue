@@ -40,6 +40,11 @@
         <button @click="logout" class="text-[9px] font-black uppercase text-white/30 hover:text-[#DE1F27]">Salir</button>
       </div>
 
+      <p v-if="mostrarAviso && error" class="text-[11px] text-[#DE1F27] font-bold text-center">{{ error }}</p>
+      <AvisoJornada v-if="mostrarAviso" :pedir-aceptacion="necesitaConsentimiento" :enviando="enviando"
+        @aceptar="aceptarAviso" @cerrar="verAviso = false" />
+
+      <template v-else>
       <!-- Avisos -->
       <div v-if="iosSinInstalar" class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-[12px] leading-relaxed text-amber-200">
         <p class="font-black uppercase text-[10px] tracking-widest mb-1">Para recibir los avisos</p>
@@ -221,6 +226,10 @@
           </div>
         </div>
       </template>
+
+      <button v-if="logueado && estado && !mostrarAviso" @click="verAviso = true"
+        class="w-full text-[10px] font-bold text-white/25 underline pt-2">Aviso de uso y tratamiento de datos</button>
+      </template>
     </div>
 
     <!-- Recibir un perro -->
@@ -364,6 +373,7 @@ import { messaging, onMessage } from '@/firebase'
 import { obtenerTokenPush } from '@/composables/usePushNotifications'
 import PerroDatosForm from './equipo/PerroDatosForm.vue'
 import CuandoSelector from './equipo/CuandoSelector.vue'
+import AvisoJornada from './equipo/AvisoJornada.vue'
 
 const ROLES_PERMITIDOS = ['ROLE_EMPLEADO', 'ROLE_VET', 'ROLE_ADMIN', 'ADMIN']
 
@@ -376,6 +386,7 @@ const logueado = ref(false)
 
 const estado = ref(null)
 const nuevaTarea = ref('')
+const verAviso = ref(false)
 const haceMinutos = ref(0)
 const mostrarCheck = ref(false)
 const cierre = ref(null)
@@ -410,6 +421,8 @@ const puedePedirPermiso = typeof Notification !== 'undefined' && 'serviceWorker'
 
 const sesion = computed(() => estado.value?.sesion || null)
 const guarderia = computed(() => estado.value?.guarderia || null)
+const necesitaConsentimiento = computed(() => estado.value?.consentimiento?.aceptado === false)
+const mostrarAviso = computed(() => necesitaConsentimiento.value || verAviso.value)
 const tareasRapidas = computed(() => estado.value?.tareasRapidas || [])
 // Comida/revisión/uñas aplican a guardería y hotel, no a los perros que vienen a baño
 const conChecklist = computed(() => !!tareaActual.value?.recepcion && tareaActual.value.recepcionTipo !== 'BANO')
@@ -516,6 +529,20 @@ async function crearTarea(notaAnterior, checklist) {
 
 function pedirNota(tipo) {
   cierre.value = { tipo, nota: '', checklist: { comidaMarcada: false, revisado: false, unasCortadas: false } }
+}
+
+async function aceptarAviso() {
+  enviando.value = true
+  error.value = ''
+  try {
+    const { data } = await api.post('/jornada/consentimiento')
+    aplicarEstado(data)
+    if (permiso.value === 'granted') registrarPush()
+  } catch (e) {
+    error.value = e.response?.data?.message || 'No se pudo guardar, intenta de nuevo'
+  } finally {
+    enviando.value = false
+  }
 }
 
 async function iniciarJornada() {

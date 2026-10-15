@@ -278,7 +278,7 @@
       <table v-else class="w-full text-left min-w-[560px]">
         <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
           <tr>
-            <th v-for="h in ['Nombre','Usuario','Cargo','Estado','']" :key="h"
+            <th v-for="h in ['Nombre','Usuario','Cargo','Estado','Aviso de datos','']" :key="h"
               class="px-5 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
           </tr>
         </thead>
@@ -292,6 +292,9 @@
                 :class="e.activo ? 'bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400'">
                 {{ e.activo ? 'Activo' : 'Inactivo' }}
               </span>
+            </td>
+            <td class="px-5 py-3 text-[10px] font-bold whitespace-nowrap" :class="e.consentimientoEn ? 'text-green-600 dark:text-green-400' : 'text-amber-500'">
+              {{ e.consentimientoEn ? '✓ ' + new Date(e.consentimientoEn).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) : 'Pendiente' }}
             </td>
             <td class="px-5 py-3 text-right whitespace-nowrap space-x-3">
               <button @click="abrirForm(e)" class="text-[9px] font-black uppercase text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27]">Editar</button>
