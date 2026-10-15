@@ -699,6 +699,7 @@ async function registrarPush() {
     const token = await obtenerTokenPush()
     if (!token) return 'Firebase no entregó token'
     await api.post('/jornada/push-token', { token })
+    try { localStorage.setItem('ps_push_token', token) } catch { /* sin almacenamiento */ }
     return null
   } catch (e) {
     return e?.message || String(e)
@@ -737,7 +738,14 @@ function entrar() {
   if (permiso.value === 'granted') registrarPush()
 }
 
-function logout() {
+async function logout() {
+  let token = null
+  try { token = localStorage.getItem('ps_push_token') } catch { /* sin almacenamiento */ }
+  if (token) {
+    // Con timeout corto: si no hay red, igual se cierra la sesión
+    await api.post('/jornada/push-token/quitar', { token }, { timeout: 4000 }).catch(() => {})
+    try { localStorage.removeItem('ps_push_token') } catch { /* sin almacenamiento */ }
+  }
   localStorage.removeItem('ps_token')
   localStorage.removeItem('ps_session')
   logueado.value = false
