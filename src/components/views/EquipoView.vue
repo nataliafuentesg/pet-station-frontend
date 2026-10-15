@@ -128,7 +128,8 @@
         </div>
 
         <!-- Tarea en curso -->
-        <div v-else-if="tareaActual" class="bg-green-500/10 rounded-[2rem] p-6 border border-green-500/30 space-y-4">
+        <div v-else-if="tareaActual" ref="tarjetaTarea" class="bg-green-500/10 rounded-[2rem] p-6 border border-green-500/30 space-y-4 scroll-mt-24 transition-shadow duration-500"
+          :class="resaltarTarea ? 'ring-4 ring-green-400/70 shadow-[0_0_40px_rgba(74,222,128,0.35)]' : ''">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
             <p class="text-[10px] font-black uppercase tracking-widest text-green-300">Haciendo ahora</p>
@@ -244,6 +245,16 @@
         class="w-full text-[10px] font-bold text-white/25 underline pt-2">Aviso de uso y tratamiento de datos</button>
       </template>
     </div>
+
+    <!-- Mensaje de cambio de tarea (qué se pausó y qué empezó) -->
+    <Teleport to="body">
+      <Transition enter-from-class="opacity-0 -translate-y-4" leave-to-class="opacity-0 -translate-y-4">
+        <div v-if="toast" class="fixed top-4 inset-x-4 z-[9500] mx-auto max-w-sm bg-green-500 text-black rounded-2xl px-4 py-3 shadow-2xl text-[13px] font-bold leading-snug transition-all duration-300"
+          style="top: max(1rem, env(safe-area-inset-top))" @click="toast = ''">
+          <p v-for="(l, i) in toast.split('\n')" :key="i">{{ l }}</p>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Motivo de horas extra al terminar la jornada -->
     <Teleport to="body">
@@ -403,7 +414,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import api from '@/api/axios'
 import { messaging, onMessage } from '@/firebase'
 import { obtenerTokenPush } from '@/composables/usePushNotifications'
@@ -430,6 +441,9 @@ const mostrarCheck = ref(false)
 const cierre = ref(null)
 
 const recepcion = ref(null)
+const toast = ref('')
+const tarjetaTarea = ref(null)
+const resaltarTarea = ref(false)
 const ficha = ref(null)
 const CHECKLIST = [
   { id: 'comidaMarcada', label: 'Recibí y marqué la comida' },
@@ -567,9 +581,28 @@ function iniciarTarea() {
 }
 
 async function crearTarea(notaAnterior, checklist) {
+  const anterior = tareaActual.value
   const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior, checklist })
-  if (ok) nuevaTarea.value = ''
+  if (ok) {
+    nuevaTarea.value = ''
+    avisarCambio(anterior ? `✅ Terminaste "${anterior.descripcion}"` : null)
+  }
   return ok
+}
+
+// Lleva la pantalla al cronómetro y explica el cambio: si no lo ven, creen que sigue la tarea anterior
+let toastTimer = null
+async function avisarCambio(antes) {
+  await nextTick()
+  const t = tareaActual.value
+  if (!t) return
+  toast.value = [antes, `▶ Empezó "${t.descripcion}"`].filter(Boolean).join('\n')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { toast.value = '' }, 5000)
+  tarjetaTarea.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  resaltarTarea.value = true
+  setTimeout(() => { resaltarTarea.value = false }, 2000)
+  navigator.vibrate?.(80)
 }
 
 function pedirNota(tipo) {
@@ -646,7 +679,11 @@ function fechaCorta(f) {
 }
 
 async function confirmarRecepcion() {
-  if (await accion('/jornada/guarderia/recibir', recepcion.value)) recepcion.value = null
+  const anterior = tareaActual.value
+  if (await accion('/jornada/guarderia/recibir', recepcion.value)) {
+    recepcion.value = null
+    avisarCambio(anterior ? `⏸ "${anterior.descripcion}" quedó en pausa` : null)
+  }
 }
 
 function terminarEnEspera(t) {
@@ -668,7 +705,15 @@ async function confirmarCierre(nota) {
   const checklist = conChecklist.value ? cierre.value.checklist : undefined
   let ok
   if (tipo === 'cambiar') ok = await crearTarea(nota, checklist)
-  else ok = await accion('/jornada/tarea/terminar', { nota, checklist })
+  else {
+    const terminada = tareaActual.value
+    ok = await accion('/jornada/tarea/terminar', { nota, checklist })
+    // Si al terminar se retomó una tarea en espera, mostrarlo igual que un cambio de tarea
+    if (ok && tareaActual.value && tareaActual.value.id === terminada?.reanuda) {
+      await avisarCambio(`✅ Terminaste "${terminada.descripcion}"`)
+      toast.value = toast.value.replace('▶ Empezó', '▶ Retomaste')
+    }
+  }
   if (ok) cierre.value = null
 }
 
