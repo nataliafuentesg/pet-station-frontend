@@ -818,7 +818,21 @@ async function logout() {
 }
 
 function alVolverAPantalla() {
-  if (document.visibilityState === 'visible' && logueado.value) cargar()
+  if (document.visibilityState !== 'visible') return
+  revisarVersion()
+  if (logueado.value) cargar()
+}
+
+// Instalada en la pantalla de inicio, la app puede quedarse días con el código viejo.
+// Si el sitio publicó una versión nueva (cambia el nombre del bundle), se recarga.
+async function revisarVersion() {
+  try {
+    const actual = document.querySelector('script[type="module"][src*="/assets/index-"]')?.getAttribute('src')
+    if (!actual) return
+    const html = await fetch('/equipo', { cache: 'no-store' }).then(r => r.text())
+    const publicada = html.match(/\/assets\/index-[^"']+\.js/)?.[0]
+    if (publicada && !actual.endsWith(publicada)) window.location.reload()
+  } catch { /* sin red: se revisa la próxima vez */ }
 }
 
 function instalarManifest() {
@@ -843,6 +857,7 @@ onMounted(() => {
   quitarManifest = instalarManifest()
   const session = JSON.parse(localStorage.getItem('ps_session') || 'null')
   if (localStorage.getItem('ps_token') && ROLES_PERMITIDOS.includes(session?.tutor?.rol)) entrar()
+  revisarVersion()
   ticker = setInterval(tick, 1000)
   document.addEventListener('pointerdown', desbloquearAudio)
   document.addEventListener('visibilitychange', alVolverAPantalla)
