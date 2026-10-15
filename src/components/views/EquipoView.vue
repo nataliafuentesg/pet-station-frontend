@@ -157,9 +157,9 @@
         </div>
 
         <!-- Nueva tarea -->
-        <div v-if="sesion.estado === 'ACTIVA'" class="bg-white/5 rounded-[2rem] p-6 border border-white/10 space-y-4">
+        <div class="bg-white/5 rounded-[2rem] p-6 border border-white/10 space-y-4">
           <p class="text-[10px] font-black uppercase tracking-widest text-white/40">
-            {{ tareaActual ? '¿Cambias de tarea?' : '¿Qué vas a hacer ahora?' }}
+            {{ sesion.estado === 'ALMUERZO' ? '¿Ya volviste? Empieza tu siguiente tarea' : tareaActual ? '¿Cambias de tarea?' : '¿Qué vas a hacer ahora?' }}
           </p>
           <textarea v-model="nuevaTarea" rows="2" maxlength="300" placeholder="Ej: Bañar a Toby, limpiar caniles, paseo grupo 2..."
             class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-[#DE1F27] resize-none placeholder:text-white/20"></textarea>
@@ -179,7 +179,7 @@
         <div v-if="guarderia" class="bg-white/5 rounded-[2rem] p-6 border border-white/10 space-y-4">
           <div class="flex items-center justify-between gap-3">
             <p class="text-[10px] font-black uppercase tracking-widest text-white/40">🐾 Mascotas adentro · {{ guarderia.adentro.length }}</p>
-            <button v-if="sesion.estado === 'ACTIVA'" @click="abrirRecepcion" :disabled="enviando"
+            <button @click="abrirRecepcion" :disabled="enviando"
               class="bg-blue-500 text-white px-4 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
               ➕ Recibir
             </button>
