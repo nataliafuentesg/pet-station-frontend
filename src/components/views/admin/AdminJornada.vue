@@ -347,8 +347,8 @@
     <!-- Botones de tarea rápida por cargo -->
     <div v-if="vista === 'equipo'" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-4">
       <div>
-        <p class="font-[1000] uppercase italic text-sm dark:text-white">⚡ Tareas rápidas por cargo</p>
-        <p class="text-[10px] text-slate-400 dark:text-white/40">Botones de un toque en Mi Jornada. Una tarea por línea. Los nombres iguales se agrupan mejor en el reporte.</p>
+        <p class="font-[1000] uppercase italic text-sm dark:text-white">⚡ Tareas sugeridas por cargo</p>
+        <p class="text-[10px] text-slate-400 dark:text-white/40">Aparecen como sugerencia mientras escriben la tarea en Mi Jornada. Una por línea. Así todos usan el mismo nombre y el reporte las agrupa mejor.</p>
       </div>
       <p v-if="!Object.keys(rapidas).length" class="text-[11px] text-slate-400 dark:text-white/30">Crea empleados para configurar sus cargos.</p>
       <div v-for="(lista, cargo) in rapidas" :key="cargo" class="space-y-2">

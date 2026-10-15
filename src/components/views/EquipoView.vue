@@ -162,17 +162,11 @@
             {{ tareaActual ? '¿Cambias de tarea?' : '¿Qué vas a hacer ahora?' }}
           </p>
           <CuandoSelector v-model="haceMinutos" />
-          <div v-if="tareasRapidas.length" class="flex flex-wrap gap-2">
-            <button v-for="t in tareasRapidas" :key="t" @click="tareaRapida(t)" :disabled="enviando"
-              class="text-[12px] font-bold bg-[#DE1F27]/15 border border-[#DE1F27]/40 rounded-xl px-3 py-2 text-white active:scale-95 disabled:opacity-40">
-              {{ t }}
-            </button>
-          </div>
           <textarea v-model="nuevaTarea" rows="2" maxlength="300" placeholder="Ej: Bañar a Toby, limpiar caniles, paseo grupo 2..."
             class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-[#DE1F27] resize-none placeholder:text-white/20"></textarea>
-          <div v-if="sugerenciasFiltradas.length" class="flex flex-wrap gap-2">
+          <div v-if="sugerenciasFiltradas.length" class="-mt-2 bg-white/5 rounded-2xl border border-white/10 divide-y divide-white/5 overflow-hidden">
             <button v-for="s in sugerenciasFiltradas" :key="s" @click="nuevaTarea = s"
-              class="text-[11px] font-bold bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-white/70 active:bg-white/20">
+              class="w-full text-left text-[13px] font-bold px-4 py-2.5 text-white/80 active:bg-white/10">
               {{ s }}
             </button>
           </div>
@@ -480,9 +474,10 @@ const tareaQueSeRetoma = computed(() => tareasEnEspera.value.find(t => t.id === 
 const perrosSugeridos = computed(() => {
   const adentro = new Set((guarderia.value?.adentro || []).map(p => p.perro.toLowerCase()))
   const q = recepcion.value?.perro.trim().toLowerCase() || ''
+  if (!q) return []
   return (guarderia.value?.sugerencias || [])
-    .filter(n => !adentro.has(n.toLowerCase()) && (!q || (n.toLowerCase().includes(q) && n.toLowerCase() !== q)))
-    .slice(0, 10)
+    .filter(n => !adentro.has(n.toLowerCase()) && n.toLowerCase().includes(q) && n.toLowerCase() !== q)
+    .slice(0, 4)
 })
 const tareaActual = computed(() => estado.value?.tareaActual || null)
 const tareasHoy = computed(() => [...(estado.value?.tareas || [])].reverse())
@@ -502,12 +497,19 @@ const segPausa = computed(() => (sesion.value?.segundosEnPausa || 0) + transcurr
 const segTareaActual = computed(() => (tareaActual.value?.segundos || 0) + (corriendo.value ? transcurrido.value : 0))
 const segParaCheck = computed(() => Math.max(0, (tareaActual.value?.segundosParaCheck ?? 0) - transcurrido.value))
 
+// Solo mientras escriben: tareas del cargo primero y luego las que la persona ya ha usado
 const sugerenciasFiltradas = computed(() => {
   const q = nuevaTarea.value.trim().toLowerCase()
-  const lista = (estado.value?.sugerencias || []).filter(s => s !== tareaActual.value?.descripcion)
-  const rapidas = new Set(tareasRapidas.value.map(t => t.toLowerCase()))
-  return (q ? lista.filter(s => s.toLowerCase().includes(q) && s.toLowerCase() !== q) : lista)
-    .filter(s => !rapidas.has(s.toLowerCase())).slice(0, 8)
+  if (q.length < 2) return []
+  const vistas = new Set()
+  return [...tareasRapidas.value, ...(estado.value?.sugerencias || [])]
+    .filter(s => {
+      const k = s.toLowerCase()
+      if (vistas.has(k) || k === q || !k.includes(q) || s === tareaActual.value?.descripcion) return false
+      vistas.add(k)
+      return true
+    })
+    .slice(0, 4)
 })
 
 const fechaHoy = new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -598,11 +600,6 @@ async function aceptarAviso() {
 
 async function iniciarJornada() {
   if (await accion('/jornada/iniciar', { haceMinutos: haceMinutos.value })) haceMinutos.value = 0
-}
-
-function tareaRapida(t) {
-  nuevaTarea.value = t
-  iniciarTarea()
 }
 
 function abrirRecepcion() {
