@@ -16,6 +16,7 @@ import AdminWaAnalytics from './AdminWaAnalytics.vue';
 import AdminVeterinarios from './AdminVeterinarios.vue';
 import AdminHealth from './AdminHealth.vue';
 import AdminJornada from './AdminJornada.vue';
+import AdminFormularios from './AdminFormularios.vue';
 import { suscribirNotificaciones } from '@/composables/usePushNotifications';
 import { messaging, onMessage } from '@/firebase';
 
@@ -60,6 +61,7 @@ const tabs = [
     { id: 'veterinarios', label: 'Veterinarios', icon: '👨‍⚕️' },
     { id: 'jornada', label: 'Productividad', icon: '⏱️' },
     { id: 'wa-analytics', label: 'WA Analytics', icon: '📲' },
+    { id: 'formularios', label: 'Formularios', icon: '📝' },
     { id: 'health', label: 'Sistema', icon: '🖥️' }
 ];
 
@@ -222,6 +224,7 @@ const doLogout = () => {
                         <AdminVeterinarios v-if="currentTab === 'veterinarios'" />
                         <AdminWaAnalytics v-if="currentTab === 'wa-analytics'" />
                         <AdminJornada v-if="currentTab === 'jornada'" />
+                        <AdminFormularios v-if="currentTab === 'formularios'" />
                         <AdminHealth v-if="currentTab === 'health'" />
                     </div>
                 </Transition>

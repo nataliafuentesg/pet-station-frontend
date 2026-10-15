@@ -216,6 +216,24 @@ const routes = [
     meta: { title: 'Aviso Legal | Pet Station' }
   },
   {
+    path: '/formularios/peluqueria',
+    name: 'FormularioPeluqueria',
+    component: () => import('@/components/views/formularios/FormularioPeluqueria.vue'),
+    meta: { title: 'Orden de Peluquería | Pet Station' }
+  },
+  {
+    path: '/formularios/guarderia',
+    name: 'FormulariosGuarderia',
+    component: () => import('@/components/views/formularios/FormulariaGuarderia.vue'),
+    meta: { title: 'Registro de Guardería | Pet Station' }
+  },
+  {
+    path: '/admin/formularios',
+    name: 'AdminFormularios',
+    component: () => import('@/components/views/admin/AdminFormularios.vue'),
+    meta: { title: 'Formularios | Admin Pet Station' }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/components/views/NotFoundView.vue'),
