@@ -304,7 +304,10 @@
           <tr v-for="e in empleados" :key="e.tutorId">
             <td class="px-5 py-3 font-[1000] uppercase italic text-[12px] dark:text-white">{{ e.nombre }}</td>
             <td class="px-5 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">{{ e.usuario }}</td>
-            <td class="px-5 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">{{ e.cargo }}</td>
+            <td class="px-5 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              {{ e.cargo }}
+              <span v-if="e.accesoClinico" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-[#152C77]/10 text-[#152C77] dark:text-blue-300 font-black uppercase">🩺 Clínica</span>
+            </td>
             <td class="px-5 py-3">
               <span class="text-[9px] px-2.5 py-1 rounded-full font-black uppercase"
                 :class="e.activo ? 'bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400'">
@@ -475,6 +478,10 @@
               <input v-model="form.horasJornada" type="number" min="1" max="16" step="0.5" :class="inputClass" />
               <p class="text-[10px] text-slate-400 dark:text-white/30">Lo que pase de aquí se cuenta como horas extra.</p>
             </div>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" v-model="form.accesoClinico" class="w-4 h-4 accent-[#152C77]" />
+              <span class="text-[12px] font-bold text-slate-600 dark:text-white/70">Acceso al panel clínico <span class="font-normal opacity-60">(veterinarios: entran con este mismo usuario)</span></span>
+            </label>
             <label class="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" v-model="form.recibePerros" class="w-4 h-4 accent-[#152C77]" />
               <span class="text-[12px] font-bold text-slate-600 dark:text-white/70">Puede recibir y entregar mascotas <span class="font-normal opacity-60">(guardería ya lo tiene siempre)</span></span>
@@ -691,6 +698,11 @@ async function guardarRapidas(cargo) {
   }
 }
 
+// Al crear, el cargo de veterinaria marca solo el acceso al panel clínico
+watch(() => form.value?.cargo, cargo => {
+  if (form.value && !form.value.tutorId && /veterin|m[eé]dic/i.test(cargo || '')) form.value.accesoClinico = true
+})
+
 watch(vista, v => {
   if (v === 'equipo') cargarRapidas()
   if (v === 'guarderia' && !ocupacion.value) cargarOcupacion()
@@ -812,8 +824,8 @@ async function cargarDetalle() {
 function abrirForm(e) {
   errorForm.value = ''
   form.value = e
-    ? { tutorId: e.tutorId, nombre: e.nombreCorto, apellido: e.apellido, usuario: e.usuario, cargo: e.cargo, recibePerros: e.recibePerros, horasJornada: e.horasJornada ?? 8, password: '' }
-    : { nombre: '', apellido: '', usuario: '', cargo: 'Guardería', recibePerros: false, horasJornada: 8, password: '' }
+    ? { tutorId: e.tutorId, nombre: e.nombreCorto, apellido: e.apellido, usuario: e.usuario, cargo: e.cargo, recibePerros: e.recibePerros, accesoClinico: e.accesoClinico, horasJornada: e.horasJornada ?? 8, password: '' }
+    : { nombre: '', apellido: '', usuario: '', cargo: 'Guardería', recibePerros: false, accesoClinico: false, horasJornada: 8, password: '' }
 }
 
 async function guardar() {
@@ -822,11 +834,11 @@ async function guardar() {
   try {
     const f = form.value
     if (f.tutorId) {
-      const body = { nombre: f.nombre, apellido: f.apellido, cargo: f.cargo, recibePerros: String(!!f.recibePerros), horasJornada: String(f.horasJornada ?? 8) }
+      const body = { nombre: f.nombre, apellido: f.apellido, cargo: f.cargo, recibePerros: String(!!f.recibePerros), accesoClinico: String(!!f.accesoClinico), horasJornada: String(f.horasJornada ?? 8) }
       if (f.password) body.password = f.password
       await api.patch(`/admin/jornada/empleados/${f.tutorId}`, body)
     } else {
-      await api.post('/admin/jornada/empleados', { ...f, recibePerros: String(!!f.recibePerros), horasJornada: String(f.horasJornada ?? 8) })
+      await api.post('/admin/jornada/empleados', { ...f, recibePerros: String(!!f.recibePerros), accesoClinico: String(!!f.accesoClinico), horasJornada: String(f.horasJornada ?? 8) })
     }
     form.value = null
     cargarEmpleados()
