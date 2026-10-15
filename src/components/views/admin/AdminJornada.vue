@@ -63,9 +63,12 @@
               <span v-if="e.tareaActual.checkPendiente" class="text-amber-500 font-bold"> · no ha respondido el aviso</span>
             </p>
           </div>
-          <p v-if="e.sesion" class="text-[10px] text-slate-400 dark:text-white/40">
-            Entró {{ hora(e.sesion.inicio) }} · {{ dur(e.sesion.segundosEnTareas) }} en tareas hoy
-          </p>
+          <div v-if="e.sesion" class="flex items-center justify-between gap-3">
+            <p class="text-[10px] text-slate-400 dark:text-white/40">
+              Entró {{ hora(e.sesion.inicio) }} · {{ dur(e.sesion.segundosEnTareas) }} en tareas hoy
+            </p>
+            <button @click="terminarJornadaDe(e)" class="shrink-0 text-[9px] font-black uppercase text-red-400 hover:text-red-600">Terminar jornada</button>
+          </div>
         </div>
       </div>
     </div>
@@ -330,23 +333,6 @@
       </table>
     </div>
 
-    <!-- Borrar datos de prueba -->
-    <div v-if="vista === 'equipo'" class="bg-red-50 dark:bg-red-500/5 rounded-2xl border border-red-200 dark:border-red-500/20 p-5 space-y-3">
-      <p class="font-[1000] uppercase italic text-sm text-red-700 dark:text-red-300">🧹 Borrar datos de prueba</p>
-      <p class="text-[11px] text-red-700/80 dark:text-red-300/70">
-        Borra <b>todas</b> las jornadas, tareas, almuerzos y entradas/salidas de mascotas. No borra los empleados, sus contraseñas ni las tareas rápidas.
-        Úsalo una sola vez, justo antes de empezar a medir de verdad. No se puede deshacer.
-      </p>
-      <div class="flex flex-wrap items-center gap-2">
-        <input v-model="confirmarBorrado" placeholder="Escribe BORRAR" :class="inputClass" class="!w-48 !py-2 !text-xs" />
-        <button @click="borrarDatos" :disabled="confirmarBorrado !== 'BORRAR' || borrando"
-          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-30">
-          {{ borrando ? 'Borrando...' : 'Borrar todo' }}
-        </button>
-        <span v-if="borradoMsg" class="text-[11px] font-bold text-green-600 dark:text-green-400">{{ borradoMsg }}</span>
-      </div>
-    </div>
-
     <!-- Botones de tarea rápida por cargo -->
     <div v-if="vista === 'equipo'" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-4">
       <div>
@@ -529,6 +515,7 @@
               <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">
                 Jornada {{ hora(s.inicio) }} – {{ s.fin ? hora(s.fin) : 'en curso' }}
                 <span v-if="s.cierreAutomatico" class="text-red-400"> · no la cerró</span>
+                <span v-if="s.cerradaPorAdmin" class="text-amber-500"> · terminada por el admin</span>
               </p>
               <p v-if="s.motivoExtra" class="text-[11px] font-bold text-purple-600 dark:text-purple-300">⏰ Motivo de horas extra: {{ s.motivoExtra }}</p>
               <div v-for="(it, j) in s.linea" :key="j" class="flex items-center gap-3 rounded-xl px-4 py-2.5" :class="itemClase(it.tipo)">
@@ -582,9 +569,6 @@ const errorForm = ref('')
 const guardando = ref(false)
 const detalle = ref(null)
 const ocupacion = ref(null)
-const confirmarBorrado = ref('')
-const borrando = ref(false)
-const borradoMsg = ref('')
 const extrasPeriodo = computed(() => (resumen.value?.personas || [])
   .flatMap(p => (p.extras || []).map(x => ({ ...x, nombre: p.nombre })))
   .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha))))
@@ -849,27 +833,21 @@ async function guardar() {
   }
 }
 
+async function terminarJornadaDe(e) {
+  if (!confirm(`¿Terminar la jornada de ${e.nombre} ahora? Su tarea en curso se cierra a esta hora.`)) return
+  try {
+    await api.post(`/admin/jornada/empleados/${e.tutorId}/terminar-jornada`)
+  } catch (err) {
+    alert(err.response?.data?.message || 'No se pudo terminar la jornada')
+  }
+  cargarEmpleados()
+}
+
 async function eliminarEmpleado(e) {
   const escrito = prompt(`Esto borra la cuenta de ${e.nombre} y TODO su historial. Para cuentas de prueba.\n\nEscribe ELIMINAR para confirmar:`)
   if (escrito !== 'ELIMINAR') return
   await api.delete(`/admin/jornada/empleados/${e.tutorId}`)
   cargarEmpleados()
-}
-
-async function borrarDatos() {
-  if (!confirm('¿Seguro? Se borran todas las jornadas, tareas y registros de mascotas. No se puede deshacer.')) return
-  borrando.value = true
-  borradoMsg.value = ''
-  try {
-    const { data } = await api.delete('/admin/jornada/datos', { params: { confirmar: 'BORRAR' } })
-    borradoMsg.value = `✓ Listo, se borraron ${data.sesionesBorradas} jornadas`
-    confirmarBorrado.value = ''
-    resumen.value = null
-    ocupacion.value = null
-    cargarEmpleados()
-  } finally {
-    borrando.value = false
-  }
 }
 
 async function toggleActivo(e) {
