@@ -53,6 +53,10 @@
         </p>
       </button>
       <p v-else-if="permiso === 'granted'" class="text-[10px] font-black uppercase tracking-widest text-green-400/70 text-center">🔔 Avisos activados</p>
+      <div v-else-if="!puedePedirPermiso" class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-[12px] leading-relaxed text-amber-200">
+        <p class="font-black uppercase text-[10px] tracking-widest mb-1">Este navegador no permite avisos</p>
+        Abre <b>petstationvet.com/equipo</b> directamente en <b>Chrome</b>. Si llegaste desde un enlace de WhatsApp, toca ⋮ y elige "Abrir en Chrome".
+      </div>
 
       <div v-if="!estado" class="py-20 text-center">
         <div class="w-8 h-8 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
