@@ -17,6 +17,7 @@ import AdminVeterinarios from './AdminVeterinarios.vue';
 import AdminHealth from './AdminHealth.vue';
 import AdminJornada from './AdminJornada.vue';
 import AdminFormularios from './AdminFormularios.vue';
+import AdminAccesos from './AdminAccesos.vue';
 import { suscribirNotificaciones } from '@/composables/usePushNotifications';
 import { messaging, onMessage } from '@/firebase';
 
@@ -46,7 +47,7 @@ const data = reactive({
 });
 
 // Definimos los tabs con íconos para que se vean bien en el celular
-const tabs = [
+const todasLasTabs = [
     { id: 'stats', label: 'Resumen', icon: '📊' },
     { id: 'pedidos', label: 'Ventas', icon: '🛍️' },
     { id: 'formulas', label: 'Fórmulas', icon: '🧾' },
@@ -62,11 +63,31 @@ const tabs = [
     { id: 'jornada', label: 'Productividad', icon: '⏱️' },
     { id: 'wa-analytics', label: 'WA Analytics', icon: '📲' },
     { id: 'formularios', label: 'Formularios', icon: '📝' },
-    { id: 'health', label: 'Sistema', icon: '🖥️' }
+    { id: 'health', label: 'Sistema', icon: '🖥️' },
+    { id: 'accesos', label: 'Accesos', icon: '🔐' }
 ];
 
+// Un administrador limitado solo ve las pestañas que se le asignaron; "Accesos" es solo del admin completo
+const accesos = ref(null);
+const tabs = computed(() => {
+    if (!accesos.value) return [];
+    return todasLasTabs.filter(t => t.id === 'accesos' ? accesos.value.completo : accesos.value.secciones.includes(t.id));
+});
+
+async function iniciarPanel() {
+    try {
+        const { data } = await api.get('/admin/mis-accesos');
+        accesos.value = data;
+    } catch {
+        // Servidor sin esta función todavía: solo existen admins completos
+        accesos.value = { completo: true, secciones: todasLasTabs.map(t => t.id) };
+    }
+    if (tabs.value.some(t => t.id === currentTab.value)) fetchData();
+    else currentTab.value = tabs.value[0]?.id || '';
+}
+
 const tabTitle = computed(() => {
-    const t = tabs.find(x => x.id === currentTab.value);
+    const t = tabs.value.find(x => x.id === currentTab.value);
     return t ? t.label : 'Panel de Control';
 });
 
@@ -107,7 +128,7 @@ const fetchData = async () => {
 };
 
 watch(currentTab, fetchData);
-onMounted(fetchData);
+onMounted(iniciarPanel);
 
 // Con el panel abierto FCM no muestra nada por sí solo: el mensaje llega aquí y hay que mostrarlo
 onMounted(() => {
@@ -226,6 +247,7 @@ const doLogout = () => {
                         <AdminJornada v-if="currentTab === 'jornada'" />
                         <AdminFormularios v-if="currentTab === 'formularios'" />
                         <AdminHealth v-if="currentTab === 'health'" />
+                        <AdminAccesos v-if="currentTab === 'accesos'" />
                     </div>
                 </Transition>
             </template>

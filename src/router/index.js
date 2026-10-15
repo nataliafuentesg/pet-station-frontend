@@ -136,6 +136,8 @@ const routes = [
     meta: { 
       requiresAuth: true, 
       requiresAdmin: true,
+      // Administradores limitados: el panel les muestra solo sus pestañas y el servidor bloquea el resto
+      permitirGestor: true,
       title: 'Panel Administrativo | Pet Station' 
     }
   },
@@ -295,7 +297,8 @@ router.beforeEach((to, from, next) => {
     return next({ path: '/', query: { login_required: 'true' } });
   }
 
-  if (to.meta.requiresAdmin && (userRol !== 'ROLE_ADMIN' && userRol !== 'ADMIN')) {
+  const esAdmin = userRol === 'ROLE_ADMIN' || userRol === 'ADMIN' || (to.meta.permitirGestor && userRol === 'ROLE_GESTOR');
+  if (to.meta.requiresAdmin && !esAdmin) {
     console.error("ACCESO PROHIBIDO: Rol insuficiente.");
     return next('/');
   }
