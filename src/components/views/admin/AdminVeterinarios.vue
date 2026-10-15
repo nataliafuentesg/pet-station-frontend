@@ -38,7 +38,7 @@
                 <div class="w-9 h-9 rounded-xl bg-[#152C77]/10 flex items-center justify-center text-sm">👨‍⚕️</div>
                 <div>
                   <p class="font-[1000] uppercase italic text-sm dark:text-white">{{ v.nombre }} {{ v.apellido }}</p>
-                  <p class="text-[9px] text-slate-400 dark:text-white/25 uppercase">{{ v.role }}</p>
+                  <p class="text-[9px] text-slate-400 dark:text-white/25 uppercase">{{ v.rol }}</p>
                 </div>
               </div>
             </td>
@@ -49,21 +49,26 @@
             </td>
             <td class="px-5 py-4">
               <span class="text-[9px] px-2.5 py-1 rounded-full font-black uppercase"
-                :class="v.role === 'ROLE_VET' ? 'bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400'">
-                {{ v.role === 'ROLE_VET' ? 'Activo' : 'Inactivo' }}
+                :class="v.rol === 'ROLE_VET' ? 'bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400'">
+                {{ v.rol === 'ROLE_VET' ? 'Activo' : 'Inactivo' }}
               </span>
             </td>
             <td class="px-5 py-4">
-              <button v-if="v.role === 'ROLE_VET'"
+              <button v-if="v.rol === 'ROLE_VET'"
                 @click="desactivar(v)"
                 class="text-[9px] font-black uppercase text-red-400 hover:text-red-600 transition-colors">
                 Desactivar
               </button>
-              <button v-else
-                @click="reactivar(v)"
-                class="text-[9px] font-black uppercase text-green-500 hover:text-green-700 transition-colors">
-                Reactivar
-              </button>
+              <template v-else>
+                <button @click="reactivar(v)"
+                  class="text-[9px] font-black uppercase text-green-500 hover:text-green-700 transition-colors">
+                  Reactivar
+                </button>
+                <button @click="eliminar(v)"
+                  class="ml-3 text-[9px] font-black uppercase text-slate-400 hover:text-red-600 transition-colors">
+                  Eliminar
+                </button>
+              </template>
             </td>
           </tr>
         </tbody>
@@ -176,7 +181,7 @@ async function desactivar(v) {
   if (!confirm(`¿Desactivar cuenta de ${v.nombre}? Podrás reactivarla después.`)) return
   try {
     await api.delete(`/admin/veterinarios/${v.id}`)
-    v.role = 'ROLE_VET_INACTIVO'
+    v.rol = 'ROLE_VET_INACTIVO'
   } catch (e) {
     alert('Error al desactivar: ' + (e.response?.data?.message || e.message))
   }
@@ -185,9 +190,19 @@ async function desactivar(v) {
 async function reactivar(v) {
   try {
     await api.patch(`/admin/veterinarios/${v.id}/reactivar`)
-    v.role = 'ROLE_VET'
+    v.rol = 'ROLE_VET'
   } catch (e) {
     alert('Error al reactivar: ' + (e.response?.data?.message || e.message))
+  }
+}
+
+async function eliminar(v) {
+  if (!confirm(`¿Eliminar definitivamente la cuenta de ${v.nombre}? No se puede deshacer.`)) return
+  try {
+    await api.delete(`/admin/veterinarios/${v.id}/definitivo`)
+    vets.value = vets.value.filter(x => x.id !== v.id)
+  } catch (e) {
+    alert(e.response?.data?.message || 'No se pudo eliminar')
   }
 }
 
