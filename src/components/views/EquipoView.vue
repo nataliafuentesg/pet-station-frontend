@@ -83,7 +83,7 @@
         <div class="grid grid-cols-3 gap-2">
           <div class="bg-white/5 rounded-2xl p-3 text-center border border-white/10">
             <p class="text-lg font-[1000] tabular-nums">{{ dur(segJornada) }}</p>
-            <p class="text-[8px] font-black uppercase text-white/30 tracking-widest mt-1">En jornada</p>
+            <p class="text-[8px] font-black uppercase text-white/30 tracking-widest mt-1">de {{ dur(sesion.segundosLimite || 28800) }}</p>
           </div>
           <div class="bg-green-500/10 rounded-2xl p-3 text-center border border-green-500/20">
             <p class="text-lg font-[1000] text-green-400 tabular-nums">{{ dur(segTareas) }}</p>
@@ -93,6 +93,27 @@
             <p class="text-lg font-[1000] tabular-nums">{{ tareasTerminadas }}</p>
             <p class="text-[8px] font-black uppercase text-white/30 tracking-widest mt-1">Terminadas</p>
           </div>
+        </div>
+
+        <!-- Horas extra -->
+        <div v-if="enExtra" class="bg-purple-500/10 rounded-2xl p-4 border border-purple-500/30 space-y-3">
+          <p class="text-[10px] font-black uppercase tracking-widest text-purple-300">⏰ Horas extra · {{ dur(segExtra) }}</p>
+          <p v-if="sesion.motivoExtra && !editandoExtra" class="text-[12px] text-white/70">
+            Motivo: <b class="text-white">{{ sesion.motivoExtra }}</b>
+            <button @click="abrirMotivoExtra" class="ml-2 text-[10px] underline text-white/40">Cambiar</button>
+          </p>
+          <template v-else>
+            <p class="text-[12px] text-white/60">Ya cumpliste tu jornada. ¿Por qué te quedas más tiempo?</p>
+            <div class="flex flex-wrap gap-2">
+              <button v-for="m in MOTIVOS_EXTRA" :key="m" @click="motivoExtra = m"
+                class="text-[11px] font-bold rounded-full px-3 py-1.5 border"
+                :class="motivoExtra === m ? 'bg-purple-500 border-purple-500 text-white' : 'bg-white/5 border-white/10 text-white/70'">{{ m }}</button>
+            </div>
+            <input v-model="motivoExtra" maxlength="500" placeholder="O escribe el motivo"
+              class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-purple-500 placeholder:text-white/20" />
+            <button @click="guardarMotivoExtra" :disabled="!motivoExtra.trim() || enviando"
+              class="w-full bg-purple-500 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] disabled:opacity-40">Guardar motivo</button>
+          </template>
         </div>
 
         <!-- Almuerzo -->
@@ -164,18 +185,18 @@
         <!-- Guardería: entrada y salida de perros -->
         <div v-if="guarderia" class="bg-white/5 rounded-[2rem] p-6 border border-white/10 space-y-4">
           <div class="flex items-center justify-between gap-3">
-            <p class="text-[10px] font-black uppercase tracking-widest text-white/40">🐕 Perros adentro · {{ guarderia.adentro.length }}</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-white/40">🐾 Mascotas adentro · {{ guarderia.adentro.length }}</p>
             <button v-if="sesion.estado === 'ACTIVA'" @click="abrirRecepcion" :disabled="enviando"
               class="bg-blue-500 text-white px-4 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
-              ➕ Recibir perro
+              ➕ Recibir
             </button>
           </div>
-          <p v-if="!guarderia.adentro.length" class="text-[12px] text-white/30">No hay perros registrados adentro.</p>
+          <p v-if="!guarderia.adentro.length" class="text-[12px] text-white/30">No hay mascotas registradas adentro.</p>
           <div v-for="p in guarderia.adentro" :key="p.id" class="flex items-center justify-between gap-3 bg-white/5 rounded-xl px-4 py-3 border"
             :class="p.comidaNoAlcanza || p.comidaPorAcabarse || p.salidaVencida ? 'border-red-500/50' : 'border-white/5'">
             <button type="button" @click="abrirFicha(p)" class="min-w-0 text-left flex-1">
               <p class="text-[14px] font-bold truncate">
-                {{ p.perro }}
+                {{ p.especie === 'GATO' ? '🐈' : '🐕' }} {{ p.perro }}
                 <span class="ml-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full align-middle"
                   :class="{ HOTEL: 'bg-purple-500/20 text-purple-300', BANO: 'bg-cyan-500/20 text-cyan-300', DIA: 'bg-blue-500/20 text-blue-300' }[p.tipo]">
                   {{ { HOTEL: 'Hotel', BANO: 'Baño', DIA: 'Día' }[p.tipo] }}
@@ -232,13 +253,37 @@
       </template>
     </div>
 
+    <!-- Motivo de horas extra al terminar la jornada -->
+    <Teleport to="body">
+      <div v-if="cierreJornada" class="fixed inset-0 z-[9001] flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="cierreJornada = false"></div>
+        <div class="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
+          <p class="text-[10px] font-black uppercase tracking-widest text-purple-300">⏰ Hoy hiciste {{ dur(segExtra) }} extra</p>
+          <p class="text-lg font-[1000] leading-tight">¿Por qué te quedaste más tiempo?</p>
+          <div class="flex flex-wrap gap-2">
+            <button v-for="m in MOTIVOS_EXTRA" :key="m" @click="motivoExtra = m"
+              class="text-[11px] font-bold rounded-full px-3 py-1.5 border"
+              :class="motivoExtra === m ? 'bg-purple-500 border-purple-500 text-white' : 'bg-white/5 border-white/10 text-white/70'">{{ m }}</button>
+          </div>
+          <input v-model="motivoExtra" maxlength="500" placeholder="O escribe el motivo"
+            class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-purple-500 placeholder:text-white/20" />
+          <p v-if="error" class="text-[11px] text-red-300 font-bold">{{ error }}</p>
+          <div class="grid grid-cols-2 gap-3">
+            <button @click="cierreJornada = false" class="bg-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
+            <button @click="cerrarConMotivo" :disabled="!motivoExtra.trim() || enviando"
+              class="bg-purple-500 py-4 rounded-2xl font-[1000] uppercase tracking-widest text-[10px] disabled:opacity-40">Terminar jornada</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Recibir un perro -->
     <Teleport to="body">
       <div v-if="recepcion" class="fixed inset-0 z-[9001] flex items-end sm:items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="recepcion = null"></div>
         <div class="relative w-full max-w-sm max-h-[92vh] overflow-y-auto bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
-          <p class="text-lg font-[1000] leading-tight">🐕 ¿Qué perro llegó?</p>
-          <input v-model="recepcion.perro" maxlength="100" placeholder="Nombre del perro" autocapitalize="words"
+          <p class="text-lg font-[1000] leading-tight">🐾 ¿Quién llegó?</p>
+          <input v-model="recepcion.perro" maxlength="100" placeholder="Nombre de la mascota" autocapitalize="words"
             class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-blue-500 placeholder:text-white/20" />
           <div v-if="perrosSugeridos.length" class="flex flex-wrap gap-2">
             <button v-for="n in perrosSugeridos" :key="n" @click="recepcion.perro = n"
@@ -270,9 +315,9 @@
             <p class="text-lg font-[1000] leading-tight">✏️ Corregir datos</p>
             <button @click="ficha = null" class="w-8 h-8 flex items-center justify-center bg-white/10 rounded-lg text-white/50">✕</button>
           </div>
-          <input v-model="ficha.datos.perro" maxlength="100" placeholder="Nombre del perro"
+          <input v-model="ficha.datos.perro" maxlength="100" placeholder="Nombre de la mascota"
             class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-blue-500" />
-          <PerroDatosForm :model-value="ficha.datos" :dias-transcurridos="ficha.diasTranscurridos" :entrada="ficha.entrada" />
+          <PerroDatosForm :model-value="ficha.datos" con-comida :dias-transcurridos="ficha.diasTranscurridos" :entrada="ficha.entrada" />
           <p v-if="error" class="text-[11px] text-red-300 font-bold">{{ error }}</p>
           <button @click="guardarFicha" :disabled="!ficha.datos.perro.trim() || enviando"
             class="w-full bg-blue-500 py-4 rounded-2xl font-[1000] uppercase tracking-widest text-[11px] active:scale-95 disabled:opacity-40">
@@ -386,6 +431,10 @@ const logueado = ref(false)
 
 const estado = ref(null)
 const nuevaTarea = ref('')
+const motivoExtra = ref('')
+const editandoExtra = ref(false)
+const cierreJornada = ref(false)
+const MOTIVOS_EXTRA = ['Mucha carga de trabajo', 'Llegaron mascotas tarde', 'Cubrir a un compañero', 'Me pidieron quedarme', 'Terminar una tarea pendiente']
 const verAviso = ref(false)
 const haceMinutos = ref(0)
 const mostrarCheck = ref(false)
@@ -395,7 +444,7 @@ const recepcion = ref(null)
 const ficha = ref(null)
 const CHECKLIST = [
   { id: 'comidaMarcada', label: 'Recibí y marqué la comida' },
-  { id: 'revisado', label: 'Revisé al perro' },
+  { id: 'revisado', label: 'Lo revisé' },
   { id: 'unasCortadas', label: 'Le corté las uñas' },
 ]
 
@@ -446,6 +495,8 @@ const segJornada = computed(() => {
   const pausa = sesion.value.segundosEnPausa != null ? sesion.value.segundosEnPausa + transcurrido.value : 0
   return sesion.value.segundosDesdeInicio + transcurrido.value - pausa - (sesion.value.segundosPausasCerradas || 0)
 })
+const segExtra = computed(() => Math.max(0, segJornada.value - (sesion.value?.segundosLimite || 28800)))
+const enExtra = computed(() => !!sesion.value && segExtra.value > 0)
 const segTareas = computed(() => (sesion.value?.segundosEnTareas || 0) + (corriendo.value ? transcurrido.value : 0))
 const segPausa = computed(() => (sesion.value?.segundosEnPausa || 0) + transcurrido.value)
 const segTareaActual = computed(() => (tareaActual.value?.segundos || 0) + (corriendo.value ? transcurrido.value : 0))
@@ -556,7 +607,7 @@ function tareaRapida(t) {
 
 function abrirRecepcion() {
   error.value = ''
-  recepcion.value = { perro: '', tipo: 'DIA', haceMinutos: 0, salidaEsperada: '', comidaCantidad: '', comidaUnidad: 'PORCIONES', comidaPorDia: '' }
+  recepcion.value = { perro: '', especie: 'PERRO', tipo: 'DIA', haceMinutos: 0, salidaEsperada: '' }
 }
 
 function abrirFicha(p) {
@@ -569,6 +620,7 @@ function abrirFicha(p) {
     masComida: '',
     datos: {
       perro: p.perro,
+      especie: p.especie || 'PERRO',
       tipo: p.tipo,
       salidaEsperada: p.salidaEsperada || '',
       comidaCantidad: p.comidaCantidad ?? '',
@@ -636,7 +688,31 @@ function salirAlmuerzo() {
 }
 
 function cerrarJornada() {
+  // Si se quedó más de su horario y no ha dicho por qué, se lo pide antes de cerrar
+  if (enExtra.value && !sesion.value.motivoExtra && segExtra.value >= 300) {
+    cierreJornada.value = true
+    return
+  }
   if (confirm('¿Terminar tu jornada de hoy?')) accion('/jornada/cerrar')
+}
+
+async function cerrarConMotivo() {
+  if (await accion('/jornada/cerrar', { motivoExtra: motivoExtra.value })) {
+    cierreJornada.value = false
+    motivoExtra.value = ''
+  }
+}
+
+function abrirMotivoExtra() {
+  motivoExtra.value = sesion.value.motivoExtra || ''
+  editandoExtra.value = true
+}
+
+async function guardarMotivoExtra() {
+  if (await accion('/jornada/extra', { motivo: motivoExtra.value })) {
+    motivoExtra.value = ''
+    editandoExtra.value = false
+  }
 }
 
 async function responderCheck(termino) {

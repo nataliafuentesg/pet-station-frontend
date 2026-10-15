@@ -33,7 +33,7 @@
       </div>
       <div v-if="guarderiaAhora?.adentro?.length" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-2">
         <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">
-          🐕 Perros adentro · {{ guarderiaAhora.adentro.length }}
+          🐾 Mascotas adentro · {{ guarderiaAhora.adentro.length }}
           <span class="text-purple-500">({{ guarderiaAhora.adentro.filter(p => p.tipo === 'HOTEL').length }} hotel)</span>
         </p>
         <div v-for="p in alertasPerros" :key="p.id" class="text-[12px] font-bold text-red-600 dark:text-red-300">
@@ -109,7 +109,7 @@
           <table class="w-full text-left min-w-[760px]">
             <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
               <tr>
-                <th v-for="h in ['Persona','Días','Jornada','En tareas','Tiempo muerto','Ocupación','Tareas','Avisos sin responder','']" :key="h"
+                <th v-for="h in ['Persona','Días','Jornada','En tareas','Tiempo muerto','Ocupación','Tareas','Avisos sin responder','Extras','']" :key="h"
                   class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
               </tr>
             </thead>
@@ -139,6 +139,10 @@
                   {{ p.checksSinRespuesta }}<span class="opacity-40"> / {{ p.checksEnviados }}</span>
                   <span v-if="p.cierresAutomaticos" class="block text-[9px] text-red-400 font-black uppercase">Olvidó cerrar {{ p.cierresAutomaticos }}×</span>
                 </td>
+                <td class="px-4 py-3 text-[12px] font-bold tabular-nums whitespace-nowrap" :class="p.segExtra ? 'text-purple-600 dark:text-purple-300' : 'dark:text-white/30'">
+                  {{ p.segExtra ? dur(p.segExtra) : '—' }}
+                  <span v-if="p.extras?.length" class="block text-[9px] font-black uppercase opacity-70">{{ p.extras.length }} día(s)</span>
+                </td>
                 <td class="px-4 py-3">
                   <button v-if="p.dias" @click="abrirDetalle(p)" class="text-[9px] font-black uppercase text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27] whitespace-nowrap">Ver día →</button>
                 </td>
@@ -147,8 +151,22 @@
           </table>
         </div>
         <p class="text-[10px] text-slate-400 dark:text-white/30">
-          Jornada = tiempo desde que inicia hasta que cierra, sin almuerzo. Tiempo muerto = parte de la jornada sin ninguna tarea registrada.
+          Jornada = tiempo desde que inicia hasta que cierra, sin almuerzo. Tiempo muerto = parte de la jornada sin ninguna tarea registrada. Extras = lo que pasa de las horas por día de cada persona.
         </p>
+
+        <!-- Horas extra con su motivo -->
+        <div v-if="extrasPeriodo.length" class="space-y-2">
+          <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">⏰ Horas extra</h3>
+          <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
+            <div v-for="x in extrasPeriodo" :key="x.nombre + x.fecha" class="flex items-start justify-between gap-3 px-4 py-3">
+              <div class="min-w-0">
+                <p class="text-[12px] font-[1000] uppercase italic dark:text-white">{{ x.nombre }} · <span class="not-italic font-bold normal-case text-slate-500 dark:text-white/50">{{ diaCorto(x.fecha) }}</span></p>
+                <p class="text-[11px]" :class="x.motivo ? 'text-slate-600 dark:text-white/70' : 'text-amber-500 font-bold'">{{ x.motivo || 'Sin motivo registrado' }}</p>
+              </div>
+              <span class="text-[12px] font-black text-purple-600 dark:text-purple-300 tabular-nums shrink-0">{{ dur(x.segundos) }}</span>
+            </div>
+          </div>
+        </div>
 
         <!-- Por tarea -->
         <div class="space-y-2">
@@ -239,7 +257,7 @@
           <table class="w-full text-left min-w-[820px]">
             <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
               <tr>
-                <th v-for="h in ['Día','Perros día','Hotel','Máx. a la vez','Personas','En tareas','Sin tarea','Horas por perro','Recepciones (uñas)','Baños','']" :key="h"
+                <th v-for="h in ['Día','Mascotas día','Hotel','Máx. a la vez','Personas','En tareas','Sin tarea','Horas por mascota','Recepciones (uñas)','Baños','']" :key="h"
                   class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
               </tr>
             </thead>
@@ -302,10 +320,28 @@
                 :class="e.activo ? 'text-red-400 hover:text-red-600' : 'text-green-500 hover:text-green-700'">
                 {{ e.activo ? 'Desactivar' : 'Reactivar' }}
               </button>
+              <button @click="eliminarEmpleado(e)" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-600">Eliminar</button>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Borrar datos de prueba -->
+    <div v-if="vista === 'equipo'" class="bg-red-50 dark:bg-red-500/5 rounded-2xl border border-red-200 dark:border-red-500/20 p-5 space-y-3">
+      <p class="font-[1000] uppercase italic text-sm text-red-700 dark:text-red-300">🧹 Borrar datos de prueba</p>
+      <p class="text-[11px] text-red-700/80 dark:text-red-300/70">
+        Borra <b>todas</b> las jornadas, tareas, almuerzos y entradas/salidas de mascotas. No borra los empleados, sus contraseñas ni las tareas rápidas.
+        Úsalo una sola vez, justo antes de empezar a medir de verdad. No se puede deshacer.
+      </p>
+      <div class="flex flex-wrap items-center gap-2">
+        <input v-model="confirmarBorrado" placeholder="Escribe BORRAR" :class="inputClass" class="!w-48 !py-2 !text-xs" />
+        <button @click="borrarDatos" :disabled="confirmarBorrado !== 'BORRAR' || borrando"
+          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-30">
+          {{ borrando ? 'Borrando...' : 'Borrar todo' }}
+        </button>
+        <span v-if="borradoMsg" class="text-[11px] font-bold text-green-600 dark:text-green-400">{{ borradoMsg }}</span>
+      </div>
     </div>
 
     <!-- Botones de tarea rápida por cargo -->
@@ -345,7 +381,7 @@
               <div>
                 <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 mb-2">Por hora: perros adentro vs. personas con tarea</p>
                 <div class="flex gap-3 text-[10px] font-bold text-slate-500 dark:text-white/50 mb-2">
-                  <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-blue-400 align-middle"></span> Perros día</span>
+                  <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-blue-400 align-middle"></span> Mascotas día</span>
                   <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-purple-400 align-middle"></span> Hotel</span>
                   <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-green-500 align-middle"></span> Personas con tarea</span>
                   <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-slate-300 dark:bg-white/20 align-middle"></span> En jornada</span>
@@ -378,11 +414,11 @@
               </div>
 
               <div>
-                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 mb-2">Perros</p>
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 mb-2">Mascotas</p>
                 <p v-if="!perfil.perros.length" class="text-[11px] text-slate-400 dark:text-white/30">No se registraron perros.</p>
                 <div v-for="p in perfil.perros" :key="p.perro + p.entrada" class="flex items-center justify-between gap-3 py-1.5 border-b border-slate-100 dark:border-white/5 last:border-0">
                   <div class="min-w-0">
-                    <p class="text-[12px] font-bold dark:text-white truncate">{{ p.perro }} <span class="text-[9px] uppercase" :class="p.tipo === 'HOTEL' ? 'text-purple-500' : 'text-blue-500'">{{ p.tipo === 'HOTEL' ? 'Hotel' : 'Día' }}</span></p>
+                    <p class="text-[12px] font-bold dark:text-white truncate">{{ p.especie === 'GATO' ? '🐈' : '🐕' }} {{ p.perro }} <span class="text-[9px] uppercase" :class="{ HOTEL: 'text-purple-500', BANO: 'text-cyan-500', DIA: 'text-blue-500' }[p.tipo]">{{ { HOTEL: 'Hotel', BANO: 'Baño', DIA: 'Día' }[p.tipo] }}</span></p>
                     <p class="text-[10px] text-slate-400 dark:text-white/40">{{ fechaHora(p.entrada) }} – {{ p.salida ? fechaHora(p.salida) : 'sigue adentro' }}<span v-if="p.salidaEsperada"> · sale {{ diaCorto(p.salidaEsperada) }}</span></p>
                     <p v-if="p.comidaCantidad" class="text-[10px]" :class="p.comidaNoAlcanza || p.comidaPorAcabarse ? 'text-red-500' : 'text-slate-400 dark:text-white/40'">
                       🍖 Trajo {{ p.comidaCantidad }} {{ p.comidaUnidad === 'GRAMOS' ? 'g' : 'porciones' }}<span v-if="p.comidaPorDia">, come {{ p.comidaPorDia }}/día</span><span v-if="p.diasComida != null && !p.salida"> · alcanza {{ p.diasComida }} días más</span>
@@ -434,9 +470,14 @@
                 <option v-for="c in cargosSugeridos" :key="c" :value="c" />
               </datalist>
             </div>
+            <div class="space-y-1">
+              <label :class="labelClass">Horas de trabajo por día</label>
+              <input v-model="form.horasJornada" type="number" min="1" max="16" step="0.5" :class="inputClass" />
+              <p class="text-[10px] text-slate-400 dark:text-white/30">Lo que pase de aquí se cuenta como horas extra.</p>
+            </div>
             <label class="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" v-model="form.recibePerros" class="w-4 h-4 accent-[#152C77]" />
-              <span class="text-[12px] font-bold text-slate-600 dark:text-white/70">Puede recibir y entregar perros <span class="font-normal opacity-60">(guardería ya lo tiene siempre)</span></span>
+              <span class="text-[12px] font-bold text-slate-600 dark:text-white/70">Puede recibir y entregar mascotas <span class="font-normal opacity-60">(guardería ya lo tiene siempre)</span></span>
             </label>
             <div class="space-y-1">
               <label :class="labelClass">{{ form.tutorId ? 'Nueva contraseña (opcional)' : 'Contraseña *' }}</label>
@@ -482,6 +523,7 @@
                 Jornada {{ hora(s.inicio) }} – {{ s.fin ? hora(s.fin) : 'en curso' }}
                 <span v-if="s.cierreAutomatico" class="text-red-400"> · no la cerró</span>
               </p>
+              <p v-if="s.motivoExtra" class="text-[11px] font-bold text-purple-600 dark:text-purple-300">⏰ Motivo de horas extra: {{ s.motivoExtra }}</p>
               <div v-for="(it, j) in s.linea" :key="j" class="flex items-center gap-3 rounded-xl px-4 py-2.5" :class="itemClase(it.tipo)">
                 <span class="text-[10px] font-bold tabular-nums w-24 shrink-0 opacity-70">{{ hora(it.inicio) }} – {{ hora(it.fin) }}</span>
                 <span class="flex-1 min-w-0 text-[12px] font-bold break-words">
@@ -533,6 +575,12 @@ const errorForm = ref('')
 const guardando = ref(false)
 const detalle = ref(null)
 const ocupacion = ref(null)
+const confirmarBorrado = ref('')
+const borrando = ref(false)
+const borradoMsg = ref('')
+const extrasPeriodo = computed(() => (resumen.value?.personas || [])
+  .flatMap(p => (p.extras || []).map(x => ({ ...x, nombre: p.nombre })))
+  .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha))))
 const rapidas = ref({})
 const rapidasTexto = ref({})
 const guardandoRapidas = ref(null)
@@ -692,8 +740,8 @@ const kpisGuarderia = computed(() => {
   const pct = k => recepciones ? Math.round(ds.reduce((a, d) => a + d[k], 0) * 100 / recepciones) + '%' : '—'
   const perrosTot = ds.reduce((a, d) => a + totalPerros(d), 0)
   return [
-    { label: 'Perros por día', valor: prom(totalPerros).toFixed(1), nota: `Hotel: ${prom(d => d.perrosHotel).toFixed(1)} · Máx. a la vez: ${Math.max(...ds.map(d => d.maxSimultaneo))}` },
-    { label: 'Horas en tareas por perro', valor: perrosTot ? (ds.reduce((a, d) => a + d.segTareas, 0) / 3600 / perrosTot).toFixed(1) + ' h' : '—' },
+    { label: 'Mascotas por día', valor: prom(totalPerros).toFixed(1), nota: `Hotel: ${prom(d => d.perrosHotel).toFixed(1)} · Máx. a la vez: ${Math.max(...ds.map(d => d.maxSimultaneo))}` },
+    { label: 'Horas en tareas por mascota', valor: perrosTot ? (ds.reduce((a, d) => a + d.segTareas, 0) / 3600 / perrosTot).toFixed(1) + ' h' : '—' },
     { label: 'Sin tarea por día', valor: dur(prom(d => d.segMuerto)), nota: 'Suma de todo el equipo de guardería' },
     { label: 'Recepciones completas', valor: pct('completas'), nota: `Comida ${pct('conComidaMarcada')} · Revisión ${pct('conRevision')} · Uñas ${pct('conUnas')}` },
   ]
@@ -764,8 +812,8 @@ async function cargarDetalle() {
 function abrirForm(e) {
   errorForm.value = ''
   form.value = e
-    ? { tutorId: e.tutorId, nombre: e.nombreCorto, apellido: e.apellido, usuario: e.usuario, cargo: e.cargo, recibePerros: e.recibePerros, password: '' }
-    : { nombre: '', apellido: '', usuario: '', cargo: 'Guardería', recibePerros: false, password: '' }
+    ? { tutorId: e.tutorId, nombre: e.nombreCorto, apellido: e.apellido, usuario: e.usuario, cargo: e.cargo, recibePerros: e.recibePerros, horasJornada: e.horasJornada ?? 8, password: '' }
+    : { nombre: '', apellido: '', usuario: '', cargo: 'Guardería', recibePerros: false, horasJornada: 8, password: '' }
 }
 
 async function guardar() {
@@ -774,11 +822,11 @@ async function guardar() {
   try {
     const f = form.value
     if (f.tutorId) {
-      const body = { nombre: f.nombre, apellido: f.apellido, cargo: f.cargo, recibePerros: String(!!f.recibePerros) }
+      const body = { nombre: f.nombre, apellido: f.apellido, cargo: f.cargo, recibePerros: String(!!f.recibePerros), horasJornada: String(f.horasJornada ?? 8) }
       if (f.password) body.password = f.password
       await api.patch(`/admin/jornada/empleados/${f.tutorId}`, body)
     } else {
-      await api.post('/admin/jornada/empleados', { ...f, recibePerros: String(!!f.recibePerros) })
+      await api.post('/admin/jornada/empleados', { ...f, recibePerros: String(!!f.recibePerros), horasJornada: String(f.horasJornada ?? 8) })
     }
     form.value = null
     cargarEmpleados()
@@ -786,6 +834,29 @@ async function guardar() {
     errorForm.value = e.response?.data?.message || 'No se pudo guardar'
   } finally {
     guardando.value = false
+  }
+}
+
+async function eliminarEmpleado(e) {
+  const escrito = prompt(`Esto borra la cuenta de ${e.nombre} y TODO su historial. Para cuentas de prueba.\n\nEscribe ELIMINAR para confirmar:`)
+  if (escrito !== 'ELIMINAR') return
+  await api.delete(`/admin/jornada/empleados/${e.tutorId}`)
+  cargarEmpleados()
+}
+
+async function borrarDatos() {
+  if (!confirm('¿Seguro? Se borran todas las jornadas, tareas y registros de mascotas. No se puede deshacer.')) return
+  borrando.value = true
+  borradoMsg.value = ''
+  try {
+    const { data } = await api.delete('/admin/jornada/datos', { params: { confirmar: 'BORRAR' } })
+    borradoMsg.value = `✓ Listo, se borraron ${data.sesionesBorradas} jornadas`
+    confirmarBorrado.value = ''
+    resumen.value = null
+    ocupacion.value = null
+    cargarEmpleados()
+  } finally {
+    borrando.value = false
   }
 }
 
