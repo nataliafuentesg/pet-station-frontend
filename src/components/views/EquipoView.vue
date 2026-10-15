@@ -71,7 +71,6 @@
       <div v-else-if="!sesion" class="bg-white/5 rounded-[2rem] p-8 border border-white/10 text-center space-y-5">
         <p class="text-5xl">☀️</p>
         <p class="text-sm text-white/60">Cuando llegues, inicia tu jornada.</p>
-        <CuandoSelector v-model="haceMinutos" class="text-left" />
         <button @click="iniciarJornada" :disabled="enviando"
           class="w-full bg-[#DE1F27] py-5 rounded-2xl font-[1000] uppercase tracking-widest text-[12px] active:scale-95 transition-all disabled:opacity-40">
           Iniciar jornada
@@ -161,7 +160,6 @@
           <p class="text-[10px] font-black uppercase tracking-widest text-white/40">
             {{ tareaActual ? '¿Cambias de tarea?' : '¿Qué vas a hacer ahora?' }}
           </p>
-          <CuandoSelector v-model="haceMinutos" />
           <textarea v-model="nuevaTarea" rows="2" maxlength="300" placeholder="Ej: Bañar a Toby, limpiar caniles, paseo grupo 2..."
             class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-[#DE1F27] resize-none placeholder:text-white/20"></textarea>
           <div v-if="sugerenciasFiltradas.length" class="-mt-2 bg-white/5 rounded-2xl border border-white/10 divide-y divide-white/5 overflow-hidden">
@@ -286,7 +284,6 @@
             </button>
           </div>
           <PerroDatosForm :model-value="recepcion" />
-          <CuandoSelector v-model="recepcion.haceMinutos" />
           <p v-if="error" class="text-[11px] text-red-300 font-bold">{{ error }}</p>
           <p v-if="tareaActual" class="text-[11px] text-white/40">"{{ tareaActual.descripcion }}" queda en espera y se retoma sola cuando termines la recepción.</p>
           <div class="grid grid-cols-2 gap-3">
@@ -411,7 +408,6 @@ import api from '@/api/axios'
 import { messaging, onMessage } from '@/firebase'
 import { obtenerTokenPush } from '@/composables/usePushNotifications'
 import PerroDatosForm from './equipo/PerroDatosForm.vue'
-import CuandoSelector from './equipo/CuandoSelector.vue'
 import AvisoJornada from './equipo/AvisoJornada.vue'
 
 const ROLES_PERMITIDOS = ['ROLE_EMPLEADO', 'ROLE_VET', 'ROLE_ADMIN', 'ADMIN']
@@ -430,7 +426,6 @@ const editandoExtra = ref(false)
 const cierreJornada = ref(false)
 const MOTIVOS_EXTRA = ['Mucha carga de trabajo', 'Llegaron mascotas tarde', 'Cubrir a un compañero', 'Me pidieron quedarme', 'Terminar una tarea pendiente']
 const verAviso = ref(false)
-const haceMinutos = ref(0)
 const mostrarCheck = ref(false)
 const cierre = ref(null)
 
@@ -572,11 +567,8 @@ function iniciarTarea() {
 }
 
 async function crearTarea(notaAnterior, checklist) {
-  const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior, checklist, haceMinutos: haceMinutos.value })
-  if (ok) {
-    nuevaTarea.value = ''
-    haceMinutos.value = 0
-  }
+  const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior, checklist })
+  if (ok) nuevaTarea.value = ''
   return ok
 }
 
@@ -599,12 +591,12 @@ async function aceptarAviso() {
 }
 
 async function iniciarJornada() {
-  if (await accion('/jornada/iniciar', { haceMinutos: haceMinutos.value })) haceMinutos.value = 0
+  await accion('/jornada/iniciar')
 }
 
 function abrirRecepcion() {
   error.value = ''
-  recepcion.value = { perro: '', especie: 'PERRO', tipo: 'DIA', haceMinutos: 0, salidaEsperada: '' }
+  recepcion.value = { perro: '', especie: 'PERRO', tipo: 'DIA', salidaEsperada: '' }
 }
 
 function abrirFicha(p) {
