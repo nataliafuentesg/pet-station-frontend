@@ -69,12 +69,25 @@
 
       <!-- Sin jornada -->
       <div v-else-if="!sesion" class="bg-white/5 rounded-[2rem] p-8 border border-white/10 text-center space-y-5">
-        <p class="text-5xl">☀️</p>
-        <p class="text-sm text-white/60">Cuando llegues, inicia tu jornada.</p>
-        <button @click="iniciarJornada" :disabled="enviando"
-          class="w-full bg-[#DE1F27] py-5 rounded-2xl font-[1000] uppercase tracking-widest text-[12px] active:scale-95 transition-all disabled:opacity-40">
-          Iniciar jornada
-        </button>
+        <template v-if="yaTerminoHoy">
+          <p class="text-5xl">🏁</p>
+          <p class="text-sm text-white/70">
+            Ya terminaste tu jornada de hoy<span v-if="estado.jornadaTerminadaHoy"> a las <b class="text-white">{{ hora(estado.jornadaTerminadaHoy) }}</b></span>.
+          </p>
+          <p class="text-[12px] text-white/40">¡Buen trabajo! Nos vemos mañana.</p>
+          <button @click="iniciarJornada" :disabled="enviando"
+            class="w-full bg-white/5 border border-white/10 text-white/50 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
+            Iniciar otra jornada hoy
+          </button>
+        </template>
+        <template v-else>
+          <p class="text-5xl">☀️</p>
+          <p class="text-sm text-white/60">Cuando llegues, inicia tu jornada.</p>
+          <button @click="iniciarJornada" :disabled="enviando"
+            class="w-full bg-[#DE1F27] py-5 rounded-2xl font-[1000] uppercase tracking-widest text-[12px] active:scale-95 transition-all disabled:opacity-40">
+            Iniciar jornada
+          </button>
+        </template>
       </div>
 
       <template v-else>
@@ -472,6 +485,7 @@ const iosSinInstalar = esIos && !instalada
 const puedePedirPermiso = typeof Notification !== 'undefined' && 'serviceWorker' in navigator
 
 const sesion = computed(() => estado.value?.sesion || null)
+const yaTerminoHoy = computed(() => !!estado.value && !estado.value.sesion && 'jornadaTerminadaHoy' in estado.value)
 const guarderia = computed(() => estado.value?.guarderia || null)
 const necesitaConsentimiento = computed(() => estado.value?.consentimiento?.aceptado === false)
 const mostrarAviso = computed(() => necesitaConsentimiento.value || verAviso.value)
@@ -624,6 +638,7 @@ async function aceptarAviso() {
 }
 
 async function iniciarJornada() {
+  if (yaTerminoHoy.value && !confirm('Ya terminaste una jornada hoy. ¿Seguro que quieres iniciar otra?')) return
   await accion('/jornada/iniciar')
 }
 
