@@ -89,7 +89,7 @@ async function enviar() {
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
     <div class="bg-[#152C77] text-white py-6 px-4 text-center">
-      <img src="/favicon.ico" alt="Pet Station" class="w-10 h-10 mx-auto mb-2 rounded-lg" />
+      <img src="https://petstationvet.com/favicon.ico" alt="Pet Station" class="w-10 h-10 mx-auto mb-2 rounded-lg" />
       <h1 class="text-xl font-black uppercase tracking-wide">Pet Station</h1>
       <p class="text-sm opacity-80 mt-1">Orden de Peluquería</p>
     </div>
