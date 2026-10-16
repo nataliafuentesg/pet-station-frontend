@@ -314,7 +314,7 @@
         Aún no hay resumen para este día
       </div>
       <p class="text-[10px] text-slate-400 dark:text-white/30">
-        Se genera solo cada noche a las 10:45 p.m. con ChatGPT. A OpenAI se le envían los datos sin nombres ("Persona A", "Persona B"…); los nombres se ponen aquí.
+        Se genera solo cada noche a las 10:45 p.m. con ChatGPT. A OpenAI se le envían los datos sin nombres (cada persona va con un código); los nombres se ponen aquí.
         Es un análisis automático: úsalo como guía y verifica los números en Reporte antes de tomar decisiones.
       </p>
     </div>

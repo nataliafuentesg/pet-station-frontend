@@ -45,7 +45,7 @@
       <h3 class="text-[10px] font-black uppercase tracking-widest text-white/40">🤖 Resúmenes con inteligencia artificial</h3>
       <p>
         Para hacer un resumen diario del trabajo del equipo usamos un servicio de inteligencia artificial (ChatGPT, de OpenAI).
-        Le enviamos las tareas, horarios y notas del día <b class="text-white">sin tu nombre</b>: apareces como "Persona A", "Persona B", etc.
+        Le enviamos las tareas, horarios y notas del día <b class="text-white">sin tu nombre</b>: apareces solo con un código.
         Fuera de esto, tus datos no se comparten con nadie más.
       </p>
     </section>
