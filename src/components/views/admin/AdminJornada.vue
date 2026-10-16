@@ -6,10 +6,11 @@
         <h2 class="text-lg font-[1000] uppercase italic dark:text-white">Productividad</h2>
         <p class="text-[10px] text-slate-500 dark:text-white/30 uppercase tracking-widest">Jornadas y tareas del equipo · portal en /equipo</p>
       </div>
-      <button @click="abrirForm()"
+      <button v-if="!soloLectura" @click="abrirForm()"
         class="flex items-center gap-2 bg-[#152C77] hover:bg-[#DE1F27] text-white px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors">
         ➕ Nuevo empleado
       </button>
+      <span v-else class="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">👁 Solo consulta</span>
     </div>
 
     <div class="flex gap-2 overflow-x-auto">
@@ -67,7 +68,7 @@
             <p class="text-[10px] text-slate-400 dark:text-white/40">
               Entró {{ hora(e.sesion.inicio) }} · {{ dur(e.sesion.segundosEnTareas) }} en tareas hoy
             </p>
-            <button @click="terminarJornadaDe(e)" class="shrink-0 text-[9px] font-black uppercase text-red-400 hover:text-red-600">Terminar jornada</button>
+            <button v-if="!soloLectura" @click="terminarJornadaDe(e)" class="shrink-0 text-[9px] font-black uppercase text-red-400 hover:text-red-600">Terminar jornada</button>
           </div>
         </div>
       </div>
@@ -297,7 +298,7 @@
     <div v-if="vista === 'ia'" class="space-y-4">
       <div class="flex flex-wrap items-center gap-3">
         <input type="date" v-model="fechaIA" @change="cargarResumenIA" :class="inputClass" class="!w-auto !py-2 !text-xs" />
-        <button @click="generarResumenIA" :disabled="generandoIA"
+        <button v-if="!soloLectura" @click="generarResumenIA" :disabled="generandoIA"
           class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40">
           {{ generandoIA ? 'Generando… (unos segundos)' : resumenIA ? '🔄 Volver a generar' : '✨ Generar resumen' }}
         </button>
@@ -324,7 +325,7 @@
       <table v-else class="w-full text-left min-w-[560px]">
         <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
           <tr>
-            <th v-for="h in ['Nombre','Usuario','Cargo','Estado','Aviso de datos','']" :key="h"
+            <th v-for="h in ['Nombre','Usuario','Cargo','Estado','Aviso de datos', ...(soloLectura ? [] : [''])]" :key="h"
               class="px-5 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
           </tr>
         </thead>
@@ -345,7 +346,7 @@
             <td class="px-5 py-3 text-[10px] font-bold whitespace-nowrap" :class="e.consentimientoEn ? 'text-green-600 dark:text-green-400' : 'text-amber-500'">
               {{ e.consentimientoEn ? '✓ ' + new Date(e.consentimientoEn).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) : 'Pendiente' }}
             </td>
-            <td class="px-5 py-3 text-right whitespace-nowrap space-x-3">
+            <td v-if="!soloLectura" class="px-5 py-3 text-right whitespace-nowrap space-x-3">
               <button @click="abrirForm(e)" class="text-[9px] font-black uppercase text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27]">Editar</button>
               <button @click="toggleActivo(e)" class="text-[9px] font-black uppercase"
                 :class="e.activo ? 'text-red-400 hover:text-red-600' : 'text-green-500 hover:text-green-700'">
@@ -359,7 +360,7 @@
     </div>
 
     <!-- Botones de tarea rápida por cargo -->
-    <div v-if="vista === 'equipo'" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-4">
+    <div v-if="vista === 'equipo' && !soloLectura" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-4">
       <div>
         <p class="font-[1000] uppercase italic text-sm dark:text-white">⚡ Tareas sugeridas por cargo</p>
         <p class="text-[10px] text-slate-400 dark:text-white/40">Aparecen como sugerencia mientras escriben la tarea en Mi Jornada. Una por línea. Así todos usan el mismo nombre y el reporte las agrupa mejor.</p>
@@ -564,6 +565,11 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import api from '@/api/axios'
 
+const props = defineProps({
+  // Administrador limitado: puede consultar todo pero no cambia el equipo ni genera resúmenes
+  soloLectura: { type: Boolean, default: false },
+})
+
 const vistas = [
   { id: 'ahora', label: '🟢 Ahora' },
   { id: 'reporte', label: '📊 Reporte' },
@@ -767,7 +773,7 @@ function markdownSimple(md) {
 
 watch(vista, v => {
   if (v === 'ia' && !resumenIA.value) cargarResumenIA()
-  if (v === 'equipo') cargarRapidas()
+  if (v === 'equipo' && !props.soloLectura) cargarRapidas()
   if (v === 'guarderia' && !ocupacion.value) cargarOcupacion()
   if (v === 'reporte' && !resumen.value) cargarResumen()
 })

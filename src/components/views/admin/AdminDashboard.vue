@@ -244,7 +244,7 @@ const doLogout = () => {
                         <AdminMarketing v-if="currentTab === 'marketing'" />
                         <AdminVeterinarios v-if="currentTab === 'veterinarios'" />
                         <AdminWaAnalytics v-if="currentTab === 'wa-analytics'" />
-                        <AdminJornada v-if="currentTab === 'jornada'" />
+                        <AdminJornada v-if="currentTab === 'jornada'" :solo-lectura="!accesos?.completo" />
                         <AdminFormularios v-if="currentTab === 'formularios'" />
                         <AdminHealth v-if="currentTab === 'health'" />
                         <AdminAccesos v-if="currentTab === 'accesos'" />
