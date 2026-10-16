@@ -174,7 +174,13 @@
 
         <!-- Por tarea -->
         <div class="space-y-2">
-          <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">Tareas que más tiempo consumen</h3>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">Tareas que más tiempo consumen</h3>
+            <button v-if="!soloLectura && resumen.tareas.some(t => !t.nivel)" @click="clasificarEsfuerzo" :disabled="clasificando"
+              class="text-[10px] font-black uppercase tracking-widest text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27] disabled:opacity-40">
+              {{ clasificando ? 'Clasificando…' : '🤖 Clasificar esfuerzo con IA' }}
+            </button>
+          </div>
           <div v-if="!resumen.tareas.length" class="py-10 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10">
             Aún no hay tareas terminadas en este periodo
           </div>
@@ -182,13 +188,32 @@
             <table class="w-full text-left min-w-[600px]">
               <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
                 <tr>
-                  <th v-for="h in ['Tarea','Veces','Tiempo total','Promedio','Quién la hace']" :key="h"
+                  <th v-for="h in ['Tarea','Esfuerzo','Veces','Tiempo total','Promedio','Quién la hace']" :key="h"
                     class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                 <tr v-for="t in resumen.tareas.slice(0, 40)" :key="t.descripcion">
                   <td class="px-4 py-3 text-[12px] font-bold dark:text-white">{{ t.descripcion }}</td>
+                  <td class="px-4 py-3 whitespace-nowrap">
+                    <template v-if="!soloLectura">
+                      <select :value="t.nivel || ''" @change="corregirEsfuerzo(t, { nivel: $event.target.value })"
+                        class="bg-transparent text-[11px] font-bold outline-none rounded-lg border border-slate-200 dark:border-white/10 px-2 py-1 dark:text-white"
+                        :class="claseNivel(t.nivel)">
+                        <option value="" disabled>—</option>
+                        <option value="LIGERA">Ligera</option>
+                        <option value="MODERADA">Moderada</option>
+                        <option value="PESADA">Pesada</option>
+                      </select>
+                      <label v-if="t.nivel" class="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-white/50 cursor-pointer" title="La podría hacer un auxiliar">
+                        <input type="checkbox" :checked="!!t.delegable" @change="corregirEsfuerzo(t, { delegable: $event.target.checked })" class="accent-[#152C77]" />
+                        Auxiliar
+                      </label>
+                    </template>
+                    <span v-else class="text-[11px] font-bold" :class="claseNivel(t.nivel)">
+                      {{ { LIGERA: 'Ligera', MODERADA: 'Moderada', PESADA: 'Pesada' }[t.nivel] || '—' }}<span v-if="t.delegable"> · auxiliar</span>
+                    </span>
+                  </td>
                   <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">
                     {{ t.veces }}
                     <span v-if="t.conImprevistos" class="block text-[9px] text-amber-500 font-black uppercase">{{ t.conImprevistos }} con imprevistos</span>
@@ -295,7 +320,43 @@
     </div>
 
     <!-- RESUMEN DEL DÍA CON IA -->
-    <div v-if="vista === 'ia'" class="space-y-4">
+    <div v-if="vista === 'ia'" class="flex gap-2">
+      <button v-for="m in [['dia', '📅 Resumen del día'], ['periodo', '🔎 Análisis de un periodo']]" :key="m[0]" @click="modoIA = m[0]"
+        class="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors"
+        :class="modoIA === m[0] ? 'bg-[#DE1F27] text-white' : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10'">
+        {{ m[1] }}
+      </button>
+    </div>
+
+    <div v-if="vista === 'ia' && modoIA === 'periodo'" class="space-y-4">
+      <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button v-for="d in [7, 14, 30]" :key="d" @click="periodoUltimos(d)"
+            class="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/60">
+            Últimos {{ d }} días
+          </button>
+          <input type="date" v-model="periodo.desde" :class="inputClass" class="!w-auto !py-2 !text-xs" />
+          <span class="text-slate-400 text-xs">a</span>
+          <input type="date" v-model="periodo.hasta" :class="inputClass" class="!w-auto !py-2 !text-xs" />
+        </div>
+        <textarea v-model="periodo.pregunta" rows="2" maxlength="500" :class="inputClass" class="!text-sm resize-none"
+          placeholder="Pregunta opcional. Ej: ¿Qué pasaría si contratamos un auxiliar de veterinaria? ¿Están equilibrados los dos turnos de guardería?"></textarea>
+        <button v-if="!soloLectura" @click="analizarPeriodo" :disabled="analizando || !periodo.desde || !periodo.hasta"
+          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40">
+          {{ analizando ? 'Analizando… (puede tardar un minuto)' : '✨ Analizar periodo' }}
+        </button>
+        <p v-else class="text-[11px] text-slate-400 dark:text-white/30">Solo el administrador principal puede generar análisis.</p>
+      </div>
+      <p v-if="errorAnalisis" class="text-[12px] font-bold text-red-500">{{ errorAnalisis }}</p>
+      <div v-if="analisis" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-6 resumen-ia text-[13px] leading-relaxed text-slate-700 dark:text-white/80"
+        v-html="markdownSimple(analisis)"></div>
+      <p class="text-[10px] text-slate-400 dark:text-white/30">
+        Usa los datos del periodo: horas por persona, esfuerzo de cada tarea, tareas que podría hacer un auxiliar, interrupciones y horas extra con su motivo.
+        Las estimaciones son aproximadas; entre más días de datos, mejores.
+      </p>
+    </div>
+
+    <div v-if="vista === 'ia' && modoIA === 'dia'" class="space-y-4">
       <div class="flex flex-wrap items-center gap-3">
         <input type="date" v-model="fechaIA" @change="cargarResumenIA" :class="inputClass" class="!w-auto !py-2 !text-xs" />
         <button v-if="!soloLectura" @click="generarResumenIA" :disabled="generandoIA"
@@ -616,6 +677,12 @@ const errorForm = ref('')
 const guardando = ref(false)
 const detalle = ref(null)
 const ocupacion = ref(null)
+const clasificando = ref(false)
+const modoIA = ref('dia')
+const periodo = ref({ desde: '', hasta: '', pregunta: '' })
+const analisis = ref('')
+const analizando = ref(false)
+const errorAnalisis = ref('')
 const fechaIA = ref(fechaLocal(new Date()))
 const resumenIA = ref(null)
 const cargandoIA = ref(false)
@@ -738,6 +805,55 @@ async function guardarRapidas(cargo) {
 watch(() => form.value?.cargo, cargo => {
   if (form.value && !form.value.tutorId && /veterin|m[eé]dic/i.test(cargo || '')) form.value.accesoClinico = true
 })
+
+function claseNivel(n) {
+  return { LIGERA: 'text-green-600 dark:text-green-400', MODERADA: 'text-amber-600 dark:text-amber-300', PESADA: 'text-red-600 dark:text-red-400' }[n] || 'text-slate-400'
+}
+
+async function corregirEsfuerzo(t, cambio) {
+  const nivel = cambio.nivel || t.nivel
+  if (!nivel) return
+  try {
+    await api.patch('/admin/jornada/esfuerzo', { clave: t.clave, nombre: t.descripcion, nivel, delegable: cambio.delegable ?? t.delegable ?? false })
+    Object.assign(t, { nivel, delegable: cambio.delegable ?? t.delegable ?? false })
+  } catch (e) {
+    alert(e.response?.data?.message || 'No se pudo guardar')
+  }
+}
+
+async function clasificarEsfuerzo() {
+  clasificando.value = true
+  try {
+    await api.post('/admin/jornada/esfuerzo/clasificar', null, { params: { desde: desde.value, hasta: hasta.value }, timeout: 90000 })
+    await cargarResumen()
+  } catch (e) {
+    alert(e.response?.data?.message || 'No se pudo clasificar')
+  } finally {
+    clasificando.value = false
+  }
+}
+
+function periodoUltimos(d) {
+  const fin = new Date()
+  const ini = new Date()
+  ini.setDate(fin.getDate() - (d - 1))
+  periodo.value.desde = fechaLocal(ini)
+  periodo.value.hasta = fechaLocal(fin)
+}
+
+async function analizarPeriodo() {
+  analizando.value = true
+  errorAnalisis.value = ''
+  analisis.value = ''
+  try {
+    const { data } = await api.post('/admin/jornada/analisis-ia', periodo.value, { timeout: 120000 })
+    analisis.value = data.texto
+  } catch (e) {
+    errorAnalisis.value = e.response?.status === 404 ? 'El servidor todavía no tiene esta función (falta desplegar el backend).' : (e.response?.data?.message || 'No se pudo generar el análisis')
+  } finally {
+    analizando.value = false
+  }
+}
 
 async function cargarResumenIA() {
   cargandoIA.value = true
@@ -957,6 +1073,7 @@ async function toggleActivo(e) {
 }
 
 onMounted(() => {
+  periodoUltimos(30)
   cargarEmpleados()
   aplicarPreset('semana')
 })
