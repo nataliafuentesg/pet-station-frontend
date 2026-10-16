@@ -28,27 +28,16 @@
           </div>
 
           <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10">
-            <p class="text-[#152C77] dark:text-white font-black mb-2">Franjas horarias</p>
-            <p>Al hacer el pedido eliges la franja de entrega:</p>
-            <ul class="mt-3 space-y-1 list-none">
-              <li>🌅 <strong>Mañana</strong> — entrega entre 8am y 12pm</li>
-              <li>🌇 <strong>Tarde</strong> — entrega entre 1pm y 5pm</li>
-            </ul>
-            <p class="mt-3 opacity-70">Si el pedido llega tarde (después de las 10am para franja mañana, o después de la 1pm para franja tarde), la entrega queda programada para el día siguiente en la misma franja.</p>
-          </div>
-
-          <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10">
             <p class="text-[#152C77] dark:text-white font-black mb-2">Costos de envío</p>
             <ul class="space-y-1">
-              <li>🏍️ Domicilio en Chía: <strong>$8.500</strong></li>
-              <li>🎁 <strong>Domicilio gratis en Chía</strong> en pedidos desde <strong>$400.000</strong></li>
+              <li>🏍️ Domicilio en Chía: <strong>$8.500</strong> (pedido mínimo $70.000)</li>
               <li>📦 Envío nacional: flete cobrado a la entrega por la transportadora</li>
             </ul>
           </div>
 
           <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10">
-            <p class="text-[#152C77] dark:text-white font-black mb-2">Confirmación antes de salir</p>
-            <p>Antes de despachar tu pedido te escribimos al WhatsApp registrado para confirmar que estás en la dirección. Si no hay respuesta, el pedido se deja en portería o se reprograma según acuerdo. Te pedimos tener el número actualizado al momento del pedido.</p>
+            <p class="text-[#152C77] dark:text-white font-black mb-2">Coordinación de entrega</p>
+            <p>Al hacer tu pedido te contactamos por WhatsApp para coordinar el horario de entrega. El pedido debe estar pagado antes de ser despachado.</p>
           </div>
 
         </div>
@@ -75,8 +64,7 @@
           <div class="bg-green-50 dark:bg-green-900/10 rounded-2xl p-5 border border-green-100 dark:border-green-900/30">
             <p class="text-green-700 dark:text-green-400 font-black mb-3">✅ Se aceptan devoluciones en:</p>
             <ul class="space-y-2">
-              <li><strong>Accesorios</strong> — si el talla no es la correcta o llega con defecto de fábrica. Debe estar sin uso y con su empaque original.</li>
-              <li><strong>Alimentos sellados</strong> — si el producto recibido no corresponde a lo que pediste (referencia, sabor, tamaño diferente) y llega con el sello intacto.</li>
+              <li><strong>Accesorios</strong> — si la talla no es la correcta o llega con defecto de fábrica. Debe estar sin uso y con su empaque original.</li>
             </ul>
           </div>
 

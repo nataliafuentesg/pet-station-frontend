@@ -195,7 +195,7 @@
                 <span class="text-lg mt-0.5 shrink-0">📄</span>
                 <div>
                   <p class="text-[10px] font-black uppercase tracking-widest text-white">Cambios y devoluciones</p>
-                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">Aplica en accesorios y alimentos sellados ·
+                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">Aplica en accesorios con defecto o talla incorrecta ·
                     <router-link to="/politicas" class="text-[#DE1F27] underline underline-offset-2">Ver términos y condiciones</router-link>
                   </p>
                 </div>
