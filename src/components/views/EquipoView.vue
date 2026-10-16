@@ -153,7 +153,7 @@
             class="w-full bg-green-500 text-black py-5 rounded-2xl font-[1000] uppercase tracking-widest text-[12px] active:scale-95 transition-all disabled:opacity-40">
             ✅ Ya terminé
           </button>
-          <p class="text-[10px] text-white/30 text-center">Te preguntaremos de nuevo en {{ Math.ceil(segParaCheck / 60) }} min</p>
+          <p v-if="tareaActual.segundosParaCheck != null" class="text-[10px] text-white/30 text-center">Te preguntaremos de nuevo en {{ Math.ceil(segParaCheck / 60) }} min</p>
           <p v-if="tareaQueSeRetoma" class="text-[11px] text-white/50 text-center">Al terminar, retomas <b class="text-white/80">{{ tareaQueSeRetoma.descripcion }}</b></p>
         </div>
 

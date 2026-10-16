@@ -335,6 +335,7 @@
             <td class="px-5 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">{{ e.usuario }}</td>
             <td class="px-5 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">
               {{ e.cargo }}
+              <span v-if="e.minutosAviso === 0" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/50 font-black uppercase">🔕 Sin avisos</span>
               <span v-if="e.esPrueba" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 font-black uppercase">🧪 Prueba</span>
               <span v-if="e.accesoClinico" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-[#152C77]/10 text-[#152C77] dark:text-blue-300 font-black uppercase">🩺 Clínica</span>
             </td>
@@ -485,6 +486,15 @@
               <datalist id="jornada-cargos">
                 <option v-for="c in cargosSugeridos" :key="c" :value="c" />
               </datalist>
+            </div>
+            <div class="space-y-1">
+              <label :class="labelClass">Pregunta "¿Ya terminaste?"</label>
+              <select v-model.number="form.minutosAviso" :class="inputClass">
+                <option :value="15">Cada 15 minutos</option>
+                <option :value="30">Cada 30 minutos</option>
+                <option :value="60">Cada hora</option>
+                <option :value="0">Sin avisos</option>
+              </select>
             </div>
             <div class="space-y-1">
               <label :class="labelClass">Horas de trabajo por día</label>
@@ -898,8 +908,8 @@ async function cargarDetalle() {
 function abrirForm(e) {
   errorForm.value = ''
   form.value = e
-    ? { tutorId: e.tutorId, nombre: e.nombreCorto, apellido: e.apellido, usuario: e.usuario, cargo: e.cargo, recibePerros: e.recibePerros, accesoClinico: e.accesoClinico, esPrueba: e.esPrueba, horasJornada: e.horasJornada ?? 8, password: '' }
-    : { nombre: '', apellido: '', usuario: '', cargo: 'Guardería', recibePerros: false, accesoClinico: false, esPrueba: false, horasJornada: 8, password: '' }
+    ? { tutorId: e.tutorId, nombre: e.nombreCorto, apellido: e.apellido, usuario: e.usuario, cargo: e.cargo, recibePerros: e.recibePerros, accesoClinico: e.accesoClinico, esPrueba: e.esPrueba, minutosAviso: e.minutosAviso ?? 15, horasJornada: e.horasJornada ?? 8, password: '' }
+    : { nombre: '', apellido: '', usuario: '', cargo: 'Guardería', recibePerros: false, accesoClinico: false, esPrueba: false, minutosAviso: 15, horasJornada: 8, password: '' }
 }
 
 async function guardar() {
@@ -908,11 +918,11 @@ async function guardar() {
   try {
     const f = form.value
     if (f.tutorId) {
-      const body = { nombre: f.nombre, apellido: f.apellido, cargo: f.cargo, recibePerros: String(!!f.recibePerros), accesoClinico: String(!!f.accesoClinico), esPrueba: String(!!f.esPrueba), horasJornada: String(f.horasJornada ?? 8) }
+      const body = { nombre: f.nombre, apellido: f.apellido, cargo: f.cargo, recibePerros: String(!!f.recibePerros), accesoClinico: String(!!f.accesoClinico), esPrueba: String(!!f.esPrueba), minutosAviso: String(f.minutosAviso ?? 15), horasJornada: String(f.horasJornada ?? 8) }
       if (f.password) body.password = f.password
       await api.patch(`/admin/jornada/empleados/${f.tutorId}`, body)
     } else {
-      await api.post('/admin/jornada/empleados', { ...f, recibePerros: String(!!f.recibePerros), accesoClinico: String(!!f.accesoClinico), esPrueba: String(!!f.esPrueba), horasJornada: String(f.horasJornada ?? 8) })
+      await api.post('/admin/jornada/empleados', { ...f, recibePerros: String(!!f.recibePerros), accesoClinico: String(!!f.accesoClinico), esPrueba: String(!!f.esPrueba), minutosAviso: String(f.minutosAviso ?? 15), horasJornada: String(f.horasJornada ?? 8) })
     }
     form.value = null
     cargarEmpleados()
