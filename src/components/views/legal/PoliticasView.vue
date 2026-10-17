@@ -22,16 +22,16 @@
 
         <div class="space-y-5 text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase leading-relaxed">
 
-          <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10">
-            <p class="text-[#152C77] dark:text-white font-black mb-2">Zonas de cobertura</p>
-            <p>Realizamos domicilios únicamente en <strong>Chía</strong>. Para el resto del país despachamos por transportadora (el flete se cobra a la entrega).</p>
+          <div class="bg-[#152C77] rounded-2xl p-5 border border-[#152C77]">
+            <p class="text-white font-black mb-2 text-[12px]">📍 Zona de cobertura de domicilios</p>
+            <p class="text-white/90">Realizamos domicilios <strong class="text-[#DE1F27] text-[13px]">únicamente en Chía</strong>. Para el resto del país (Bogotá, Cajicá, Medellín, Cali y cualquier otra ciudad) despachamos por transportadora — <strong class="text-white">el flete tiene costo y se cobra a la entrega</strong>.</p>
           </div>
 
           <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10">
             <p class="text-[#152C77] dark:text-white font-black mb-2">Costos de envío</p>
-            <ul class="space-y-1">
-              <li>🏍️ Domicilio en Chía: <strong>$8.500</strong> (pedido mínimo $70.000)</li>
-              <li>📦 Envío nacional: flete cobrado a la entrega por la transportadora</li>
+            <ul class="space-y-2">
+              <li>🏍️ Domicilio <strong>en Chía</strong>: <strong>$8.500</strong> · pedido mínimo $70.000 · <span class="opacity-70">solo en Chía</span></li>
+              <li>📦 Resto del país: <strong>envío por transportadora con costo</strong> · el flete lo cobra la transportadora contra entrega</li>
             </ul>
           </div>
 
@@ -81,6 +81,12 @@
 
         </div>
       </section>
+
+      <!-- Nota legal -->
+      <p class="text-[9px] font-bold uppercase text-slate-400 dark:text-slate-600 text-center leading-relaxed tracking-widest">
+        Pet Station se reserva el derecho de modificar estas políticas en cualquier momento sin previo aviso.<br/>
+        La versión vigente es la publicada en esta página. Fecha de última actualización indicada al inicio.
+      </p>
 
       <!-- CONTACTO -->
       <section class="bg-[#152C77] rounded-[2.5rem] p-8 text-white text-center space-y-4">

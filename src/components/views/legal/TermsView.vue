@@ -110,7 +110,11 @@
 
       </div>
 
-      <div class="mt-12 pt-8 border-t border-slate-200 dark:border-white/10 flex flex-wrap gap-6">
+      <p class="mt-10 text-[9px] font-bold uppercase text-slate-400 dark:text-slate-600 text-center leading-relaxed tracking-widest">
+        Pet Station se reserva el derecho de modificar estos términos y sus políticas de envío y devolución en cualquier momento sin previo aviso. La versión vigente es la publicada en este sitio.
+      </p>
+
+      <div class="mt-8 pt-8 border-t border-slate-200 dark:border-white/10 flex flex-wrap gap-6">
         <router-link to="/" class="text-[#DE1F27] font-black uppercase tracking-widest text-xs hover:underline">← Volver al inicio</router-link>
         <router-link to="/privacy" class="text-slate-400 font-black uppercase tracking-widest text-xs hover:text-[#152C77] dark:hover:text-white">Política de datos personales →</router-link>
         <router-link to="/politicas" class="text-slate-400 font-black uppercase tracking-widest text-xs hover:text-[#152C77] dark:hover:text-white">Envíos y devoluciones →</router-link>

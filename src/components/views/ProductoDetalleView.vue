@@ -173,11 +173,11 @@
             <div class="mt-6 space-y-3">
 
               <!-- Chía domicilio -->
-              <div class="flex items-start gap-3 bg-white/10 rounded-2xl px-4 py-3">
-                <span class="text-lg mt-0.5 shrink-0">🏠</span>
+              <div class="flex items-start gap-3 bg-[#DE1F27]/20 border border-[#DE1F27]/40 rounded-2xl px-4 py-3">
+                <span class="text-lg mt-0.5 shrink-0">🏍️</span>
                 <div>
-                  <p class="text-[10px] font-black uppercase tracking-widest text-white">Domicilio en Chía</p>
-                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">$8.500 · pedido mínimo $70.000</p>
+                  <p class="text-[10px] font-black uppercase tracking-widest text-white">Domicilio · <span class="text-[#DE1F27]">Solo en Chía</span></p>
+                  <p class="text-[9px] text-white/70 mt-0.5 font-bold">$8.500 · pedido mínimo $70.000 · coordinamos por WhatsApp</p>
                 </div>
               </div>
 
@@ -185,8 +185,8 @@
               <div class="flex items-start gap-3 bg-white/10 rounded-2xl px-4 py-3">
                 <span class="text-lg mt-0.5 shrink-0">📦</span>
                 <div>
-                  <p class="text-[10px] font-black uppercase tracking-widest text-white">Resto del país</p>
-                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">Envío por transportadora · el flete se paga contra entrega al recibir</p>
+                  <p class="text-[10px] font-black uppercase tracking-widest text-white">Resto del país — envío por transportadora</p>
+                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">El flete tiene costo y se cobra contra entrega al recibir el pedido</p>
                 </div>
               </div>
 
