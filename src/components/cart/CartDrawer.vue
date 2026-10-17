@@ -85,10 +85,10 @@
                 </div>
               </div>
               <p v-if="!alcanzaMinimo" class="text-[8px] font-bold text-slate-400 uppercase">
-                🚚 Mínimo ${{ configStore.pedidoMinimo.toLocaleString() }} con domicilio · Gratis desde ${{ configStore.envioGratisDesde.toLocaleString() }}
+                🚚 Mínimo ${{ configStore.pedidoMinimo.toLocaleString() }} para domicilio en Chía
               </p>
               <p v-else class="text-[8px] font-bold text-slate-400 uppercase">
-                🎁 Envío gratis desde ${{ configStore.envioGratisDesde.toLocaleString() }} · {{ cartStore.totalPrice >= configStore.envioGratisDesde ? '¡Lo tienes!' : `Faltan $${(configStore.envioGratisDesde - cartStore.totalPrice).toLocaleString()}` }}
+                🚚 Domicilio en Chía $8.500 · ¡Ya alcanzas el mínimo!
               </p>
             </div>
 

@@ -52,7 +52,7 @@
           <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">
             Domicilio en Chía · ${{ configStore.costoEnvioChia.toLocaleString() }}
           </p>
-          <p class="text-[8px] font-bold text-slate-400">Gratis en compras desde ${{ configStore.envioGratisDesde.toLocaleString() }}</p>
+          <p class="text-[8px] font-bold text-slate-400">Mínimo ${{ configStore.pedidoMinimo.toLocaleString() }} · Se coordina por WhatsApp</p>
         </div>
         <div>
           <p class="text-lg">📅</p>
@@ -346,11 +346,7 @@
                 <span>{{ tipoEntrega === 'PICKUP' ? 'Recogida' : tipoEntrega === 'ENVIO' ? 'Envío' : 'Domicilio' }}</span>
                 <span v-if="tipoEntrega === 'PICKUP'" class="text-green-400 uppercase">Sin costo</span>
                 <span v-else-if="tipoEntrega === 'ENVIO'" class="text-amber-400 uppercase text-[10px]">Contraentrega transportadora</span>
-                <span v-else-if="costoEnvio === 0" class="text-green-400 uppercase">Gratis</span>
                 <span v-else>${{ costoEnvio.toLocaleString() }}</span>
-              </div>
-              <div v-if="tipoEntrega === 'DOMICILIO' && costoEnvio > 0" class="text-[9px] font-bold text-white/40 -mt-2">
-                Gratis desde ${{ configStore.envioGratisDesde.toLocaleString() }}
               </div>
               <div class="flex justify-between items-end pt-4">
                 <span class="text-xl font-[1000] uppercase italic">Total</span>
