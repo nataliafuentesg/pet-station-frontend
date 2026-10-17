@@ -297,7 +297,8 @@ router.beforeEach((to, from, next) => {
     return next({ path: '/', query: { login_required: 'true' } });
   }
 
-  const esAdmin = userRol === 'ROLE_ADMIN' || userRol === 'ADMIN' || (to.meta.permitirGestor && userRol === 'ROLE_GESTOR');
+  const esAdmin = userRol === 'ROLE_ADMIN' || userRol === 'ADMIN'
+    || (to.meta.permitirGestor && (userRol === 'ROLE_GESTOR' || session?.tutor?.panelAdmin));
   if (to.meta.requiresAdmin && !esAdmin) {
     console.error("ACCESO PROHIBIDO: Rol insuficiente.");
     return next('/');

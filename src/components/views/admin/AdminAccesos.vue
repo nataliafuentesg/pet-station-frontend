@@ -6,10 +6,16 @@
         <h2 class="text-lg font-[1000] uppercase italic dark:text-white">Administradores limitados</h2>
         <p class="text-[10px] text-slate-500 dark:text-white/30 uppercase tracking-widest">Entran al panel y solo ven las pestañas que les marques</p>
       </div>
-      <button @click="abrirForm()"
-        class="flex items-center gap-2 bg-[#152C77] hover:bg-[#DE1F27] text-white px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors">
-        🔐 Nuevo administrador
-      </button>
+      <div class="flex flex-wrap gap-2">
+        <button @click="abrirExistente"
+          class="flex items-center gap-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[#152C77] dark:text-blue-300 px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest">
+          👤 Dar acceso a una cuenta existente
+        </button>
+        <button @click="abrirForm()"
+          class="flex items-center gap-2 bg-[#152C77] hover:bg-[#DE1F27] text-white px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors">
+          🔐 Nuevo administrador
+        </button>
+      </div>
     </div>
 
     <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-x-auto">
@@ -29,7 +35,12 @@
         </thead>
         <tbody class="divide-y divide-slate-100 dark:divide-white/5">
           <tr v-for="g in gestores" :key="g.tutorId">
-            <td class="px-5 py-3 font-[1000] uppercase italic text-[12px] dark:text-white">{{ g.nombre }}</td>
+            <td class="px-5 py-3 font-[1000] uppercase italic text-[12px] dark:text-white">
+              {{ g.nombre }}
+              <span v-if="g.cuentaExistente" class="block not-italic normal-case text-[9px] font-black text-[#152C77] dark:text-blue-300">
+                {{ g.rol === 'ROLE_VET' ? '🩺 También veterinario (clínica)' : 'Cuenta existente' }}
+              </span>
+            </td>
             <td class="px-5 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">{{ g.usuario }}</td>
             <td class="px-5 py-3">
               <div class="flex flex-wrap gap-1">
@@ -63,6 +74,44 @@
     </p>
 
     <Teleport to="body">
+      <div v-if="existente" class="fixed inset-0 z-[9000] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="existente = null"></div>
+        <div class="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0D1425] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-6 space-y-4">
+          <h3 class="font-[1000] uppercase italic text-sm dark:text-white">Dar acceso a una cuenta existente</h3>
+          <p class="text-[11px] text-slate-500 dark:text-white/50">
+            La persona sigue entrando con su mismo usuario y conserva lo que ya tenía (por ejemplo, la clínica). Además verá en el panel las pestañas que marques.
+          </p>
+          <div class="space-y-1">
+            <label :class="labelClass">Cuenta *</label>
+            <select v-model="existente.tutorId" :class="inputClass">
+              <option :value="null" disabled>Elige una persona</option>
+              <option v-for="c in candidatos" :key="c.tutorId" :value="c.tutorId">
+                {{ c.nombre }} · {{ c.rol === 'ROLE_VET' ? 'Veterinario' : 'Empleado' }} ({{ c.usuario }})
+              </option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label :class="labelClass">Pestañas que puede ver *</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label v-for="(nombre, id) in secciones" :key="id"
+                class="flex items-center gap-2 rounded-xl px-3 py-2 border cursor-pointer text-[12px] font-bold transition-colors"
+                :class="existente.secciones.includes(id) ? 'bg-[#152C77]/10 border-[#152C77]/40 text-[#152C77] dark:text-blue-300' : 'border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/50'">
+                <input type="checkbox" :value="id" v-model="existente.secciones" class="accent-[#152C77]" />
+                {{ nombre }}
+              </label>
+            </div>
+          </div>
+          <div v-if="errorForm" class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl px-4 py-3 text-[11px] text-red-600 dark:text-red-400">{{ errorForm }}</div>
+          <div class="flex gap-3">
+            <button @click="existente = null" class="flex-1 bg-slate-100 dark:bg-white/5 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest dark:text-white">Cancelar</button>
+            <button @click="guardarExistente" :disabled="!existente.tutorId || !existente.secciones.length || guardando"
+              class="flex-1 bg-[#152C77] hover:bg-[#DE1F27] text-white py-3 rounded-xl font-black uppercase text-[10px] tracking-widest disabled:opacity-30">
+              {{ guardando ? 'Guardando...' : 'Dar acceso' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div v-if="form" class="fixed inset-0 z-[9000] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="form = null"></div>
         <div class="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0D1425] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl">
@@ -86,7 +135,7 @@
               <input v-model="form.usuario" :disabled="!!form.tutorId" autocapitalize="none" placeholder="ej: administracion@petstationvet.com"
                 :class="inputClass" class="disabled:opacity-50" />
             </div>
-            <div class="space-y-1">
+            <div v-if="!form.cuentaExistente" class="space-y-1">
               <label :class="labelClass">{{ form.tutorId ? 'Nueva contraseña (opcional)' : 'Contraseña *' }}</label>
               <input v-model="form.password" type="text" placeholder="Mínimo 6 caracteres" :class="inputClass" />
             </div>
@@ -132,6 +181,33 @@ const error = ref('')
 const form = ref(null)
 const errorForm = ref('')
 const guardando = ref(false)
+const existente = ref(null)
+const candidatos = ref([])
+
+async function abrirExistente() {
+  errorForm.value = ''
+  existente.value = { tutorId: null, secciones: ['jornada', 'citas', 'formularios'] }
+  try {
+    const { data } = await api.get('/admin/accesos/candidatos')
+    candidatos.value = data
+  } catch {
+    candidatos.value = []
+  }
+}
+
+async function guardarExistente() {
+  guardando.value = true
+  errorForm.value = ''
+  try {
+    await api.post('/admin/accesos/existente', existente.value)
+    existente.value = null
+    cargar()
+  } catch (e) {
+    errorForm.value = e.response?.data?.message || 'No se pudo dar el acceso'
+  } finally {
+    guardando.value = false
+  }
+}
 
 const formValido = computed(() => form.value?.nombre?.trim() && form.value.secciones.length &&
   (form.value.tutorId || (form.value.usuario?.trim() && form.value.password?.length >= 6)))
@@ -153,7 +229,7 @@ async function cargar() {
 function abrirForm(g) {
   errorForm.value = ''
   form.value = g
-    ? { tutorId: g.tutorId, nombre: g.nombreCorto, apellido: g.apellido, usuario: g.usuario, password: '', secciones: [...g.secciones] }
+    ? { tutorId: g.tutorId, nombre: g.nombreCorto, apellido: g.apellido, usuario: g.usuario, password: '', secciones: [...g.secciones], cuentaExistente: g.cuentaExistente }
     : { nombre: '', apellido: '', usuario: '', password: '', secciones: ['jornada', 'citas', 'formularios'] }
 }
 
@@ -185,7 +261,9 @@ async function toggleActivo(g) {
 }
 
 async function eliminar(g) {
-  if (prompt(`Esto borra la cuenta de ${g.nombre}. Escribe ELIMINAR para confirmar:`) !== 'ELIMINAR') return
+  if (g.cuentaExistente) {
+    if (!confirm(`¿Quitarle a ${g.nombre} el acceso al panel? Su cuenta y su acceso a la clínica se conservan.`)) return
+  } else if (prompt(`Esto borra la cuenta de ${g.nombre}. Escribe ELIMINAR para confirmar:`) !== 'ELIMINAR') return
   await api.delete(`/admin/accesos/${g.tutorId}`)
   cargar()
 }

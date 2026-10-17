@@ -458,7 +458,7 @@ const handleLoginSuccess = async (data) => {
 
   await nextTick();
 
-  if (['ROLE_ADMIN', 'ADMIN', 'ROLE_GESTOR'].includes(tutor.rol)) {
+  if (['ROLE_ADMIN', 'ADMIN', 'ROLE_GESTOR'].includes(tutor.rol) || tutor.panelAdmin) {
     router.push('/admin/dashboard');
   } else if (esNuevo || availablePets.value.length === 0) {
     isOnboardingOpen.value = true;
@@ -543,7 +543,7 @@ onMounted(async () => {
 
   if (token) {
     const rol = tutorData.value?.rol || '';
-    if (['ROLE_ADMIN', 'ADMIN', 'ROLE_GESTOR'].includes(rol)) {
+    if (['ROLE_ADMIN', 'ADMIN', 'ROLE_GESTOR'].includes(rol) || tutorData.value?.panelAdmin) {
       loadingSession.value = false;
       return;
     }
