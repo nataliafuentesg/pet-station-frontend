@@ -85,7 +85,8 @@ const handleLogin = async () => {
       password: form.password,
     });
     const rol = data.tutor?.rol;
-    const tieneAcceso = rol === 'ROLE_ADMIN' || rol === 'ADMIN' || data.tutor?.panelAdmin;
+    // Administradores limitados (ROLE_GESTOR) también entran: el panel les muestra solo sus pestañas
+    const tieneAcceso = rol === 'ROLE_ADMIN' || rol === 'ADMIN' || rol === 'ROLE_GESTOR' || data.tutor?.panelAdmin;
     if (!tieneAcceso) {
       error.value = 'Esta cuenta no tiene acceso al panel administrativo';
       return;
