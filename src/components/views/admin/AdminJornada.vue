@@ -554,12 +554,12 @@
     <Teleport to="body">
       <div v-if="form" class="fixed inset-0 z-[9000] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="form = null"></div>
-        <div class="relative w-full max-w-md bg-white dark:bg-[#0D1425] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-          <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/5">
+        <div class="relative w-full max-w-md max-h-[90vh] flex flex-col bg-white dark:bg-[#0D1425] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/5 shrink-0">
             <h3 class="font-[1000] uppercase italic text-sm dark:text-white">{{ form.tutorId ? 'Editar empleado' : 'Nuevo empleado' }}</h3>
             <button @click="form = null" class="w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-white/5 rounded-lg text-slate-400 dark:text-white/50">✕</button>
           </div>
-          <div class="p-6 space-y-4">
+          <div class="p-6 space-y-4 overflow-y-auto">
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-1">
                 <label :class="labelClass">Nombre *</label>
