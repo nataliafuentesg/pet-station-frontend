@@ -632,6 +632,28 @@
                 <span class="text-[11px] font-black tabular-nums shrink-0">{{ dur(it.segundos) }}</span>
               </div>
             </div>
+
+            <!-- Avisos enviados: para responder "no me llegó ningún aviso" -->
+            <div v-if="detalle.avisos" class="space-y-2 pt-2 border-t border-slate-100 dark:border-white/5">
+              <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">🔔 Avisos enviados · {{ detalle.avisos.avisos.length }}</p>
+              <p class="text-[11px] font-bold" :class="detalle.avisos.celulares ? 'text-green-600 dark:text-green-400' : 'text-red-500'">
+                {{ detalle.avisos.celulares ? `📱 ${detalle.avisos.celulares} celular(es) registrado(s) para recibir avisos` : '📱 No tiene ningún celular registrado: nunca activó los avisos o los desactivó' }}
+              </p>
+              <p v-if="!detalle.avisos.avisos.length" class="text-[11px] text-slate-400 dark:text-white/30">No se le enviaron avisos este día.</p>
+              <div v-for="(a, k) in detalle.avisos.avisos" :key="k" class="flex items-start gap-3 text-[11px] py-1.5 border-b border-slate-100 dark:border-white/5 last:border-0">
+                <span class="w-14 shrink-0 font-bold tabular-nums text-slate-500 dark:text-white/50">{{ hora(a.enviadoEn) }}</span>
+                <div class="flex-1 min-w-0">
+                  <p class="font-bold dark:text-white/80">{{ a.titulo }} <span class="font-normal text-slate-400 dark:text-white/30">· {{ TIPOS_AVISO[a.tipo] || a.tipo }}</span></p>
+                  <p :class="estadoEnvio(a).clase">{{ estadoEnvio(a).texto }}</p>
+                </div>
+                <span class="shrink-0 text-right font-bold" :class="a.respondidoEn ? 'text-slate-500 dark:text-white/50' : 'text-amber-500'">
+                  {{ a.respondidoEn ? `Reaccionó ${hora(a.respondidoEn)} (${minutosEntre(a.enviadoEn, a.respondidoEn)})` : 'Sin reacción' }}
+                </span>
+              </div>
+              <p class="text-[10px] text-slate-400 dark:text-white/30">
+                "Enviado" quiere decir que el servicio de notificaciones lo recibió para su celular. Si aun así no lo vio, puede ser el modo "No molestar", el ahorro de batería o las notificaciones bloqueadas en el teléfono.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -1011,13 +1033,30 @@ function abrirDetalle(p) {
   cargarDetalle()
 }
 
+const TIPOS_AVISO = { TAREA: '¿ya terminaste?', SIN_TAREA: 'sin tarea', HORAS_CUMPLIDAS: 'horas cumplidas', ALMUERZO: 'almuerzo', REGRESO_ALMUERZO: 'regreso del almuerzo' }
+
+function estadoEnvio(a) {
+  if (a.dispositivos == null) return { texto: 'Enviado (antes de guardar el resultado)', clase: 'text-slate-400' }
+  if (a.dispositivos === 0) return { texto: '✗ No le llegó: no tenía celular registrado', clase: 'text-red-500 font-bold' }
+  if (a.entregados > 0) return { texto: `✓ Enviado a ${a.entregados} celular(es)`, clase: 'text-green-600 dark:text-green-400' }
+  return { texto: `✗ Falló el envío${a.error ? ': ' + a.error : ''}`, clase: 'text-red-500 font-bold break-words' }
+}
+
+function minutosEntre(a, b) {
+  const min = Math.round((new Date(b) - new Date(a)) / 60000)
+  return min < 1 ? 'al momento' : min < 60 ? `${min} min después` : `${Math.floor(min / 60)} h ${min % 60} min después`
+}
+
 async function cargarDetalle() {
   detalle.value.cargando = true
   try {
-    const { data } = await api.get('/admin/jornada/detalle', {
-      params: { tutorId: detalle.value.persona.tutorId, fecha: detalle.value.fecha }
-    })
+    const params = { tutorId: detalle.value.persona.tutorId, fecha: detalle.value.fecha }
+    const [{ data }, avisos] = await Promise.all([
+      api.get('/admin/jornada/detalle', { params }),
+      api.get('/admin/jornada/avisos', { params }).catch(() => ({ data: null })),
+    ])
     detalle.value.sesiones = data
+    detalle.value.avisos = avisos.data
   } finally {
     detalle.value.cargando = false
   }
