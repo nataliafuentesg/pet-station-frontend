@@ -6,6 +6,7 @@ import AgendarCita from '../components/appointments/AgendarCita.vue'
 import ProfileSelector from '../components/home/ProfileSelector.vue'
 import TiendaView from '../components/views/TiendaView.vue'
 import AdminDashboard from '../components/views/admin/AdminDashboard.vue';
+import AdminLoginView from '../components/views/admin/AdminLoginView.vue';
 import WhatsAppPanel from '../components/views/admin/WhatsAppPanel.vue';
 import AdminInstagram from '../components/views/admin/AdminInstagram.vue';
 import AdminSocial from '../components/views/admin/AdminSocial.vue';
@@ -104,6 +105,12 @@ const routes = [
     name: 'Checkout',
     component: () => import('../components/views/CheckoutView.vue'),
     meta: { title: 'Finalizar Compra Segura | Pet Station' }
+  },
+  {
+    path: '/acceso',
+    name: 'AdminLogin',
+    component: AdminLoginView,
+    meta: { title: 'Acceso Interno | Pet Station' }
   },
   {
     path: '/admin/whatsapp',
@@ -300,8 +307,7 @@ router.beforeEach((to, from, next) => {
   const esAdmin = userRol === 'ROLE_ADMIN' || userRol === 'ADMIN'
     || (to.meta.permitirGestor && (userRol === 'ROLE_GESTOR' || session?.tutor?.panelAdmin));
   if (to.meta.requiresAdmin && !esAdmin) {
-    console.error("ACCESO PROHIBIDO: Rol insuficiente.");
-    return next('/');
+    return next('/acceso');
   }
 
   next();
