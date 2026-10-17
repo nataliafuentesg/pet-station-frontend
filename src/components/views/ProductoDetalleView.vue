@@ -177,7 +177,7 @@
                 <span class="text-lg mt-0.5 shrink-0">🏠</span>
                 <div>
                   <p class="text-[10px] font-black uppercase tracking-widest text-white">Domicilio en Chía</p>
-                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">$8.500 · <strong class="text-white">Gratis en pedidos desde $400.000</strong></p>
+                  <p class="text-[9px] text-white/60 mt-0.5 font-bold">$8.500 · pedido mínimo $70.000</p>
                 </div>
               </div>
 

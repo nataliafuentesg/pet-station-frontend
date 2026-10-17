@@ -34,7 +34,7 @@
         <section>
           <h3 class="section-title">3. Envíos y entregas</h3>
           <ul class="legal-list">
-            <li><strong>Domicilio en Chía:</strong> disponible para pedidos desde <strong>$70.000</strong>. Costo: <strong>$8.500</strong>. Gratis en pedidos desde $400.000.</li>
+            <li><strong>Domicilio en Chía:</strong> disponible para pedidos desde <strong>$70.000</strong>. Costo: <strong>$8.500</strong>.</li>
             <li><strong>Envíos nacionales:</strong> se despachan por transportadora. El flete se cobra a la entrega según tarifas de la empresa transportadora.</li>
             <li>Los tiempos de entrega son estimados y pueden variar por factores externos (clima, vías, festivos).</li>
             <li>Pet Station no es responsable por demoras o pérdidas una vez el paquete está en manos de la transportadora, aunque gestionaremos el reclamo con ellos de buena fe.</li>

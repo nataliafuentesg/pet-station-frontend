@@ -419,8 +419,7 @@ const MINIMO_DOMICILIO = computed(() => configStore.pedidoMinimo);
 const costoEnvio = computed(() => {
   if (tipoEntrega.value === 'PICKUP') return 0;
   if (tipoEntrega.value === 'ENVIO') return 0; // lo cobra la transportadora
-  // DOMICILIO Chía
-  if (cartStore.totalPrice >= configStore.envioGratisDesde) return 0;
+  // DOMICILIO Chía — siempre cuesta $8.500
   return configStore.costoEnvioChia;
 });
 const totalConEnvio = computed(() => cartStore.totalPrice + costoEnvio.value);
