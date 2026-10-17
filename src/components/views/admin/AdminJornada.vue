@@ -141,6 +141,7 @@
                 </td>
                 <td class="px-4 py-3 text-[12px] font-bold tabular-nums" :class="p.checksSinRespuesta ? 'text-amber-500' : 'dark:text-white/70'">
                   {{ p.checksSinRespuesta }}<span class="opacity-40"> / {{ p.checksEnviados }}</span>
+                  <span v-if="p.avisosSinTarea" class="block text-[9px] text-red-500 font-black uppercase">🔔 {{ p.avisosSinTarea }} de "sin tarea"</span>
                   <span v-if="p.cierresAutomaticos" class="block text-[9px] text-red-400 font-black uppercase">Olvidó cerrar {{ p.cierresAutomaticos }}×</span>
                 </td>
                 <td class="px-4 py-3 text-[12px] font-bold tabular-nums whitespace-nowrap" :class="p.segExtra ? 'text-purple-600 dark:text-purple-300' : 'dark:text-white/30'">
@@ -624,6 +625,7 @@
                 <span class="text-[10px] font-bold tabular-nums w-24 shrink-0 opacity-70">{{ hora(it.inicio) }} – {{ hora(it.fin) }}</span>
                 <span class="flex-1 min-w-0 text-[12px] font-bold break-words">
                   {{ it.tipo === 'TAREA' ? it.descripcion : it.tipo === 'ALMUERZO' ? '🍽️ Almuerzo' : '⏸ Sin tarea registrada' }}
+                  <span v-if="it.tipo === 'SIN_TAREA' && it.avisos" class="block text-[9px] font-black uppercase text-red-500">🔔 Recibió {{ it.avisos }} aviso(s) de "regístralo" en este rato</span>
                   <span v-if="it.nota" class="block text-[11px] font-semibold text-amber-700 dark:text-amber-300 mt-0.5">⚠️ {{ it.nota }}</span>
                   <span v-if="it.checksSinRespuesta" class="block text-[9px] font-black uppercase text-amber-500">{{ it.checksSinRespuesta }} aviso(s) sin responder</span>
                 </span>
