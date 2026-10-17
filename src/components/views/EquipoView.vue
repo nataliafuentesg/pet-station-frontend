@@ -286,6 +286,26 @@
       </Transition>
     </Teleport>
 
+    <!-- Explicación de un rato largo sin tarea (no cambia las horas) -->
+    <Teleport to="body">
+      <div v-if="hueco" class="fixed inset-0 z-[9002] flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
+          <p class="text-[10px] font-black uppercase tracking-widest text-red-300">⏸ {{ hueco.minutos ? dur(hueco.minutos * 60) : 'Más de 1 h' }} sin registrar ninguna tarea</p>
+          <p class="text-lg font-[1000] leading-tight">¿Qué estuviste haciendo<span v-if="hueco.desde"> desde las {{ hueco.desde }}</span>?</p>
+          <p class="text-[12px] text-white/50">Cuéntalo con detalle: qué hiciste, dónde y con quién. Esto no cambia tus horas, solo explica ese rato.</p>
+          <textarea v-model="hueco.texto" rows="4" maxlength="1000" placeholder="Ej: Estuve atendiendo a un cliente en recepción y después ayudé a la Dra. a sostener un perro en consulta."
+            class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-red-400 resize-none placeholder:text-white/20"></textarea>
+          <p v-if="hueco.texto.trim().length < 10" class="text-[10px] text-white/30">Escribe al menos una frase.</p>
+          <div class="grid grid-cols-2 gap-3">
+            <button @click="hueco = null" class="bg-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
+            <button @click="continuarHueco" :disabled="hueco.texto.trim().length < 10 || enviando"
+              class="bg-[#DE1F27] py-4 rounded-2xl font-[1000] uppercase tracking-widest text-[10px] disabled:opacity-40">Continuar</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Motivo de horas extra al terminar la jornada -->
     <Teleport to="body">
       <div v-if="cierreJornada" class="fixed inset-0 z-[9001] flex items-end sm:items-center justify-center p-4">
@@ -471,6 +491,8 @@ const mostrarCheck = ref(false)
 const cierre = ref(null)
 
 const recepcion = ref(null)
+const hueco = ref(null)
+const explicacionHueco = ref('')
 const toast = ref('')
 const tarjetaTarea = ref(null)
 const resaltarTarea = ref(false)
@@ -537,6 +559,8 @@ const segJornada = computed(() => {
   const pausa = sesion.value.segundosEnPausa != null ? sesion.value.segundosEnPausa + transcurrido.value : 0
   return sesion.value.segundosDesdeInicio + transcurrido.value - pausa - (sesion.value.segundosPausasCerradas || 0)
 })
+const segHueco = computed(() => sesion.value?.segundosHueco != null ? sesion.value.segundosHueco + transcurrido.value : null)
+const necesitaExplicacion = computed(() => sesion.value?.estado === 'ACTIVA' && segHueco.value != null && segHueco.value >= 3600)
 const segExtra = computed(() => Math.max(0, segJornada.value - (sesion.value?.segundosLimite || 28800)))
 const enExtra = computed(() => !!sesion.value && segExtra.value > 0)
 const segTareas = computed(() => (sesion.value?.segundosEnTareas || 0) + (corriendo.value ? transcurrido.value : 0))
@@ -583,6 +607,8 @@ function hora(iso) {
 }
 
 function aplicarEstado(data) {
+  // Si ya no está en un rato sin tarea, la explicación pendiente ya se usó
+  if (data?.sesion?.segundosHueco == null) explicacionHueco.value = ''
   estado.value = data
   recibidoEn.value = Date.now()
   ahora.value = Date.now()
@@ -607,21 +633,49 @@ async function accion(url, body) {
     return true
   } catch (e) {
     error.value = e.response?.data?.message || 'Algo falló, intenta de nuevo'
+    // El servidor pide explicación (ej: el rato pasó de 1 h justo ahora): se abre la ventana y se reintenta
+    if (e.response?.data?.codigo === 'EXPLICAR_HUECO') abrirHueco(null, e.response.data.desde)
     return false
   } finally {
     enviando.value = false
   }
 }
 
+// Más de 1 h sin tarea: antes de iniciar algo o cerrar la jornada debe contar qué hizo
+function pedirExplicacion(continuar) {
+  if (!necesitaExplicacion.value || explicacionHueco.value) return false
+  abrirHueco(continuar)
+  return true
+}
+
+function abrirHueco(continuar, desdeIso) {
+  const desde = desdeIso ? new Date(desdeIso) : (segHueco.value != null ? new Date(Date.now() - segHueco.value * 1000) : null)
+  hueco.value = {
+    texto: '',
+    continuar,
+    minutos: desde ? Math.floor((Date.now() - desde) / 60000) : null,
+    desde: desde ? desde.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' }) : '',
+  }
+}
+
+function continuarHueco() {
+  explicacionHueco.value = hueco.value.texto.trim()
+  const continuar = hueco.value.continuar
+  hueco.value = null
+  error.value = ''
+  if (continuar) continuar()
+}
+
 function iniciarTarea() {
   if (!confirmaRegreso()) return
+  if (pedirExplicacion(iniciarTarea)) return
   if (tareaActual.value) return pedirNota('cambiar')
   crearTarea()
 }
 
 async function crearTarea(notaAnterior, checklist) {
   const anterior = tareaActual.value
-  const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior, checklist })
+  const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior, checklist, explicacionHueco: explicacionHueco.value || undefined })
   if (ok) {
     nuevaTarea.value = ''
     avisarCambio(anterior ? `✅ Terminaste "${anterior.descripcion}"` : null)
@@ -724,8 +778,9 @@ function fechaCorta(f) {
 
 async function confirmarRecepcion() {
   if (!confirmaRegreso()) return
+  if (pedirExplicacion(confirmarRecepcion)) return
   const anterior = tareaActual.value
-  if (await accion('/jornada/guarderia/recibir', recepcion.value)) {
+  if (await accion('/jornada/guarderia/recibir', { ...recepcion.value, explicacionHueco: explicacionHueco.value || undefined })) {
     recepcion.value = null
     avisarCambio(anterior ? `⏸ "${anterior.descripcion}" quedó en pausa` : null)
   }
@@ -776,16 +831,17 @@ function salirAlmuerzo() {
 }
 
 function cerrarJornada() {
+  if (pedirExplicacion(cerrarJornada)) return
   // Si se quedó más de su horario y no ha dicho por qué, se lo pide antes de cerrar
   if (enExtra.value && !sesion.value.motivoExtra && segExtra.value >= 300) {
     cierreJornada.value = true
     return
   }
-  if (confirm('¿Terminar tu jornada de hoy?')) accion('/jornada/cerrar')
+  if (confirm('¿Terminar tu jornada de hoy?')) accion('/jornada/cerrar', { explicacionHueco: explicacionHueco.value || undefined })
 }
 
 async function cerrarConMotivo() {
-  if (await accion('/jornada/cerrar', { motivoExtra: motivoExtra.value })) {
+  if (await accion('/jornada/cerrar', { motivoExtra: motivoExtra.value, explicacionHueco: explicacionHueco.value || undefined })) {
     cierreJornada.value = false
     motivoExtra.value = ''
   }

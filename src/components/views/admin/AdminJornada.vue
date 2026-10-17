@@ -677,6 +677,7 @@
                 <span class="flex-1 min-w-0 text-[12px] font-bold break-words">
                   {{ it.tipo === 'TAREA' ? it.descripcion : it.tipo === 'ALMUERZO' ? '🍽️ Almuerzo' : '⏸ Sin tarea registrada' }}
                   <span v-if="it.tipo === 'SIN_TAREA' && it.avisos" class="block text-[9px] font-black uppercase text-red-500">🔔 Recibió {{ it.avisos }} aviso(s) de "regístralo" en este rato</span>
+                  <span v-if="it.explicacion" class="block text-[11px] font-semibold text-slate-700 dark:text-white/80 mt-0.5">💬 Explicó: "{{ it.explicacion }}"</span>
                   <span v-if="it.nota" class="block text-[11px] font-semibold text-amber-700 dark:text-amber-300 mt-0.5">⚠️ {{ it.nota }}</span>
                   <span v-if="it.checksSinRespuesta" class="block text-[9px] font-black uppercase text-amber-500">{{ it.checksSinRespuesta }} aviso(s) sin responder</span>
                 </span>
