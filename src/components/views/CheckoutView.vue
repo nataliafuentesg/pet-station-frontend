@@ -211,43 +211,14 @@
                 <p class="text-[9px] font-bold text-slate-400 uppercase">Presenta tu código de pedido al llegar · Sin domicilio en este modo</p>
               </div>
 
-              <!-- Franja de entrega con cupos -->
-              <div v-if="tipoEntrega === 'DOMICILIO'" class="space-y-3 pt-2">
-                <div class="flex items-center justify-between">
-                  <label class="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">
-                    Franja de entrega
-                  </label>
-                  <span v-if="cargandoCupos" class="text-[8px] font-bold opacity-40 uppercase">Consultando disponibilidad...</span>
+              <!-- Coordinación por WhatsApp -->
+              <div v-if="tipoEntrega === 'DOMICILIO'" class="pt-2">
+                <div class="flex items-center gap-3 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 rounded-xl px-4 py-3">
+                  <span class="text-xl shrink-0">💬</span>
+                  <p class="text-[10px] font-bold uppercase text-green-800 dark:text-green-400 leading-relaxed">
+                    Te contactamos por WhatsApp para coordinar el horario de entrega una vez confirmado el pedido.
+                  </p>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                  <button v-for="franja in franjasDisponibles" :key="franja.key" type="button"
-                    @click="!franja.lleno && (form.franja = franja.key)"
-                    :disabled="franja.lleno"
-                    :class="[
-                      'flex items-center gap-2.5 px-3 py-2.5 rounded-xl border-2 transition-all text-left w-full',
-                      form.franja === franja.key
-                        ? 'border-[#152C77] bg-[#152C77] text-white'
-                        : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-700 dark:text-white/70 hover:border-[#152C77]',
-                      franja.lleno ? 'opacity-40 cursor-not-allowed' : ''
-                    ]">
-                    <span class="text-base shrink-0">{{ franja.emoji }}</span>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-[9px] font-black uppercase leading-tight tracking-wide">{{ franja.label }}</p>
-                      <p class="text-[8px] font-bold opacity-60 leading-tight">{{ franja.hora }}</p>
-                    </div>
-                    <div class="text-right shrink-0">
-                      <p class="text-[8px] font-black leading-tight"
-                        :class="franja.fecha === hoyStr
-                          ? (form.franja === franja.key ? 'text-green-300' : 'text-green-500')
-                          : (form.franja === franja.key ? 'text-amber-200' : 'text-amber-500')">
-                        {{ franja.fechaLabel }}
-                      </p>
-                      <p v-if="franja.lleno" class="text-[7px] font-black text-red-400 uppercase leading-tight">Lleno</p>
-                      <p v-else class="text-[7px] font-bold opacity-50 leading-tight">{{ franja.disponibles }} cupos</p>
-                    </div>
-                  </button>
-                </div>
-                <p v-if="errores.franja" class="text-[10px] text-[#DE1F27] font-bold ml-2">{{ errores.franja }}</p>
               </div>
             </div>
           </div>
@@ -670,10 +641,6 @@ const validar = () => {
     }
     if (!form.zona) {
       errores.zona = 'Ingresa tu barrio o sector en Chía';
-      ok = false;
-    }
-    if (!form.franja) {
-      errores.franja = 'Selecciona la franja de entrega';
       ok = false;
     }
   }
