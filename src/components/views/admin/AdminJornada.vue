@@ -182,7 +182,7 @@
         <div class="space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">Tareas que más tiempo consumen</h3>
-            <button v-if="!soloLectura && resumen.tareas.some(t => !t.nivel)" @click="clasificarEsfuerzo" :disabled="clasificando"
+            <button v-if="!soloLectura && resumen.tareas.some(t => !t.nivel || !t.area)" @click="clasificarEsfuerzo" :disabled="clasificando"
               class="text-[10px] font-black uppercase tracking-widest text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27] disabled:opacity-40">
               {{ clasificando ? 'Clasificando…' : '🤖 Clasificar esfuerzo con IA' }}
             </button>
@@ -194,7 +194,7 @@
             <table class="w-full text-left min-w-[600px]">
               <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
                 <tr>
-                  <th v-for="h in ['Tarea','Esfuerzo','Veces','Tiempo total','Promedio','Quién la hace']" :key="h"
+                  <th v-for="h in ['Tarea','Esfuerzo','Área','Veces','Tiempo total','Promedio','Quién la hace']" :key="h"
                     class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
                 </tr>
               </thead>
@@ -219,6 +219,14 @@
                     <span v-else class="text-[11px] font-bold" :class="claseNivel(t.nivel)">
                       {{ { LIGERA: 'Ligera', MODERADA: 'Moderada', PESADA: 'Pesada' }[t.nivel] || '—' }}<span v-if="t.delegable"> · auxiliar</span>
                     </span>
+                  </td>
+                  <td class="px-4 py-3 whitespace-nowrap">
+                    <select v-if="!soloLectura && t.nivel" :value="t.area || ''" @change="corregirEsfuerzo(t, { area: $event.target.value })"
+                      class="bg-transparent text-[11px] font-bold outline-none rounded-lg border border-slate-200 dark:border-white/10 px-2 py-1 dark:text-white">
+                      <option value="" disabled>—</option>
+                      <option v-for="(n, a) in AREAS" :key="a" :value="a">{{ n }}</option>
+                    </select>
+                    <span v-else class="text-[11px] font-bold text-slate-500 dark:text-white/50">{{ AREAS[t.area] || '—' }}</span>
                   </td>
                   <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">
                     {{ t.veces }}
@@ -887,6 +895,8 @@ watch(() => form.value?.cargo, cargo => {
   if (form.value && !form.value.tutorId && /veterin|m[eé]dic/i.test(cargo || '')) form.value.accesoClinico = true
 })
 
+const AREAS = { GUARDERIA: 'Guardería', VETERINARIA: 'Veterinaria', CAJA: 'Caja', DOMICILIOS: 'Domicilios', CONTABILIDAD: 'Contabilidad', GENERAL: 'General' }
+
 function claseNivel(n) {
   return { LIGERA: 'text-green-600 dark:text-green-400', MODERADA: 'text-amber-600 dark:text-amber-300', PESADA: 'text-red-600 dark:text-red-400' }[n] || 'text-slate-400'
 }
@@ -895,8 +905,9 @@ async function corregirEsfuerzo(t, cambio) {
   const nivel = cambio.nivel || t.nivel
   if (!nivel) return
   try {
-    await api.patch('/admin/jornada/esfuerzo', { clave: t.clave, nombre: t.descripcion, nivel, delegable: cambio.delegable ?? t.delegable ?? false })
-    Object.assign(t, { nivel, delegable: cambio.delegable ?? t.delegable ?? false })
+    const area = cambio.area || t.area || undefined
+    await api.patch('/admin/jornada/esfuerzo', { clave: t.clave, nombre: t.descripcion, nivel, delegable: cambio.delegable ?? t.delegable ?? false, area })
+    Object.assign(t, { nivel, delegable: cambio.delegable ?? t.delegable ?? false, area })
   } catch (e) {
     alert(e.response?.data?.message || 'No se pudo guardar')
   }
