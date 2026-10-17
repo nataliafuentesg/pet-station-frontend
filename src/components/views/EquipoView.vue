@@ -45,6 +45,19 @@
         @aceptar="aceptarAviso" @cerrar="verAviso = false" />
 
       <template v-else>
+      <!-- Jornada anterior que no cerró: se muestra una vez para que aprenda a cerrarla -->
+      <div v-if="estado?.cierreOlvidado" class="bg-amber-500/10 border border-amber-500/40 rounded-2xl p-4 space-y-3 text-[13px] leading-relaxed text-amber-100">
+        <p>
+          <span v-if="estado.cierreOlvidado.porAdmin">⚠️ {{ diaCierre }} no cerraste tu jornada y la terminó la administración<span v-if="estado.cierreOlvidado.fin"> a las <b>{{ hora(estado.cierreOlvidado.fin) }}</b></span>.</span>
+          <span v-else>⚠️ {{ diaCierre }} no cerraste tu jornada. Se cerró sola<span v-if="estado.cierreOlvidado.fin"> a las <b>{{ hora(estado.cierreOlvidado.fin) }}</b></span>, con tu última actividad en la app.</span>
+          Recuerda tocar <b>"Terminar jornada"</b> al salir.
+        </p>
+        <button @click="cierreVisto" :disabled="enviando"
+          class="w-full bg-amber-500 text-black py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
+          Entendido
+        </button>
+      </div>
+
       <!-- Avisos -->
       <div v-if="iosSinInstalar" class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-[12px] leading-relaxed text-amber-200">
         <p class="font-black uppercase text-[10px] tracking-widest mb-1">Para recibir los avisos</p>
@@ -489,6 +502,13 @@ const iosSinInstalar = esIos && !instalada
 const puedePedirPermiso = typeof Notification !== 'undefined' && 'serviceWorker' in navigator
 
 const sesion = computed(() => estado.value?.sesion || null)
+const diaCierre = computed(() => {
+  const f = estado.value?.cierreOlvidado?.fecha
+  if (!f) return ''
+  const ayer = new Date(); ayer.setDate(ayer.getDate() - 1)
+  const ayerTxt = `${ayer.getFullYear()}-${String(ayer.getMonth() + 1).padStart(2, '0')}-${String(ayer.getDate()).padStart(2, '0')}`
+  return f === ayerTxt ? 'Ayer' : 'El ' + new Date(f + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' }) + ','
+})
 const yaTerminoHoy = computed(() => !!estado.value && !estado.value.sesion && 'jornadaTerminadaHoy' in estado.value)
 const guarderia = computed(() => estado.value?.guarderia || null)
 const necesitaConsentimiento = computed(() => estado.value?.consentimiento?.aceptado === false)
@@ -640,6 +660,10 @@ async function aceptarAviso() {
   } finally {
     enviando.value = false
   }
+}
+
+async function cierreVisto() {
+  await accion('/jornada/cierre-visto')
 }
 
 async function iniciarJornada() {
