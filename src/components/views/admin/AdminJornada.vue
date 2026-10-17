@@ -676,6 +676,7 @@
                 <span class="text-[10px] font-bold tabular-nums w-24 shrink-0 opacity-70">{{ hora(it.inicio) }} – {{ hora(it.fin) }}</span>
                 <span class="flex-1 min-w-0 text-[12px] font-bold break-words">
                   {{ it.tipo === 'TAREA' ? it.descripcion : it.tipo === 'ALMUERZO' ? '🍽️ Almuerzo' : '⏸ Sin tarea registrada' }}
+                  <span v-if="it.tipo === 'ALMUERZO' && it.automatico" class="block text-[9px] font-black uppercase text-red-500">No marcó el regreso: se terminó solo a la hora</span>
                   <span v-if="it.tipo === 'SIN_TAREA' && it.avisos" class="block text-[9px] font-black uppercase text-red-500">🔔 Recibió {{ it.avisos }} aviso(s) de "regístralo" en este rato</span>
                   <span v-if="it.explicacion" class="block text-[11px] font-semibold text-slate-700 dark:text-white/80 mt-0.5">💬 Explicó: "{{ it.explicacion }}"</span>
                   <span v-if="it.nota" class="block text-[11px] font-semibold text-amber-700 dark:text-amber-300 mt-0.5">⚠️ {{ it.nota }}</span>

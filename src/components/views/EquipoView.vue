@@ -58,6 +58,13 @@
         </button>
       </div>
 
+      <!-- El almuerzo se terminó solo: desde ahí cuenta como tiempo sin tarea -->
+      <div v-if="sesion?.estado === 'ACTIVA' && sesion.almuerzo?.automatico && !tareaActual"
+        class="bg-red-500/10 border border-red-500/40 rounded-2xl p-4 text-[13px] leading-relaxed text-red-100">
+        ⏰ Tu hora de almuerzo terminó a las <b>{{ hora(sesion.almuerzo.fin) }}</b> y no marcaste el regreso.
+        Desde entonces cuenta como <b>tiempo sin tarea</b>. Inicia lo que vas a hacer ahora.
+      </div>
+
       <!-- Avisos -->
       <div v-if="iosSinInstalar" class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-[12px] leading-relaxed text-amber-200">
         <p class="font-black uppercase text-[10px] tracking-widest mb-1">Para recibir los avisos</p>
@@ -146,6 +153,9 @@
           <p class="text-5xl">🍽️</p>
           <p class="text-[10px] font-black uppercase tracking-widest text-amber-300">En almuerzo</p>
           <p class="text-4xl font-[1000] tabular-nums">{{ reloj(segPausa) }}</p>
+          <p v-if="sesion.almuerzo?.limite" class="text-[12px] font-bold text-amber-200/80">
+            Tu almuerzo termina a las {{ hora(sesion.almuerzo.limite) }}: si no marcas que volviste, desde esa hora cuenta como tiempo sin tarea.
+          </p>
           <p v-if="tareaActual" class="text-[12px] text-white/50">Pausada: <b class="text-white/80">{{ tareaActual.descripcion }}</b></p>
           <button @click="volverAlmuerzo" :disabled="enviando"
             class="w-full bg-amber-500 text-black py-5 rounded-2xl font-[1000] uppercase tracking-widest text-[12px] active:scale-95 transition-all disabled:opacity-40">
