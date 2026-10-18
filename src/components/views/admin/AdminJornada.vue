@@ -348,7 +348,7 @@
         Lo que la IA debe saber siempre, en todos los resúmenes y análisis. Se escribe una vez; lo de un solo día va en el contexto del día.
       </p>
       <textarea v-model="reglasIA" rows="4" maxlength="4000" :disabled="soloLectura" :class="inputClass" class="!text-sm resize-none"
-        placeholder="Ej: Bañar y arreglar perros es de peluquería, no de guardería. Si alguien de guardería pasa a peluquería es porque guardería ya está al día."></textarea>
+        placeholder="Ej: Bañar y arreglar perros es de peluquería, no de guardería. Si alguien de guardería pasa a peluquería es porque guardería ya está al día. Comisión por baño: $X. Sueldo de guardería: $Y al mes. Un auxiliar de peluquería costaría $Z al mes."></textarea>
       <div v-if="!soloLectura" class="flex items-center gap-3">
         <button @click="guardarReglas" :disabled="guardandoReglas"
           class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-40">
