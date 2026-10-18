@@ -342,6 +342,22 @@
       </button>
     </div>
 
+    <details v-if="vista === 'ia'" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-2" :open="!reglasGuardadas">
+      <summary class="font-[1000] uppercase italic text-sm dark:text-white cursor-pointer">📌 Reglas fijas del negocio para la IA</summary>
+      <p class="text-[10px] text-slate-400 dark:text-white/40 pt-2">
+        Lo que la IA debe saber siempre, en todos los resúmenes y análisis. Se escribe una vez; lo de un solo día va en el contexto del día.
+      </p>
+      <textarea v-model="reglasIA" rows="4" maxlength="4000" :disabled="soloLectura" :class="inputClass" class="!text-sm resize-none"
+        placeholder="Ej: Bañar y arreglar perros es de peluquería, no de guardería. Si alguien de guardería pasa a peluquería es porque guardería ya está al día."></textarea>
+      <div v-if="!soloLectura" class="flex items-center gap-3">
+        <button @click="guardarReglas" :disabled="guardandoReglas"
+          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-40">
+          {{ guardandoReglas ? 'Guardando...' : 'Guardar reglas' }}
+        </button>
+        <span v-if="reglasMsg" class="text-[10px] font-bold text-green-600 dark:text-green-400">{{ reglasMsg }}</span>
+      </div>
+    </details>
+
     <div v-if="vista === 'ia' && modoIA === 'periodo'" class="space-y-4">
       <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-3">
         <div class="flex flex-wrap items-center gap-2">
@@ -793,6 +809,10 @@ const fechaIA = ref(fechaLocal(new Date()))
 const contextoIA = ref('')
 const guardandoContexto = ref(false)
 const contextoMsg = ref('')
+const reglasIA = ref('')
+const guardandoReglas = ref(false)
+const reglasMsg = ref('')
+const reglasGuardadas = ref('')
 const resumenIA = ref(null)
 const cargandoIA = ref(false)
 const generandoIA = ref(false)
@@ -915,7 +935,7 @@ watch(() => form.value?.cargo, cargo => {
   if (form.value && !form.value.tutorId && /veterin|m[eé]dic/i.test(cargo || '')) form.value.accesoClinico = true
 })
 
-const AREAS = { GUARDERIA: 'Guardería', VETERINARIA: 'Veterinaria', CAJA: 'Caja', DOMICILIOS: 'Domicilios', CONTABILIDAD: 'Contabilidad', GENERAL: 'General' }
+const AREAS = { GUARDERIA: 'Guardería', PELUQUERIA: 'Peluquería', VETERINARIA: 'Veterinaria', CAJA: 'Caja', DOMICILIOS: 'Domicilios', CONTABILIDAD: 'Contabilidad', GENERAL: 'General' }
 
 function claseNivel(n) {
   return { LIGERA: 'text-green-600 dark:text-green-400', MODERADA: 'text-amber-600 dark:text-amber-300', PESADA: 'text-red-600 dark:text-red-400' }[n] || 'text-slate-400'
@@ -990,6 +1010,30 @@ async function guardarContexto() {
   }
 }
 
+async function cargarReglas() {
+  reglasMsg.value = ''
+  try {
+    const { data } = await api.get('/admin/jornada/reglas-ia')
+    reglasIA.value = data.texto || ''
+    reglasGuardadas.value = reglasIA.value
+  } catch {
+    reglasIA.value = ''
+  }
+}
+
+async function guardarReglas() {
+  guardandoReglas.value = true
+  try {
+    await api.put('/admin/jornada/reglas-ia', { texto: reglasIA.value })
+    reglasMsg.value = '✓ Guardado. Aplica desde el próximo resumen o análisis.'
+  } catch (e) {
+    reglasMsg.value = ''
+    alert(e.response?.data?.message || 'No se pudo guardar')
+  } finally {
+    guardandoReglas.value = false
+  }
+}
+
 async function cargarResumenIA() {
   cargarContexto()
   cargandoIA.value = true
@@ -1039,6 +1083,7 @@ function markdownSimple(md) {
 }
 
 watch(vista, v => {
+  if (v === 'ia') cargarReglas()
   if (v === 'ia' && !resumenIA.value) cargarResumenIA()
   if (v === 'equipo' && !props.soloLectura) {
     cargarRapidas()
