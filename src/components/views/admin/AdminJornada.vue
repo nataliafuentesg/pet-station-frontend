@@ -378,6 +378,7 @@
         <p v-else class="text-[11px] text-slate-400 dark:text-white/30">Solo el administrador principal puede generar análisis.</p>
       </div>
       <p v-if="errorAnalisis" class="text-[12px] font-bold text-red-500">{{ errorAnalisis }}</p>
+      <button v-if="analisis" @click="pdfAnalisis" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">📄 Descargar PDF</button>
       <div v-if="analisis" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-6 resumen-ia text-[13px] leading-relaxed text-slate-700 dark:text-white/80"
         v-html="markdownSimple(analisis)"></div>
       <p class="text-[10px] text-slate-400 dark:text-white/30">
@@ -409,6 +410,7 @@
           class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40">
           {{ generandoIA ? 'Generando… (unos segundos)' : resumenIA ? '🔄 Volver a generar' : '✨ Generar resumen' }}
         </button>
+        <button v-if="resumenIA && !cargandoIA" @click="pdfResumen" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">📄 Descargar PDF</button>
         <span v-if="resumenIA" class="text-[10px] text-slate-400 dark:text-white/30">Generado {{ fechaHora(resumenIA.generadoEn) }}</span>
       </div>
       <p v-if="errorIA" class="text-[12px] font-bold text-red-500">{{ errorIA }}</p>
@@ -1080,6 +1082,47 @@ function markdownSimple(md) {
     } else html += `<p>${inline(l)}</p>`
   }
   return html + (enLista ? '</ul>' : '')
+}
+
+// Abre una página limpia y el navegador la guarda como PDF ("Guardar como PDF" en el diálogo de impresión)
+function descargarPDF(nombreArchivo, titulo, subtitulo, md) {
+  const w = window.open('', '_blank')
+  if (!w) return alert('El navegador bloqueó la ventana. Permite ventanas emergentes para petstationvet.com.')
+  const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(nombreArchivo)}</title>
+<style>
+  @page { margin: 18mm 16mm; }
+  body { font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; color: #1e293b; font-size: 12.5px; line-height: 1.55; max-width: 760px; margin: 24px auto; padding: 0 16px; }
+  header { border-bottom: 3px solid #DE1F27; padding-bottom: 10px; margin-bottom: 18px; }
+  .marca { font-weight: 900; font-style: italic; color: #152C77; letter-spacing: .04em; font-size: 13px; }
+  h1 { font-size: 20px; margin: 4px 0 2px; color: #0f172a; }
+  .sub { color: #64748b; font-size: 11px; }
+  h3 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: #152C77; margin: 18px 0 6px; break-after: avoid; }
+  ul { padding-left: 18px; margin: 4px 0; } li { margin: 3px 0; break-inside: avoid; } p { margin: 5px 0; }
+  footer { margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 8px; color: #94a3b8; font-size: 10px; }
+</style></head><body>
+<header><div class="marca">PET STATION · MI JORNADA</div><h1>${esc(titulo)}</h1><div class="sub">${esc(subtitulo)}</div></header>
+${markdownSimple(md)}
+<footer>Generado con inteligencia artificial a partir de los registros de Mi Jornada. Revisar las cifras en el Reporte antes de tomar decisiones.</footer>
+</body></html>`)
+  w.document.close()
+  w.focus()
+  setTimeout(() => w.print(), 300)
+}
+
+function fechaLarga(f) {
+  return new Date(f + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function pdfResumen() {
+  descargarPDF(`Resumen del día ${fechaIA.value}`, 'Resumen del día', `${fechaLarga(fechaIA.value)} · generado ${fechaHora(resumenIA.value.generadoEn)}`, resumenIA.value.texto)
+}
+
+function pdfAnalisis() {
+  const { desde, hasta, pregunta } = periodo.value
+  const sub = `Del ${fechaLarga(desde)} al ${fechaLarga(hasta)}` + (pregunta?.trim() ? ` · Pregunta: ${pregunta.trim()}` : '')
+  descargarPDF(`Análisis ${desde} a ${hasta}`, 'Análisis de un periodo', sub, analisis.value)
 }
 
 watch(vista, v => {
