@@ -371,6 +371,22 @@
     </div>
 
     <div v-if="vista === 'ia' && modoIA === 'dia'" class="space-y-4">
+      <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-2">
+        <p class="font-[1000] uppercase italic text-sm dark:text-white">📝 Contexto del día para la IA</p>
+        <p class="text-[10px] text-slate-400 dark:text-white/40">
+          Lo que tú sabes y el sistema no: permisos, calamidades, fallas de la app, alguien que cubrió a otro… La IA lo toma como cierto
+          y no lo marca como alerta. Escríbelo antes de las 10:45 p. m. o vuelve a generar el resumen después.
+        </p>
+        <textarea v-model="contextoIA" rows="3" maxlength="4000" :disabled="soloLectura" :class="inputClass" class="!text-sm resize-none"
+          placeholder="Ej: El Dr. llegó temprano, pero la app no estaba instalada a esa hora. Claudia se fue temprano por una calamidad doméstica y entre todos la cubrieron."></textarea>
+        <div v-if="!soloLectura" class="flex items-center gap-3">
+          <button @click="guardarContexto" :disabled="guardandoContexto"
+            class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-40">
+            {{ guardandoContexto ? 'Guardando...' : 'Guardar contexto' }}
+          </button>
+          <span v-if="contextoMsg" class="text-[10px] font-bold text-green-600 dark:text-green-400">{{ contextoMsg }}</span>
+        </div>
+      </div>
       <div class="flex flex-wrap items-center gap-3">
         <input type="date" v-model="fechaIA" @change="cargarResumenIA" :class="inputClass" class="!w-auto !py-2 !text-xs" />
         <button v-if="!soloLectura" @click="generarResumenIA" :disabled="generandoIA"
@@ -680,6 +696,7 @@
                 <span v-if="s.turno.minutosSalioAntes" class="text-amber-500"> · salió {{ s.turno.minutosSalioAntes }} min antes</span>
               </p>
               <p v-if="s.motivoExtra" class="text-[11px] font-bold text-purple-600 dark:text-purple-300">⏰ Motivo de horas extra: {{ s.motivoExtra }}</p>
+              <p v-if="s.motivoSalida" class="text-[11px] font-bold text-amber-600 dark:text-amber-300">🚪 Motivo de salir antes: {{ s.motivoSalida }}</p>
               <div v-for="(it, j) in s.linea" :key="j" class="flex items-center gap-3 rounded-xl px-4 py-2.5" :class="itemClase(it.tipo)">
                 <span class="text-[10px] font-bold tabular-nums w-24 shrink-0 opacity-70">{{ hora(it.inicio) }} – {{ hora(it.fin) }}</span>
                 <span class="flex-1 min-w-0 text-[12px] font-bold break-words">
@@ -773,6 +790,9 @@ const analisis = ref('')
 const analizando = ref(false)
 const errorAnalisis = ref('')
 const fechaIA = ref(fechaLocal(new Date()))
+const contextoIA = ref('')
+const guardandoContexto = ref(false)
+const contextoMsg = ref('')
 const resumenIA = ref(null)
 const cargandoIA = ref(false)
 const generandoIA = ref(false)
@@ -947,7 +967,31 @@ async function analizarPeriodo() {
   }
 }
 
+async function cargarContexto() {
+  contextoMsg.value = ''
+  try {
+    const { data } = await api.get('/admin/jornada/contexto', { params: { fecha: fechaIA.value } })
+    contextoIA.value = data.texto || ''
+  } catch {
+    contextoIA.value = ''
+  }
+}
+
+async function guardarContexto() {
+  guardandoContexto.value = true
+  try {
+    await api.put('/admin/jornada/contexto', { texto: contextoIA.value }, { params: { fecha: fechaIA.value } })
+    contextoMsg.value = resumenIA.value ? '✓ Guardado. Toca "Volver a generar" para que el resumen lo tenga en cuenta.' : '✓ Guardado'
+  } catch (e) {
+    contextoMsg.value = ''
+    alert(e.response?.data?.message || 'No se pudo guardar')
+  } finally {
+    guardandoContexto.value = false
+  }
+}
+
 async function cargarResumenIA() {
+  cargarContexto()
   cargandoIA.value = true
   errorIA.value = ''
   resumenIA.value = null

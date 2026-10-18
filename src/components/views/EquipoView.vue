@@ -296,6 +296,29 @@
       </Transition>
     </Teleport>
 
+    <!-- Motivo para terminar la jornada antes de su hora de salida -->
+    <Teleport to="body">
+      <div v-if="salida" class="fixed inset-0 z-[9002] flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="salida = null"></div>
+        <div class="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
+          <p class="text-[10px] font-black uppercase tracking-widest text-amber-300">🕐 Tu turno termina a las {{ salida.fin }}</p>
+          <p class="text-lg font-[1000] leading-tight">¿Por qué sales antes?</p>
+          <div class="flex flex-wrap gap-2">
+            <button v-for="m in MOTIVOS_SALIDA" :key="m" @click="salida.texto = salida.texto.trim() ? salida.texto : m + ': '"
+              class="text-[11px] font-bold rounded-full px-3 py-1.5 border bg-white/5 border-white/10 text-white/70">{{ m }}</button>
+          </div>
+          <textarea v-model="salida.texto" rows="3" maxlength="500" placeholder="Cuéntalo con detalle"
+            class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-amber-400 resize-none placeholder:text-white/20"></textarea>
+          <p v-if="salida.texto.trim().length < 10" class="text-[10px] text-white/30">Escribe al menos una frase.</p>
+          <div class="grid grid-cols-2 gap-3">
+            <button @click="salida = null" class="bg-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
+            <button @click="continuarSalida" :disabled="salida.texto.trim().length < 10 || enviando"
+              class="bg-amber-500 text-black py-4 rounded-2xl font-[1000] uppercase tracking-widest text-[10px] disabled:opacity-40">Continuar</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Explicación de un rato largo sin tarea (no cambia las horas) -->
     <Teleport to="body">
       <div v-if="hueco" class="fixed inset-0 z-[9002] flex items-end sm:items-center justify-center p-4">
@@ -502,6 +525,9 @@ const cierre = ref(null)
 
 const recepcion = ref(null)
 const hueco = ref(null)
+const salida = ref(null)
+const motivoSalida = ref('')
+const MOTIVOS_SALIDA = ['Calamidad doméstica', 'Cita médica', 'Permiso autorizado', 'Me pidieron salir antes']
 const explicacionHueco = ref('')
 const toast = ref('')
 const tarjetaTarea = ref(null)
@@ -617,6 +643,7 @@ function hora(iso) {
 }
 
 function aplicarEstado(data) {
+  if (!data?.sesion) motivoSalida.value = ''
   // Si ya no está en un rato sin tarea, la explicación pendiente ya se usó
   if (data?.sesion?.segundosHueco == null) explicacionHueco.value = ''
   estado.value = data
@@ -645,6 +672,7 @@ async function accion(url, body) {
     error.value = e.response?.data?.message || 'Algo falló, intenta de nuevo'
     // El servidor pide explicación (ej: el rato pasó de 1 h justo ahora): se abre la ventana y se reintenta
     if (e.response?.data?.codigo === 'EXPLICAR_HUECO') abrirHueco(null, e.response.data.desde)
+    if (e.response?.data?.codigo === 'EXPLICAR_SALIDA') abrirSalida(e.response.data.finTurno)
     return false
   } finally {
     enviando.value = false
@@ -840,18 +868,45 @@ function salirAlmuerzo() {
   if (confirm('¿Sales a almorzar? Tu tarea actual queda en pausa.')) accion('/jornada/almuerzo/salir')
 }
 
+// "15:00:00" → hoy a esa hora
+function horaTurno(t) {
+  if (!t) return null
+  const [h, m] = String(t).split(':').map(Number)
+  const d = new Date(); d.setHours(h, m, 0, 0)
+  return d
+}
+
+function abrirSalida(finTurno) {
+  const fin = horaTurno(finTurno || sesion.value?.turnoFin)
+  salida.value = { texto: '', fin: fin ? hora(fin) : '' }
+}
+
+function continuarSalida() {
+  motivoSalida.value = salida.value.texto.trim()
+  salida.value = null
+  error.value = ''
+  cerrarJornada()
+}
+
 function cerrarJornada() {
   if (pedirExplicacion(cerrarJornada)) return
+  // Antes de su hora de salida tiene que decir por qué (sin tolerancia)
+  const fin = horaTurno(sesion.value?.turnoFin)
+  if (fin && Date.now() < fin.getTime() - 59000 && !motivoSalida.value) {
+    abrirSalida()
+    return
+  }
   // Si se quedó más de su horario y no ha dicho por qué, se lo pide antes de cerrar
   if (enExtra.value && !sesion.value.motivoExtra && segExtra.value >= 300) {
     cierreJornada.value = true
     return
   }
-  if (confirm('¿Terminar tu jornada de hoy?')) accion('/jornada/cerrar', { explicacionHueco: explicacionHueco.value || undefined })
+  if (confirm('¿Terminar tu jornada de hoy?'))
+    accion('/jornada/cerrar', { explicacionHueco: explicacionHueco.value || undefined, motivoSalida: motivoSalida.value || undefined })
 }
 
 async function cerrarConMotivo() {
-  if (await accion('/jornada/cerrar', { motivoExtra: motivoExtra.value, explicacionHueco: explicacionHueco.value || undefined })) {
+  if (await accion('/jornada/cerrar', { motivoExtra: motivoExtra.value, explicacionHueco: explicacionHueco.value || undefined, motivoSalida: motivoSalida.value || undefined })) {
     cierreJornada.value = false
     motivoExtra.value = ''
   }
