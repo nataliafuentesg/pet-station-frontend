@@ -15,13 +15,15 @@
       <!-- Form -->
       <form @submit.prevent="handleLogin" class="space-y-4">
         <div class="space-y-1">
-          <label class="text-[9px] font-black uppercase text-white/40 ml-1 tracking-widest">Correo electrónico</label>
+          <label class="text-[9px] font-black uppercase text-white/40 ml-1 tracking-widest">Usuario</label>
           <input
             v-model="form.email"
-            type="email"
-            autocomplete="email"
+            type="text"
+            autocomplete="username"
             autocapitalize="none"
-            placeholder="correo@ejemplo.com"
+            autocorrect="off"
+            spellcheck="false"
+            placeholder="usuario o correo"
             class="w-full bg-white/5 border-2 border-white/10 focus:border-[#DE1F27] rounded-2xl px-5 py-4 text-white font-bold outline-none transition-all placeholder:text-white/20"
           />
         </div>
