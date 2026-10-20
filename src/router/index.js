@@ -56,12 +56,20 @@ const routes = [
       description: 'Expertos en certificados de viaje internacional, serología de rabia, microchips y permisos CDC/ICA para exportación de mascotas.'
     }
   },
-  { 
-    path: '/servicios/guarderia', 
+  {
+    path: '/servicios/guarderia',
     component: () => import('../components/views/GuarderiaView.vue'),
     meta: {
       title: 'Guardería Canina Campestre y Hotel en Chía | Pet Station',
       description: 'El mejor cuidado para tu perro mientras no estás. Zonas verdes, recreación dirigida y supervisión veterinaria constante.'
+    }
+  },
+  {
+    path: '/servicios/ortopedia',
+    component: () => import('../components/views/OrtopediaView.vue'),
+    meta: {
+      title: 'Ortopedia y Cirugía Veterinaria en Chía | Dr. Fontecha | Pet Station',
+      description: 'Especialista en ortopedia veterinaria en Chía. TPLO, TTA, prótesis de cadera y cirugía de columna. Dr. Pedro Fontecha Umaña, 20 años de experiencia internacional.'
     }
   },
   {

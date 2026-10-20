@@ -107,6 +107,26 @@
         </router-link>
       </div>
 
+      <!-- Ortopedia -->
+      <div class="grid grid-cols-1 gap-6" data-reveal>
+        <router-link to="/servicios/ortopedia"
+          class="reveal-child group flex items-center justify-between gap-6 bg-slate-50 dark:bg-white/5 rounded-[2rem] p-7 border border-slate-100 dark:border-white/10 hover:border-[#152C77] dark:hover:border-[#DE1F27] hover:shadow-lg transition-all duration-300" style="--cd:0">
+          <div class="space-y-2">
+            <span class="text-[8px] font-black uppercase text-[#152C77] dark:text-white/40 tracking-widest">TPLO · TTA · Prótesis de Cadera</span>
+            <h3 class="text-xl md:text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white leading-tight">
+              Ortopedia &<br />Traumatología
+            </h3>
+            <p class="text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] leading-relaxed max-w-md">
+              Dr. Pedro Fontecha Umaña · Especialista con 20 años de experiencia internacional. Cirugía avanzada de huesos, articulaciones y columna vertebral.
+            </p>
+            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase text-[#152C77] dark:text-white mt-2 group-hover:gap-3 transition-all">
+              Ver especialidad →
+            </span>
+          </div>
+          <div class="text-5xl shrink-0 group-hover:scale-110 transition-transform duration-300">🦴</div>
+        </router-link>
+      </div>
+
       <!-- CTA WhatsApp -->
       <div class="bg-[#DE1F27] rounded-[2.5rem] p-8 md:p-10 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-red-200/40 dark:shadow-red-900/20">
         <div>
