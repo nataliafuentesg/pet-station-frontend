@@ -110,12 +110,32 @@
         </div>
       </div>
 
+      <!-- FAQ SEO -->
+      <div class="mt-8 space-y-4" data-reveal>
+        <h2 class="text-xl md:text-2xl font-[1000] uppercase italic text-[#152C77] dark:text-white tracking-tighter px-1">
+          Preguntas Frecuentes
+        </h2>
+        <div v-for="(faq, i) in faqs" :key="faq.q"
+          class="reveal-child bg-slate-50 dark:bg-white/5 rounded-[1.5rem] border border-slate-100 dark:border-white/5 overflow-hidden"
+          :style="`--cd:${i}`">
+          <button
+            @click="faqAbierto = faqAbierto === i ? null : i"
+            class="w-full flex items-center justify-between gap-4 p-6 text-left">
+            <span class="text-xs font-[1000] uppercase italic text-[#152C77] dark:text-white leading-snug">{{ faq.q }}</span>
+            <span class="text-[#DE1F27] font-black text-lg shrink-0 transition-transform" :class="faqAbierto === i ? 'rotate-45' : ''">+</span>
+          </button>
+          <div v-if="faqAbierto === i" class="px-6 pb-6">
+            <p class="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 leading-relaxed">{{ faq.a }}</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
 import { useWaTracking } from '@/composables/useWaTracking';
@@ -126,27 +146,84 @@ import { useJsonLd } from '@/composables/useJsonLd';
 const router = useRouter();
 const { trackViewService } = useTracking();
 const { trackView, trackWaClick } = useWaTracking();
+const faqAbierto = ref(null);
 
 onMounted(() => {
   trackViewService('Ortopedia');
   trackView('servicio', 'Ortopedia', '/servicios/ortopedia');
   useReveal();
+
   useJsonLd({
     '@context': 'https://schema.org',
-    '@type': 'MedicalSpecialty',
+    '@type': 'MedicalClinic',
     name: 'Ortopedia y Traumatología Veterinaria — Pet Station Chía',
-    description: 'Cirugía ortopédica y traumatológica para perros y gatos en Chía. TPLO, TTA, prótesis de cadera y fijadores externos. Dr. Pedro Fontecha Umaña, especialista con 20 años de experiencia internacional.',
+    description: 'Cirujano ortopedista veterinario en Chía y Bogotá. TPLO para ligamento cruzado roto en perros, TTA, prótesis de cadera por displasia, fijadores externos para fracturas y cirugía de columna vertebral en perros y gatos. Dr. Pedro Fontecha Umaña, +20 años de experiencia internacional.',
     url: 'https://petstationvet.com/servicios/ortopedia',
-    provider: {
+    telephone: '+573053462413',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Chía',
+      addressRegion: 'Cundinamarca',
+      addressCountry: 'CO'
+    },
+    areaServed: [
+      { '@type': 'City', name: 'Chía' },
+      { '@type': 'City', name: 'Bogotá' },
+      { '@type': 'AdministrativeArea', name: 'Cundinamarca' }
+    ],
+    medicalSpecialty: 'Orthopedic Surgery',
+    availableService: [
+      { '@type': 'MedicalProcedure', name: 'TPLO — Tibial Plateau Leveling Osteotomy', procedureType: 'Surgical' },
+      { '@type': 'MedicalProcedure', name: 'TTA — Tibial Tuberosity Advancement', procedureType: 'Surgical' },
+      { '@type': 'MedicalProcedure', name: 'Prótesis total de cadera veterinaria', procedureType: 'Surgical' },
+      { '@type': 'MedicalProcedure', name: 'Fijadores externos para fracturas', procedureType: 'Surgical' },
+      { '@type': 'MedicalProcedure', name: 'Cirugía de columna vertebral en pequeños animales', procedureType: 'Surgical' },
+      { '@type': 'MedicalProcedure', name: 'Láser terapéutico y rehabilitación post-quirúrgica', procedureType: 'Therapeutic' }
+    ],
+    physician: {
       '@type': 'Physician',
       name: 'Dr. Pedro Fontecha Umaña',
-      medicalSpecialty: 'Orthopedic Surgery',
-      alumniOf: { '@type': 'CollegeOrUniversity', name: 'Universidad Autónoma de Barcelona' }
+      honorificPrefix: 'Dr.',
+      description: 'Doctor en Veterinaria. Especialista en Ortopedia y Traumatología. Más de 20 años de experiencia internacional en cirugía veterinaria, ortopedia y traumatología.',
+      alumniOf: { '@type': 'CollegeOrUniversity', name: 'Universidad Autónoma de Barcelona' },
+      affiliation: { '@type': 'Organization', name: 'Pet Station — Chía, Colombia' },
+      knowsAbout: ['TPLO', 'TTA', 'cirugía de ligamento cruzado en perros', 'displasia de cadera veterinaria', 'prótesis cadera perros', 'cirugía de columna vertebral veterinaria', 'fracturas en perros y gatos', 'ortopedia veterinaria Colombia']
+    },
+    mainEntityOfPage: {
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: '¿Qué es el TPLO y cuándo lo necesita mi perro?',
+          acceptedAnswer: { '@type': 'Answer', text: 'El TPLO (Tibial Plateau Leveling Osteotomy) es la cirugía gold-standard para la rotura del ligamento cruzado craneal en perros. Es necesario cuando el perro cojea, no apoya la pata trasera o se le inflamó la rodilla. Sin cirugía, la articulación sigue deteriorándose.' }
+        },
+        {
+          '@type': 'Question',
+          name: '¿Qué diferencia hay entre TPLO y TTA?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Ambas corrigen la rotura del ligamento cruzado craneal. El TPLO modifica el ángulo del platillo tibial; la TTA avanza la tuberosidad tibial. El especialista recomienda la técnica según el tamaño, raza, ángulo tibial y actividad del perro.' }
+        },
+        {
+          '@type': 'Question',
+          name: '¿Tiene solución la displasia de cadera en perros?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Sí. Dependiendo del grado, puede manejarse con analgesia y fisioterapia, o con cirugía: desde la triple osteotomía pélvica hasta la prótesis total de cadera. El Dr. Fontecha tiene formación específica en Total Hip Replacement.' }
+        },
+        {
+          '@type': 'Question',
+          name: '¿Mi perro se fracturó una pata, necesita cirugía?',
+          acceptedAnswer: { '@type': 'Answer', text: 'La mayoría de las fracturas en perros y gatos requieren estabilización quirúrgica con placas bloqueadas, agujas intramedulares o fijadores externos. La consulta de urgencia determina el tratamiento según el tipo de fractura y el estado del paciente.' }
+        },
+        {
+          '@type': 'Question',
+          name: '¿Dónde puedo encontrar un cirujano ortopedista veterinario en Bogotá o Chía?',
+          acceptedAnswer: { '@type': 'Answer', text: 'Pet Station Chía cuenta con el Dr. Pedro Fontecha Umaña, especialista en ortopedia y traumatología veterinaria con más de 20 años de experiencia internacional. Atiende en Chía, a pocos minutos de Bogotá por la Autopista Norte.' }
+        }
+      ]
     }
   });
+
   useSeo({
-    titulo: 'Ortopedia y Cirugía Veterinaria en Chía | Dr. Fontecha | Pet Station',
-    descripcion: 'Especialista en ortopedia veterinaria en Chía. TPLO, TTA, prótesis de cadera y cirugía de columna para perros y gatos. Dr. Pedro Fontecha, 20 años de experiencia.',
+    titulo: 'Cirujano Ortopedista Veterinario en Chía · TPLO, TTA, Displasia | Pet Station',
+    descripcion: '¿Tu perro tiene el ligamento cruzado roto o displasia de cadera? Dr. Pedro Fontecha — especialista en TPLO, TTA y prótesis de cadera. Ortopedia veterinaria en Chía, Bogotá y Cundinamarca.',
     url: 'https://petstationvet.com/servicios/ortopedia'
   });
 });
@@ -217,5 +294,32 @@ const trayectoria = [
   { titulo: 'Workshops TPLO / TTA', detalle: 'Barcelona · Total Hip Replacement, Alemania' },
   { titulo: 'SEVC Barcelona', detalle: 'Múltiples participaciones como ponente' },
   { titulo: 'Investigación', detalle: 'Biomateriales aplicados a ortopedia veterinaria' }
+];
+
+const faqs = [
+  {
+    q: '¿Qué es el TPLO y cuándo lo necesita mi perro?',
+    a: 'El TPLO (Tibial Plateau Leveling Osteotomy) es la cirugía gold-standard para la rotura del ligamento cruzado craneal, la lesión ortopédica más común en perros. Es necesario cuando el perro cojea de una pata trasera, no apoya bien o tiene la rodilla inflamada. Sin tratamiento quirúrgico la articulación continúa deteriorándose y puede generar artrosis severa.'
+  },
+  {
+    q: '¿Cuál es la diferencia entre TPLO y TTA?',
+    a: 'Ambas técnicas corrigen la rotura del ligamento cruzado craneal pero por mecanismos distintos. El TPLO modifica el ángulo del platillo tibial; la TTA avanza la tuberosidad tibial. El especialista recomienda la técnica según el tamaño del perro, la raza, el ángulo tibial individual y el nivel de actividad. Ambas tienen excelentes resultados y alta tasa de retorno a la actividad normal.'
+  },
+  {
+    q: '¿Tiene solución la displasia de cadera en perros?',
+    a: 'Sí. Según el grado de displasia y la edad del paciente, existen opciones desde manejo médico (analgesia, fisioterapia, suplementación) hasta cirugía: triple osteotomía pélvica en cachorro o prótesis total de cadera en adultos. El Dr. Fontecha tiene formación específica en Total Hip Replacement y evalúa cada caso con radiografías para recomendar el mejor camino.'
+  },
+  {
+    q: '¿Mi perro o gato se fracturó una pata, necesita cirugía?',
+    a: 'La mayoría de las fracturas en perros y gatos se estabilizan quirúrgicamente con placas bloqueadas, agujas intramedulares K o fijadores externos, dependiendo del tipo de fractura, el hueso afectado y el tamaño del paciente. La consulta de urgencia incluye radiografías para determinar el tratamiento más adecuado.'
+  },
+  {
+    q: '¿Pueden operarse los perros de hernia discal o problemas de columna?',
+    a: 'Sí. Enfermedades como la IVDD (hernia de disco intervertebral), la estenosis espinal y las fracturas vertebrales tienen tratamiento quirúrgico. La cirugía de columna en perros y gatos requiere un especialista: el Dr. Fontecha tiene formación específica en cirugía de columna en pequeños animales.'
+  },
+  {
+    q: '¿Dónde atiende el especialista en ortopedia veterinaria?',
+    a: 'El Dr. Pedro Fontecha Umaña atiende en Pet Station, ubicada en Chía, Cundinamarca — a pocos minutos de Bogotá por la Autopista Norte. Escríbenos por WhatsApp para agendar la consulta ortopédica.'
+  }
 ];
 </script>

@@ -68,8 +68,8 @@ const routes = [
     path: '/servicios/ortopedia',
     component: () => import('../components/views/OrtopediaView.vue'),
     meta: {
-      title: 'Ortopedia y Cirugía Veterinaria en Chía | Dr. Fontecha | Pet Station',
-      description: 'Especialista en ortopedia veterinaria en Chía. TPLO, TTA, prótesis de cadera y cirugía de columna. Dr. Pedro Fontecha Umaña, 20 años de experiencia internacional.'
+      title: 'Cirujano Ortopedista Veterinario en Chía · TPLO, TTA, Displasia | Pet Station',
+      description: '¿Tu perro tiene el ligamento cruzado roto o displasia de cadera? Dr. Pedro Fontecha — especialista en TPLO, TTA y prótesis de cadera. Ortopedia veterinaria en Chía, Bogotá y Cundinamarca.'
     }
   },
   {
