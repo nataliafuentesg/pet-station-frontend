@@ -144,7 +144,7 @@ const modalidades = [
 const infoExtra = [
   { t: "Cámaras 24/7", icon: "📹" },
   { t: "Reportes Video", icon: "📱" },
-  { t: "Sin Jaulas", icon: "🏘️" },
+  { t: "Vet 24/7", icon: "🩺" },
   { t: "Zonas Verdes", icon: "🍃" }
 ];
 
