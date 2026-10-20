@@ -108,7 +108,7 @@ onMounted(() => {
       name: 'Modalidades de Guardería',
       itemListElement: [
         { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Pasa Día Canino', description: 'Socialización y juego durante la jornada diurna. Ideal para perros que pasan solos el día.' } },
-        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Hotel Canino', description: 'Alojamiento seguro con monitoreo profesional nocturno y áreas de descanso higienizadas.' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Hotel Canino', description: 'Alojamiento seguro con monitoreo profesional nocturno y áreas de descanso.' } },
         { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Internado Médico y Conductual', description: 'Cuidado especializado para mascotas que requieren adiestramiento o recuperación bajo vigilancia médica.' } },
       ]
     }
@@ -129,7 +129,7 @@ const modalidades = [
   },
   { 
     t: "Hotel", 
-    d: "Alojamiento seguro con monitoreo profesional nocturno y áreas de descanso higienizadas.", 
+    d: "Alojamiento seguro con monitoreo profesional nocturno y áreas de descanso.", 
     icon: "🏨",
     tags: ["Pernoctación", "Confort", "24/7"]
   },

@@ -97,7 +97,7 @@
               Guardería<br />& Hotel
             </h3>
             <p class="text-green-700/60 dark:text-green-400/60 font-bold uppercase text-[10px] leading-relaxed max-w-xs">
-              Pasa día, pernoctación y cuidado médico. Zonas verdes, cámaras y sin jaulas.
+              Pasa día, pernoctación y cuidado médico. Zonas verdes, cámaras y supervisión veterinaria 24/7.
             </p>
             <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase text-green-700 dark:text-green-400 mt-2 group-hover:gap-3 transition-all">
               Ver instalaciones →
