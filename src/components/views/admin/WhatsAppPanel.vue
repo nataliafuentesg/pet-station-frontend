@@ -143,11 +143,27 @@
               class="wa-btn-action bg-[#152c77] hover:bg-[#0c1a3a]">
               👤 Tomar
             </button>
-            <button v-else @click="resolver"
-              class="wa-btn-action bg-[#de1f27] hover:bg-[#b01920]">
-              ✅ Resolver
-            </button>
+            <template v-else>
+              <button @click="devolverIA"
+                class="wa-btn-action bg-purple-700 hover:bg-purple-900">
+                🤖 Devolver a IA
+              </button>
+              <button @click="resolver"
+                class="wa-btn-action bg-[#de1f27] hover:bg-[#b01920]">
+                ✅ Resolver
+              </button>
+            </template>
           </div>
+        </div>
+
+        <!-- Banner Meta AI -->
+        <div v-if="conversacionActual.metaAiActivo && conversacionActual.modo === 'BOT'"
+          class="mx-4 mt-3 px-4 py-2 rounded-xl bg-purple-900/40 border border-purple-500/30 text-purple-200 text-xs font-bold flex items-center gap-2">
+          🤖 Meta AI está manejando esta conversación. Los mensajes del cliente se guardan aquí pero las respuestas del agente solo se ven en WhatsApp Business.
+        </div>
+        <div v-if="conversacionActual.metaAiActivo && conversacionActual.modo === 'HUMAN'"
+          class="mx-4 mt-3 px-4 py-2 rounded-xl bg-yellow-900/40 border border-yellow-500/30 text-yellow-200 text-xs font-bold flex items-center gap-2">
+          ⚠️ Meta AI manejó esta conversación antes de que tomaras control. Revisa el historial en WhatsApp Business para ver las respuestas del agente.
         </div>
 
         <!-- Botón "ir al final" -->
@@ -341,10 +357,19 @@ async function tomarControl() {
 }
 
 async function resolver() {
-  if (!confirm('¿Devolver al bot esta conversación?')) return;
+  if (!confirm('¿Marcar como resuelta y devolver al bot?')) return;
   await api.post(`/admin/wa/conversaciones/${conversacionActual.value.telefono}/resolver`);
   conversacionActual.value.modo = 'BOT';
   conversacionActual.value.asesor = null;
+  conversacionActual.value.metaAiActivo = false;
+}
+
+async function devolverIA() {
+  if (!confirm('¿Devolver esta conversación a Meta AI?')) return;
+  await api.post(`/admin/wa/conversaciones/${conversacionActual.value.telefono}/devolverIA`);
+  conversacionActual.value.modo = 'BOT';
+  conversacionActual.value.asesor = null;
+  conversacionActual.value.metaAiActivo = true;
 }
 
 async function enviar() {
