@@ -79,14 +79,14 @@
               <span class="text-[#DE1F27] font-black uppercase text-[9px] italic tracking-widest">Talla seleccionada</span>
               <h3 class="text-3xl md:text-5xl font-[1000] uppercase italic leading-none">{{ seleccionada.talla }}</h3>
               <p class="text-white/60 text-[9px] font-bold uppercase tracking-wide leading-relaxed">
-                Baño profundo · Corte de uñas · Limpieza de oídos · Perfume premium
+                {{ seleccionada.incluye }}
               </p>
             </div>
 
             <!-- Precios "Desde" -->
             <div class="flex justify-center gap-8 border-y md:border-y-0 md:border-x border-white/10 py-6 md:py-0 w-full">
               <div class="text-center">
-                <p class="text-[8px] font-black uppercase text-[#DE1F27] tracking-widest mb-1">Baño · Desde</p>
+                <p class="text-[8px] font-black uppercase text-[#DE1F27] tracking-widest mb-1">{{ seleccionada.servicio }} · Desde</p>
                 <p class="text-2xl md:text-4xl font-[1000] tracking-tighter">${{ seleccionada.bano }}</p>
                 <p class="text-[7px] text-white/40 font-bold uppercase mt-1">precio base</p>
               </div>
@@ -169,13 +169,17 @@ import { useSeo } from '@/composables/useSeo';
 
 const router = useRouter();
 const { trackViewService, trackSelectTalla, trackClickAgendarCita } = useTracking();
+const { trackView } = useWaTracking();
+
+const INCLUYE_PERRO = 'Baño profundo · Corte de uñas · Limpieza de oídos · Corte higiénico · Perfume premium · Drenaje de glándulas si es necesario';
+const INCLUYE_GATO  = 'Desengrase del pelo · Corte de uñas · Limpieza de oídos · Corte higiénico';
 
 const preciosPeluqueria = [
-  { talla: 'Gatos',   icono: '🐱', ejemplo: 'Persa, Criollo',       bano: '90.500',  corte: 'N/A'     },
-  { talla: 'Mini',    icono: '🐶', ejemplo: 'Yorkie, Maltés',       bano: '90.500',  corte: '147.700' },
-  { talla: 'Mediano', icono: '🐕', ejemplo: 'Beagle, Cocker',       bano: '119.700', corte: '147.700' },
-  { talla: 'Grande',  icono: '🐩', ejemplo: 'Golden, Husky',        bano: '188.500', corte: 'N/A'     },
-  { talla: 'Gigante', icono: '🦁', ejemplo: 'Gran Danés, Bernés',   bano: '188.500', corte: 'N/A'     },
+  { talla: 'Gatos',   icono: '🐱', ejemplo: 'Persa, Criollo',       servicio: 'Grooming', incluye: INCLUYE_GATO,  bano: '90.500',  corte: 'N/A'     },
+  { talla: 'Mini',    icono: '🐶', ejemplo: 'Yorkie, Maltés',       servicio: 'Baño',     incluye: INCLUYE_PERRO, bano: '90.500',  corte: '147.700' },
+  { talla: 'Mediano', icono: '🐕', ejemplo: 'Beagle, Cocker',       servicio: 'Baño',     incluye: INCLUYE_PERRO, bano: '119.700', corte: '147.700' },
+  { talla: 'Grande',  icono: '🐩', ejemplo: 'Golden, Husky',        servicio: 'Baño',     incluye: INCLUYE_PERRO, bano: '188.500', corte: 'N/A'     },
+  { talla: 'Gigante', icono: '🦁', ejemplo: 'Gran Danés, Bernés',   servicio: 'Baño',     incluye: INCLUYE_PERRO, bano: '188.500', corte: 'N/A'     },
 ];
 
 const seleccionada = ref(preciosPeluqueria[1]);
@@ -231,7 +235,7 @@ onMounted(() => {
     '@context': 'https://schema.org',
     '@type': 'Service',
     name: 'Peluquería Canina y Felina — Pet Station Chía',
-    description: 'Servicio de peluquería para perros y gatos en Chía: baño medicado, corte, limpieza de oídos, corte de uñas y perfume. Precios desde $90.500.',
+    description: 'Servicio de peluquería para perros y gatos en Chía: baño, corte, limpieza de oídos, corte de uñas, corte higiénico y perfume para perros; grooming (desengrase) para gatos. Precios desde $90.500.',
     url: 'https://petstationvet.com/servicios/peluqueria',
     provider: { '@type': 'LocalBusiness', name: 'Pet Station', telephone: '+573053462413', address: { '@type': 'PostalAddress', addressLocality: 'Chía', addressRegion: 'Cundinamarca', addressCountry: 'CO' } },
     areaServed: { '@type': 'City', name: 'Chía' },
