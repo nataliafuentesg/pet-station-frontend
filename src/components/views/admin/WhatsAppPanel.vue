@@ -163,7 +163,7 @@
         </div>
         <div v-if="conversacionActual.metaAiActivo && conversacionActual.modo === 'HUMAN'"
           class="mx-4 mt-3 px-4 py-2 rounded-xl bg-yellow-900/40 border border-yellow-500/30 text-yellow-200 text-xs font-bold flex items-center gap-2">
-          ⚠️ Meta AI manejó esta conversación antes de que tomaras control. Revisa el historial en WhatsApp Business para ver las respuestas del agente.
+          ⚠️ Meta AI atendió esta conversación antes de que tomaras control. Las respuestas del agente no se pueden capturar por limitación de Meta.
         </div>
 
         <!-- Botón "ir al final" -->
