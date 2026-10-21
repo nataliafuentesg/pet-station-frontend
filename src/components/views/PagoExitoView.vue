@@ -27,12 +27,6 @@
             </p>
           </div>
           <div class="flex items-start gap-3">
-            <span class="text-lg shrink-0">🚚</span>
-            <p class="text-[11px] font-bold text-slate-600 dark:text-slate-400">
-              Tu pedido será entregado en la <strong class="text-[#152C77] dark:text-white">franja que elegiste</strong>. Te escribimos al WhatsApp antes de salir.
-            </p>
-          </div>
-          <div class="flex items-start gap-3">
             <span class="text-lg shrink-0">💬</span>
             <p class="text-[11px] font-bold text-slate-600 dark:text-slate-400">
               Te contactaremos por WhatsApp para coordinar la entrega.

@@ -55,9 +55,9 @@
           <p class="text-[8px] font-bold text-slate-400">Mínimo ${{ configStore.pedidoMinimo.toLocaleString() }} · Se coordina por WhatsApp</p>
         </div>
         <div>
-          <p class="text-lg">📅</p>
-          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">{{ mensajeEntrega }}</p>
-          <p class="text-[8px] font-bold text-slate-400">sin domicilios domingos ni festivos</p>
+          <p class="text-lg">💬</p>
+          <p class="text-[9px] font-black uppercase text-[#152C77] dark:text-white">Te contactamos por WhatsApp</p>
+          <p class="text-[8px] font-bold text-slate-400">para coordinar la entrega</p>
         </div>
       </div>
 
@@ -216,7 +216,7 @@
                 <div class="flex items-center gap-3 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 rounded-xl px-4 py-3">
                   <span class="text-xl shrink-0">💬</span>
                   <p class="text-[10px] font-bold uppercase text-green-800 dark:text-green-400 leading-relaxed">
-                    Te contactamos por WhatsApp para coordinar el horario de entrega una vez confirmado el pedido.
+                    Te contactamos por WhatsApp para coordinar la entrega.
                   </p>
                 </div>
               </div>
@@ -402,102 +402,6 @@ const barrioLibre = ref('');
 const ciudadEnvio = ref('');
 const deptoEnvio  = ref('');
 
-// Festivos Colombia 2025-2026 (Ley Emiliani) — respaldo si el back no responde
-const FESTIVOS_LOCAL = new Set([
-  '2025-08-07','2025-08-18','2025-10-13','2025-11-03','2025-11-17',
-  '2025-12-08','2025-12-25','2026-01-01','2026-01-12','2026-03-23',
-  '2026-04-02','2026-04-03','2026-05-01','2026-05-18','2026-06-08',
-  '2026-06-29','2026-07-20','2026-08-07','2026-08-17','2026-10-12',
-  '2026-11-02','2026-11-16','2026-12-08','2026-12-25',
-]);
-
-const esDiaHabilLocal = (d) => {
-  const iso = d.toISOString().split('T')[0];
-  return d.getDay() !== 0 && !FESTIVOS_LOCAL.has(iso);
-};
-
-const calcularFechaEntrega = () => {
-  const ahora = new Date();
-  const corte = new Date(ahora); corte.setHours(14, 0, 0, 0);
-  const d = new Date(ahora);
-  if (ahora >= corte) { d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); }
-  while (!esDiaHabilLocal(d)) d.setDate(d.getDate() + 1);
-  return d;
-};
-
-// El mensaje de entrega lo dicta el BACK (incluye festivos colombianos).
-// Si la llamada falla, usamos el cálculo local como respaldo (salta domingos y festivos).
-const mensajeEntrega = ref('Calculando entrega...');
-
-const mensajeEntregaLocal = () => {
-  const entrega = calcularFechaEntrega();
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const manana = new Date(hoy); manana.setDate(hoy.getDate() + 1);
-  entrega.setHours(0,0,0,0);
-  if (entrega.getTime() === hoy.getTime()) return 'Entrega HOY en la tarde';
-  if (entrega.getTime() === manana.getTime()) return 'Entrega MAÑANA';
-  const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-  const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-  return `Entrega el ${dias[entrega.getDay()]} ${entrega.getDate()} ${meses[entrega.getMonth()]}`;
-};
-
-
-// Cupos de domicilio
-const cargandoCupos = ref(false);
-const cuposData = ref([]);
-const _hoyBogota = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-const hoyStr = `${_hoyBogota.getFullYear()}-${String(_hoyBogota.getMonth()+1).padStart(2,'0')}-${String(_hoyBogota.getDate()).padStart(2,'0')}`;
-
-// Fecha del próximo día hábil para entregas (respeta corte 2pm y festivos)
-const fechaFallback = () => {
-  const ahora = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
-  const d = new Date(ahora);
-  if (ahora.getHours() >= 14) { d.setDate(d.getDate() + 1); }
-  while (!esDiaHabilLocal(d)) d.setDate(d.getDate() + 1);
-  return d.toISOString().split('T')[0];
-};
-
-const franjasDisponibles = computed(() => {
-  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-
-  if (!cuposData.value.length) return [];
-
-  return cuposData.value
-    .map(c => {
-      const d = new Date(c.fecha + 'T12:00:00');
-      const fechaLabel = c.fecha === hoyStr ? 'Hoy' : `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
-      return {
-        key: `${c.fecha}|${c.franja}`,
-        fecha: c.fecha,
-        fechaLabel,
-        emoji: c.franja === 'MANANA' ? '🌅' : '🌇',
-        label: c.franja === 'MANANA' ? 'Mañana' : 'Tarde',
-        hora: c.franja === 'MANANA' ? '8am – 12pm' : '12pm – 6pm',
-        disponibles: c.disponibles,
-        lleno: c.lleno,
-      };
-    });
-});
-
-const cargarCupos = async () => {
-  cargandoCupos.value = true;
-  try {
-    // El backend ya filtra: domingos, festivos y corte 2pm hora Bogotá.
-    // El frontend solo pinta lo que recibe.
-    const { data } = await api.get('/domicilios/cupos/disponibilidad');
-    cuposData.value = data;
-  } catch {
-    // Fallback: calcular el próximo día hábil correctamente (respeta corte 2pm)
-    const fecha = fechaFallback();
-    cuposData.value = [
-      { franja: 'MANANA', fecha, disponibles: 10, lleno: false },
-      { franja: 'TARDE',  fecha, disponibles: 10, lleno: false },
-    ];
-  } finally {
-    cargandoCupos.value = false;
-  }
-};
 
 const form = reactive({
   nombre: '',
@@ -506,14 +410,13 @@ const form = reactive({
   email: '',
   emailConfirm: '',
   zona: '',
-  franja: '',
   quiereFactura: false,
   factCedula: '',
   factNombre: '',
   factEmail: '',
 });
 
-const errores = reactive({ nombre: '', telefono: '', direccion: '', email: '', emailConfirm: '', zona: '', franja: '', factCedula: '', factNombre: '', factEmail: '' });
+const errores = reactive({ nombre: '', telefono: '', direccion: '', email: '', emailConfirm: '', zona: '', factCedula: '', factNombre: '', factEmail: '' });
 
 // Pre-llena el formulario con los datos del usuario logueado (editable)
 const prellenarDatos = () => {
@@ -579,13 +482,6 @@ onMounted(async () => {
 
   trackInicioCheckout(cartStore.totalPrice, cartStore.items.length);
   prellenarDatos();
-  cargarCupos();
-  try {
-    const { data } = await api.get('/pedidos/info-entrega');
-    mensajeEntrega.value = data.mensajeEntrega || mensajeEntregaLocal();
-  } catch (e) {
-    mensajeEntrega.value = mensajeEntregaLocal();
-  }
 });
 
 const validar = () => {
@@ -595,7 +491,6 @@ const validar = () => {
   errores.email = '';
   errores.emailConfirm = '';
   errores.zona = '';
-  errores.franja = '';
   errores.factCedula = '';
   errores.factNombre = '';
   errores.factEmail = '';
@@ -690,7 +585,6 @@ const procesarCompra = async () => {
       direccion: tipoEntrega.value === 'PICKUP' ? 'RECOGE EN TIENDA' : form.direccion.trim(),
       email: form.email.trim() || null,
       zona: tipoEntrega.value === 'PICKUP' ? 'PICKUP' : (form.zona.trim() || null),
-      franjaEntrega: tipoEntrega.value === 'DOMICILIO' ? (form.franja ? form.franja.split('|')[1] : null) : null,
       tipoEntrega: tipoEntrega.value,
       fbp: getCookie('_fbp'),
       fbc: getCookie('_fbc'),
