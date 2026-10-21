@@ -89,7 +89,7 @@
         </div>
         <div>
           <p class="text-lg">⏰</p>
-          <p class="text-[9px] font-black uppercase text-[#DE1F27]">Lun–Sáb · 8am a 6pm</p>
+          <p class="text-[9px] font-black uppercase text-[#DE1F27]">Lun–Sáb · 9am a 7pm</p>
           <p class="text-[8px] font-bold text-slate-400">Vía Guaymaral 2km, Chía</p>
         </div>
         <div>
@@ -205,8 +205,8 @@
                 <p class="text-[10px] font-black uppercase text-[#DE1F27] tracking-widest">📍 Punto de recogida</p>
                 <p class="text-sm font-bold text-slate-700 dark:text-white">Vía Guaymaral 2km — Variante Chía-Cota, Vereda La Balsa</p>
                 <div class="grid grid-cols-2 gap-2 text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase">
-                  <span>⏰ Lun–Vie: 8am – 6pm</span>
-                  <span>⏰ Sábado: 9am – 4pm</span>
+                  <span>⏰ Lun–Sáb: 9am – 7pm</span>
+                  <span>⏰ Dom–Fest: 10am – 3pm (puerta cerrada)</span>
                 </div>
                 <p class="text-[9px] font-bold text-slate-400 uppercase">Presenta tu código de pedido al llegar · Sin domicilio en este modo</p>
               </div>

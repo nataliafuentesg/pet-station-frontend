@@ -76,7 +76,7 @@
               <li><span class="text-[#DE1F27] font-black">02.</span> Envíanos una foto del producto y del empaque para verificar el estado antes de la visita.</li>
               <li><span class="text-[#DE1F27] font-black">03.</span> <strong>Las devoluciones se hacen de forma presencial en nuestra tienda</strong> — el cliente lleva el producto, se revisa en el momento y se gestiona el cambio o reembolso ahí mismo.</li>
             </ol>
-            <p class="mt-4 text-[9px] opacity-60">📍 Vía Guaymaral, 2km antes Variante Chía - Cota · Lunes a viernes 8am–6pm · Sábados 8am–2pm</p>
+            <p class="mt-4 text-[9px] opacity-60">📍 Vía Guaymaral, 2km antes Variante Chía - Cota · Lunes a sábado 9am–7pm · Domingos y festivos 10am–3pm (atención a puerta cerrada)</p>
           </div>
 
         </div>

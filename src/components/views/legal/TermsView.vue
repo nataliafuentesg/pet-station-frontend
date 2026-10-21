@@ -104,7 +104,7 @@
             <p><strong>Pet Station S.A.S.</strong> — Vía Guaymaral, 2km antes Variante Chía-Cota, Vereda La Balsa, Chía</p>
             <p><strong>Correo:</strong> community.manager@petstationvet.com</p>
             <p><strong>WhatsApp:</strong> +57 305 346 2413</p>
-            <p><strong>Horario:</strong> Lunes a sábado 8am – 6pm</p>
+            <p><strong>Horario:</strong> Lunes a sábado 9am – 7pm · Domingos y festivos 10am – 3pm (atención a puerta cerrada)</p>
           </div>
         </section>
 
