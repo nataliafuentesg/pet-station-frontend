@@ -9,8 +9,8 @@
           <span class="font-bold text-sm text-white">Pet Station</span>
         </div>
         <div class="flex gap-2">
-          <span v-if="stats.sinLeer > 0" class="bg-[#de1f27] text-white text-[10px] font-black px-2 py-0.5 rounded-full">
-            {{ stats.sinLeer }}
+          <span v-if="totalSinLeer > 0" class="bg-[#de1f27] text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+            {{ totalSinLeer }}
           </span>
           <button @click="cargarConversaciones" title="Actualizar" class="text-white/60 hover:text-white">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -156,16 +156,6 @@
           </div>
         </div>
 
-        <!-- Banner Meta AI -->
-        <div v-if="conversacionActual.metaAiActivo && conversacionActual.modo === 'BOT'"
-          class="mx-4 mt-3 px-4 py-2 rounded-xl bg-purple-900/40 border border-purple-500/30 text-purple-200 text-xs font-bold flex items-center gap-2">
-          🤖 Meta AI está manejando esta conversación. Los mensajes del cliente se guardan aquí pero las respuestas del agente solo se ven en WhatsApp Business.
-        </div>
-        <div v-if="conversacionActual.metaAiActivo && conversacionActual.modo === 'HUMAN'"
-          class="mx-4 mt-3 px-4 py-2 rounded-xl bg-yellow-900/40 border border-yellow-500/30 text-yellow-200 text-xs font-bold flex items-center gap-2">
-          ⚠️ Meta AI atendió esta conversación antes de que tomaras control. Las respuestas del agente no se pueden capturar por limitación de Meta.
-        </div>
-
         <!-- Botón "ir al final" -->
         <button v-if="!atBottom" @click="scrollAbajo(true)"
           class="wa-scroll-bottom">
@@ -293,7 +283,7 @@ const imagenModal = ref(null);
 const sidebarOpen = ref(true);
 const perfilAbierto = ref(false);
 const atBottom = ref(true);
-const stats = ref({ total: 0, ventanaAbierta: 0, enHumano: 0, sinLeer: 0 });
+const totalSinLeer = computed(() => conversaciones.value.reduce((n, c) => n + (c.sinLeer || 0), 0));
 
 const fotosCompartidas = computed(() =>
   mensajes.value.filter(m => m.tipo === 'image').slice(-18)
@@ -319,13 +309,15 @@ async function cargarConversaciones() {
   // Actualizar la conversación activa si está abierta
   if (conversacionActual.value) {
     const actualizada = data.find(c => c.telefono === conversacionActual.value.telefono);
-    if (actualizada) conversacionActual.value = actualizada;
+    if (actualizada) {
+      conversacionActual.value = actualizada;
+      // Si el chat está abierto en pantalla, lo que llegue ya se está leyendo
+      if (actualizada.sinLeer > 0 && document.visibilityState === 'visible') {
+        actualizada.sinLeer = 0;
+        api.post(`/admin/wa/conversaciones/${actualizada.telefono}/leer`).catch(() => {});
+      }
+    }
   }
-}
-
-async function cargarStats() {
-  const { data } = await api.get('/admin/wa/stats');
-  stats.value = data;
 }
 
 async function abrirConversacion(conv) {
@@ -367,7 +359,7 @@ async function resolver() {
 }
 
 async function devolverIA() {
-  if (!confirm('¿Devolver esta conversación a Meta AI?')) return;
+  if (!confirm('¿Devolver esta conversación al agente IA?')) return;
   await api.post(`/admin/wa/conversaciones/${conversacionActual.value.telefono}/devolverIA`);
   conversacionActual.value.modo = 'BOT';
   conversacionActual.value.asesor = null;
@@ -611,7 +603,7 @@ function reproducirSonido() {
 // ── CICLO DE VIDA ────────────────────────────────────────────────────
 
 onMounted(async () => {
-  await Promise.all([cargarConversaciones(), cargarStats()]);
+  await cargarConversaciones();
   iniciarPolling();
   conectarWS();
   onUnmounted(() => {
