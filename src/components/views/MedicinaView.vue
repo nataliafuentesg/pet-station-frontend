@@ -74,7 +74,7 @@ onMounted(() => {
   useReveal();
   useSeo({
     titulo: 'Medicina Veterinaria en Chía | Pet Station',
-    descripcion: 'Consulta veterinaria, diagnóstico, laboratorio clínico y cirugía en Chía. Atención integral para perros, gatos y exóticos.',
+    descripcion: 'Consulta veterinaria, diagnóstico, laboratorio clínico y cirugía en Chía. Atención integral para perros y gatos.',
     url: 'https://petstationvet.com/medicina'
   });
   useJsonLd({
