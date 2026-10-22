@@ -301,6 +301,8 @@ const fotosCompartidas = computed(() =>
 
 let ws = null;
 let wsReconnectTimer = null;
+let pollTimer = null;
+let desmontado = false;
 
 // ── DATOS ───────────────────────────────────────────────────────────
 
@@ -433,6 +435,11 @@ function conectarWS() {
   const apiHost = (import.meta.env.VITE_API_URL || '').replace(/^https?:\/\//, '').replace(/\/.*$/, '') || `${location.hostname}:8080`;
   ws = new WebSocket(`${proto}://${apiHost}/ws/wa-panel`);
 
+  ws.onopen = () => {
+    detenerPolling();
+    refrescar(); // por si llegaron mensajes mientras estuvo desconectado
+  };
+
   ws.onmessage = async (e) => {
     const ev = JSON.parse(e.data);
     if (ev.type === 'message') {
@@ -458,8 +465,36 @@ function conectarWS() {
   };
 
   ws.onclose = () => {
+    if (desmontado) return;
+    iniciarPolling();
     wsReconnectTimer = setTimeout(conectarWS, 3000);
   };
+}
+
+// Respaldo solo mientras el WebSocket está caído
+async function refrescar() {
+  await cargarConversaciones();
+  if (conversacionActual.value?.telefono) {
+    const tel = conversacionActual.value.telefono;
+    const resp = await api.get(`/admin/wa/conversaciones/${tel}/mensajes`);
+    const nuevos = resp.data;
+    if (nuevos.length !== mensajes.value.length) {
+      const hayNuevoInbound = nuevos.slice(mensajes.value.length).some(m => m.direccion === 'INBOUND');
+      if (hayNuevoInbound) reproducirSonido();
+      mensajes.value = nuevos;
+      await nextTick();
+      scrollAbajo();
+    }
+  }
+}
+
+function iniciarPolling() {
+  if (!pollTimer) pollTimer = setInterval(refrescar, 3000);
+}
+
+function detenerPolling() {
+  clearInterval(pollTimer);
+  pollTimer = null;
 }
 
 // ── HELPERS ─────────────────────────────────────────────────────────
@@ -577,25 +612,11 @@ function reproducirSonido() {
 
 onMounted(async () => {
   await Promise.all([cargarConversaciones(), cargarStats()]);
+  iniciarPolling();
   conectarWS();
-  // Polling cada 3s como fallback cuando WS falla
-  const interval = setInterval(async () => {
-    await cargarConversaciones();
-    if (conversacionActual.value?.telefono) {
-      const tel = conversacionActual.value.telefono;
-      const resp = await api.get(`/admin/wa/conversaciones/${tel}/mensajes`);
-      const nuevos = resp.data;
-      if (nuevos.length !== mensajes.value.length) {
-        const hayNuevoInbound = nuevos.slice(mensajes.value.length).some(m => m.direccion === 'INBOUND');
-        if (hayNuevoInbound) reproducirSonido();
-        mensajes.value = nuevos;
-        await nextTick();
-        scrollAbajo();
-      }
-    }
-  }, 3000);
   onUnmounted(() => {
-    clearInterval(interval);
+    desmontado = true;
+    detenerPolling();
     clearTimeout(wsReconnectTimer);
     ws?.close();
     Object.values(mediaBlobs).forEach(url => URL.revokeObjectURL(url));
