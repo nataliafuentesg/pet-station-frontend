@@ -23,7 +23,11 @@ const destinos = [
     nombre: 'ESTADOS UNIDOS', 
     bandera: '🇺🇸', 
     tiempo: '3 Meses',
-    aviso: 'PAÍS DE ALTO RIESGO (CDC)',
+    aviso: 'PERROS · PAÍS DE ALTO RIESGO (CDC)',
+    notaEspecie: {
+      titulo: '¿Viajas con un gato?',
+      texto: 'Esta ruta de la CDC es solo para perros. Para gatos la CDC no exige serología, permiso de importación ni formulario CDC. Muchos estados y aerolíneas sí piden la vacuna de rabia, y desde Colombia se necesita el certificado de salud y la inspección del ICA (CIS). Al llegar lo pueden revisar y negar la entrada si se ve enfermo. Escríbenos y revisamos tu caso según el estado de destino y la aerolínea.'
+    },
     // INFO DEL PDF USA
     aeropuertos: [
       { code: 'MIA', city: 'Miami' },
@@ -37,7 +41,7 @@ const destinos = [
       { 
         titulo: '1. Microchip y Vacuna (Orden Estricto)', 
         detalle: 'Primero implantamos el Microchip ISO de 15 dígitos. LUEGO aplicamos la vacuna antirrábica vigente. Si se vacuna antes del chip, el proceso es nulo ante la CDC.',
-        alert: 'La mascota debe tener mínimo 6 meses para viajar.'
+        alert: 'El perro debe tener mínimo 6 meses para viajar.'
       },
       { 
         titulo: '2. Periodo de Inmunización', 
@@ -73,6 +77,10 @@ const destinos = [
     bandera: '🇪🇺', 
     tiempo: '4 Meses', 
     aviso: 'REGLAMENTO UE 576/2013',
+    notaEspecie: {
+      titulo: 'Perros y gatos',
+      texto: 'Los gatos siguen los mismos pasos que los perros. La única diferencia es el tratamiento contra la tenia (paso 4), que es solo para perros.'
+    },
     pasoAPaso: [
       { 
         titulo: '1. Identificación y Vacunación', 
@@ -89,8 +97,8 @@ const destinos = [
         esCritico: true // ALERTA ROJA
       },
       { 
-        titulo: '4. Tratamiento Tenia (Echinococcus)', 
-        detalle: 'Solo si viajas a: Finlandia, Irlanda, Malta, Noruega o Irlanda del Norte. Se debe desparasitar entre 24 y 120 horas (1-5 días) antes de llegar.',
+        titulo: '4. Tratamiento Tenia (Echinococcus) · Solo perros', 
+        detalle: 'Solo para perros que viajan a: Finlandia, Irlanda, Malta, Noruega o Irlanda del Norte. Los gatos no lo necesitan. Se debe desparasitar entre 24 y 120 horas (1-5 días) antes de llegar.',
         tip: 'Países como España o Francia no exigen este paso específico.'
       },
       { 
@@ -148,7 +156,7 @@ onMounted(() => {
       '@type': 'OfferCatalog',
       name: 'Destinos de Viaje con Mascotas',
       itemListElement: [
-        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Viaje a Estados Unidos con Mascota', description: 'Microchip, vacuna antirrábica, serología CDC, permiso de importación y CIS ICA para ingresar a EE.UU.' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Viaje a Estados Unidos con Mascota', description: 'Perros: microchip, vacuna antirrábica, serología CDC, permiso de importación y CIS ICA. Gatos: certificado de salud e inspección ICA; vacuna de rabia según el estado y la aerolínea.' } },
         { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Viaje a la Unión Europea con Mascota', description: 'Microchip ISO, serología > 0.5 UI/ml, espera 90 días, certificado zoosanitario UE y CIS ICA.' } },
         { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Viaje por Suramérica con Mascota', description: 'Certificado de salud, vacunación completa, desparasitación e inspección ICA para países MERCOSUR/CAN.' } },
         { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Viaje Nacional en Colombia con Mascota', description: 'Carnet de vacunación, vacuna antirrábica vigente y certificado de salud veterinario para vuelos domésticos.' } },
@@ -220,6 +228,14 @@ const whatsappLink = computed(() => {
             </div>
           </div>
 
+          <div v-if="destinoActual.notaEspecie" class="mb-12 flex items-start gap-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-400/20 rounded-3xl p-6">
+            <span class="text-3xl shrink-0">🐱</span>
+            <div class="space-y-1">
+              <p class="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400">{{ destinoActual.notaEspecie.titulo }}</p>
+              <p class="text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">{{ destinoActual.notaEspecie.texto }}</p>
+            </div>
+          </div>
+
           <div v-if="destinoActual.aeropuertos" class="mb-16">
             <div class="p-8 md:p-10 bg-[#152C77] rounded-[2.5rem] text-white relative overflow-hidden shadow-2xl border-4 border-[#152C77]">
               <div class="absolute -top-32 -right-32 w-80 h-80 bg-[#DE1F27] blur-[100px] opacity-40 rounded-full"></div>
@@ -234,7 +250,7 @@ const whatsappLink = computed(() => {
                 </div>
                 
                 <p class="text-[11px] md:text-xs font-medium opacity-90 mb-8 max-w-3xl leading-relaxed">
-                  ⚠️ <span class="font-black text-[#DE1F27] bg-white px-1 rounded">IMPORTANTE:</span> Tu mascota NO puede ingresar por ningún otro aeropuerto (ej. Orlando, Houston, Fort Lauderdale) ya que no cuentan con instalaciones aprobadas por la CDC para la inspección veterinaria obligatoria.
+                  ⚠️ <span class="font-black text-[#DE1F27] bg-white px-1 rounded">IMPORTANTE:</span> Tu perro NO puede ingresar por ningún otro aeropuerto (ej. Orlando, Houston, Fort Lauderdale) ya que no cuentan con instalaciones aprobadas por la CDC para la inspección veterinaria obligatoria.
                 </p>
                 
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
