@@ -333,6 +333,8 @@
       </template>
     </div>
 
+    <AdminJornadaDiaEquipo v-if="vista === 'dia'" />
+
     <!-- RESUMEN DEL DÍA CON IA -->
     <div v-if="vista === 'ia'" class="flex gap-2">
       <button v-for="m in [['dia', '📅 Resumen del día'], ['periodo', '🔎 Análisis de un periodo']]" :key="m[0]" @click="modoIA = m[0]"
@@ -760,6 +762,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import api from '@/api/axios'
+import AdminJornadaDiaEquipo from './AdminJornadaDiaEquipo.vue'
 
 const props = defineProps({
   // Administrador limitado: puede consultar todo pero no cambia el equipo ni genera resúmenes
@@ -770,6 +773,7 @@ const vistas = [
   { id: 'ahora', label: '🟢 Ahora' },
   { id: 'reporte', label: '📊 Reporte' },
   { id: 'guarderia', label: '🐕 Guardería' },
+  { id: 'dia', label: '🕒 Día del equipo' },
   { id: 'ia', label: '🤖 Resumen IA' },
   { id: 'equipo', label: '👥 Equipo' },
 ]
