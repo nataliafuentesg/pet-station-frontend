@@ -114,7 +114,7 @@
         <!-- Resumen del día -->
         <div class="grid grid-cols-3 gap-2">
           <div class="bg-white/5 rounded-2xl p-3 text-center border border-white/10">
-            <p class="text-lg font-[1000] tabular-nums">{{ dur(segJornada) }}</p>
+            <p class="text-lg font-[1000] tabular-nums">{{ dur(segDia) }}</p>
             <p class="text-[8px] font-black uppercase text-white/30 tracking-widest mt-1">de {{ dur(sesion.segundosLimite || 28800) }}</p>
           </div>
           <div class="bg-green-500/10 rounded-2xl p-3 text-center border border-green-500/20">
@@ -296,13 +296,13 @@
       </Transition>
     </Teleport>
 
-    <!-- Motivo para terminar la jornada antes de su hora de salida -->
+    <!-- Motivo para terminar la jornada sin completar sus horas -->
     <Teleport to="body">
       <div v-if="salida" class="fixed inset-0 z-[9002] flex items-end sm:items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="salida = null"></div>
         <div class="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
-          <p class="text-[10px] font-black uppercase tracking-widest text-amber-300">🕐 Tu turno termina a las {{ salida.fin }}</p>
-          <p class="text-lg font-[1000] leading-tight">¿Por qué sales antes?</p>
+          <p class="text-[10px] font-black uppercase tracking-widest text-amber-300">⏳ Llevas {{ salida.llevas }} de {{ salida.de }} hoy</p>
+          <p class="text-lg font-[1000] leading-tight">¿Por qué te vas sin completar tu jornada?</p>
           <div class="flex flex-wrap gap-2">
             <button v-for="m in MOTIVOS_SALIDA" :key="m" @click="salida.texto = salida.texto.trim() ? salida.texto : m + ': '"
               class="text-[11px] font-bold rounded-full px-3 py-1.5 border bg-white/5 border-white/10 text-white/70">{{ m }}</button>
@@ -597,7 +597,9 @@ const segJornada = computed(() => {
 })
 const segHueco = computed(() => sesion.value?.segundosHueco != null ? sesion.value.segundosHueco + transcurrido.value : null)
 const necesitaExplicacion = computed(() => sesion.value?.estado === 'ACTIVA' && segHueco.value != null && segHueco.value >= 3600)
-const segExtra = computed(() => Math.max(0, segJornada.value - (sesion.value?.segundosLimite || 28800)))
+// Todas las jornadas de hoy suman: si salió y volvió, las horas extra y la jornada completa son sobre el total
+const segDia = computed(() => segJornada.value + (sesion.value?.segundosOtrasJornadasHoy || 0))
+const segExtra = computed(() => Math.max(0, segDia.value - (sesion.value?.segundosLimite || 28800)))
 const enExtra = computed(() => !!sesion.value && segExtra.value > 0)
 const segTareas = computed(() => (sesion.value?.segundosEnTareas || 0) + (corriendo.value ? transcurrido.value : 0))
 const segPausa = computed(() => (sesion.value?.segundosEnPausa || 0) + transcurrido.value)
@@ -672,7 +674,7 @@ async function accion(url, body) {
     error.value = e.response?.data?.message || 'Algo falló, intenta de nuevo'
     // El servidor pide explicación (ej: el rato pasó de 1 h justo ahora): se abre la ventana y se reintenta
     if (e.response?.data?.codigo === 'EXPLICAR_HUECO') abrirHueco(null, e.response.data.desde)
-    if (e.response?.data?.codigo === 'EXPLICAR_SALIDA') abrirSalida(e.response.data.finTurno)
+    if (e.response?.data?.codigo === 'EXPLICAR_SALIDA') abrirSalida()
     return false
   } finally {
     enviando.value = false
@@ -868,17 +870,8 @@ function salirAlmuerzo() {
   if (confirm('¿Sales a almorzar? Tu tarea actual queda en pausa.')) accion('/jornada/almuerzo/salir')
 }
 
-// "15:00:00" → hoy a esa hora
-function horaTurno(t) {
-  if (!t) return null
-  const [h, m] = String(t).split(':').map(Number)
-  const d = new Date(); d.setHours(h, m, 0, 0)
-  return d
-}
-
-function abrirSalida(finTurno) {
-  const fin = horaTurno(finTurno || sesion.value?.turnoFin)
-  salida.value = { texto: '', fin: fin ? hora(fin) : '' }
+function abrirSalida() {
+  salida.value = { texto: '', llevas: dur(segDia.value), de: dur(sesion.value?.segundosLimite || 28800) }
 }
 
 function continuarSalida() {
@@ -890,9 +883,8 @@ function continuarSalida() {
 
 function cerrarJornada() {
   if (pedirExplicacion(cerrarJornada)) return
-  // Antes de su hora de salida tiene que decir por qué (sin tolerancia)
-  const fin = horaTurno(sesion.value?.turnoFin)
-  if (fin && Date.now() < fin.getTime() - 59000 && !motivoSalida.value) {
+  // Si se va sin completar sus horas del día tiene que decir por qué
+  if (segDia.value < (sesion.value?.segundosLimite || 28800) - 59 && !motivoSalida.value) {
     abrirSalida()
     return
   }

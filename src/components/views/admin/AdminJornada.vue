@@ -113,7 +113,7 @@
           <table class="w-full text-left min-w-[760px]">
             <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
               <tr>
-                <th v-for="h in ['Persona','Días','Jornada','En tareas','Tiempo muerto','Ocupación','Tareas','Avisos sin responder','Llegadas tarde','Extras','']" :key="h"
+                <th v-for="h in ['Persona','Días','Jornada','En tareas','Tiempo muerto','Ocupación','Tareas','Avisos sin responder','Jornada incompleta','Extras','']" :key="h"
                   class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
               </tr>
             </thead>
@@ -144,10 +144,9 @@
                   <span v-if="p.avisosSinTarea" class="block text-[9px] text-red-500 font-black uppercase">🔔 {{ p.avisosSinTarea }} de "sin tarea"</span>
                   <span v-if="p.cierresAutomaticos" class="block text-[9px] text-red-400 font-black uppercase">Olvidó cerrar {{ p.cierresAutomaticos }}×</span>
                 </td>
-                <td class="px-4 py-3 text-[12px] font-bold tabular-nums whitespace-nowrap" :class="p.llegadasTarde ? 'text-red-500' : 'dark:text-white/30'">
-                  {{ p.llegadasTarde ? `${p.llegadasTarde} vez/veces` : '—' }}
-                  <span v-if="p.minutosTarde" class="block text-[9px] font-black uppercase opacity-80">{{ dur(p.minutosTarde * 60) }} en total</span>
-                  <span v-if="p.salidasAntes" class="block text-[9px] font-black uppercase text-amber-500">Salió antes {{ p.salidasAntes }}× ({{ dur(p.minutosSalioAntes * 60) }})</span>
+                <td class="px-4 py-3 text-[12px] font-bold tabular-nums whitespace-nowrap" :class="p.diasIncompletos ? 'text-amber-500' : 'dark:text-white/30'">
+                  {{ p.diasIncompletos ? `${p.diasIncompletos} día(s)` : '—' }}
+                  <span v-if="p.segFaltante" class="block text-[9px] font-black uppercase opacity-80">Faltaron {{ dur(p.segFaltante) }}</span>
                 </td>
                 <td class="px-4 py-3 text-[12px] font-bold tabular-nums whitespace-nowrap" :class="p.segExtra ? 'text-purple-600 dark:text-purple-300' : 'dark:text-white/30'">
                   {{ p.segExtra ? dur(p.segExtra) : '—' }}
@@ -161,7 +160,7 @@
           </table>
         </div>
         <p class="text-[10px] text-slate-400 dark:text-white/30">
-          Jornada = tiempo desde que inicia hasta que cierra, sin almuerzo. Tiempo muerto = parte de la jornada sin ninguna tarea registrada. Extras = lo que pasa de las horas por día de cada persona.
+          Jornada = tiempo desde que inicia hasta que cierra, sin almuerzo. Tiempo muerto = parte de la jornada sin ninguna tarea registrada. Extras = lo que pasa de las horas por día de cada persona; jornada incompleta = días en que se fue sin completarlas. Se suman todas las jornadas del día, sin horario de entrada ni de salida.
         </p>
 
         <!-- Horas extra con su motivo -->
@@ -446,7 +445,6 @@
             <td class="px-5 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">{{ e.usuario }}</td>
             <td class="px-5 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">
               {{ e.cargo }}
-              <span v-if="e.turnoInicio" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/50 font-black uppercase">🕐 {{ horaCorta(e.turnoInicio) }}–{{ horaCorta(e.turnoFin) }}</span>
               <span v-if="e.minutosAviso === 0" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/50 font-black uppercase">🔕 Sin avisos</span>
               <span v-if="e.esPrueba" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 font-black uppercase">🧪 Prueba</span>
               <span v-if="e.accesoClinico" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-[#152C77]/10 text-[#152C77] dark:text-blue-300 font-black uppercase">🩺 Clínica</span>
@@ -472,32 +470,6 @@
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Turnos de la empresa (para los rotativos) -->
-    <div v-if="vista === 'equipo' && !soloLectura" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-3">
-      <div>
-        <p class="font-[1000] uppercase italic text-sm dark:text-white">🕐 Turnos de la empresa</p>
-        <p class="text-[10px] text-slate-400 dark:text-white/40">
-          Para quien tiene horario rotativo, el turno se deduce por la hora de llegada (más cerca del inicio de cuál turno llegó).
-          Sin tolerancia: cualquier minuto después de la hora de entrada cuenta como tarde.
-        </p>
-      </div>
-      <div v-for="(t, i) in turnosEdit" :key="i" class="flex flex-wrap items-center gap-2">
-        <input v-model="t.nombre" placeholder="Nombre" :class="inputClass" class="!w-40 !py-2 !text-xs" />
-        <input type="time" v-model="t.inicio" :class="inputClass" class="!w-32 !py-2 !text-xs" />
-        <span class="text-slate-400 text-xs">a</span>
-        <input type="time" v-model="t.fin" :class="inputClass" class="!w-32 !py-2 !text-xs" />
-        <button @click="turnosEdit.splice(i, 1)" class="text-[10px] font-black uppercase text-slate-400 hover:text-red-600">Quitar</button>
-      </div>
-      <div class="flex items-center gap-3">
-        <button @click="turnosEdit.push({ nombre: '', inicio: '', fin: '' })" class="text-[10px] font-black uppercase text-[#152C77] dark:text-blue-300">➕ Agregar turno</button>
-        <button @click="guardarTurnos" :disabled="guardandoTurnos"
-          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-40">
-          {{ guardandoTurnos ? 'Guardando...' : 'Guardar turnos' }}
-        </button>
-        <span v-if="turnosMsg" class="text-[10px] font-bold" :class="turnosOk ? 'text-green-600' : 'text-red-500'">{{ turnosMsg }}</span>
-      </div>
     </div>
 
     <!-- Botones de tarea rápida por cargo -->
@@ -636,19 +608,6 @@
               </select>
             </div>
             <div class="space-y-1">
-              <label :class="labelClass">Horario</label>
-              <select v-model="form.horarioFijo" :class="inputClass">
-                <option :value="false">Rotativo (usa los turnos de la empresa)</option>
-                <option :value="true">Fijo</option>
-              </select>
-              <div v-if="form.horarioFijo" class="grid grid-cols-2 gap-2 pt-1">
-                <label class="space-y-1"><span class="text-[9px] font-bold text-slate-400">Entra</span>
-                  <input type="time" v-model="form.turnoInicio" :class="inputClass" /></label>
-                <label class="space-y-1"><span class="text-[9px] font-bold text-slate-400">Sale</span>
-                  <input type="time" v-model="form.turnoFin" :class="inputClass" /></label>
-              </div>
-            </div>
-            <div class="space-y-1">
               <label :class="labelClass">Horas de trabajo por día</label>
               <input v-model="form.horasJornada" type="number" min="1" max="16" step="0.5" :class="inputClass" />
               <p class="text-[10px] text-slate-400 dark:text-white/30">Lo que pase de aquí se cuenta como horas extra.</p>
@@ -710,13 +669,8 @@
                 <span v-if="s.cierreAutomatico" class="text-red-400"> · no la cerró</span>
                 <span v-if="s.cerradaPorAdmin" class="text-amber-500"> · terminada por el admin</span>
               </p>
-              <p v-if="s.turno" class="text-[11px] font-bold" :class="s.turno.minutosTarde ? 'text-red-500' : 'text-green-600 dark:text-green-400'">
-                🕐 {{ s.turno.turno }} ({{ horaCorta(s.turno.turnoInicio) }}–{{ horaCorta(s.turno.turnoFin) }}) ·
-                {{ s.turno.minutosTarde ? `llegó ${s.turno.minutosTarde} min tarde` : 'llegó a tiempo' }}
-                <span v-if="s.turno.minutosSalioAntes" class="text-amber-500"> · salió {{ s.turno.minutosSalioAntes }} min antes</span>
-              </p>
               <p v-if="s.motivoExtra" class="text-[11px] font-bold text-purple-600 dark:text-purple-300">⏰ Motivo de horas extra: {{ s.motivoExtra }}</p>
-              <p v-if="s.motivoSalida" class="text-[11px] font-bold text-amber-600 dark:text-amber-300">🚪 Motivo de salir antes: {{ s.motivoSalida }}</p>
+              <p v-if="s.motivoSalida" class="text-[11px] font-bold text-amber-600 dark:text-amber-300">🚪 Motivo de irse sin completar sus horas: {{ s.motivoSalida }}</p>
               <div v-for="(it, j) in s.linea" :key="j" class="flex items-center gap-3 rounded-xl px-4 py-2.5" :class="itemClase(it.tipo)">
                 <span class="text-[10px] font-bold tabular-nums w-24 shrink-0 opacity-70">{{ hora(it.inicio) }} – {{ hora(it.fin) }}</span>
                 <span class="flex-1 min-w-0 text-[12px] font-bold break-words">
@@ -801,10 +755,6 @@ const errorForm = ref('')
 const guardando = ref(false)
 const detalle = ref(null)
 const ocupacion = ref(null)
-const turnosEdit = ref([])
-const guardandoTurnos = ref(false)
-const turnosMsg = ref('')
-const turnosOk = ref(false)
 const clasificando = ref(false)
 const modoIA = ref('dia')
 const periodo = ref({ desde: '', hasta: '', pregunta: '' })
@@ -1134,7 +1084,6 @@ watch(vista, v => {
   if (v === 'ia' && !resumenIA.value) cargarResumenIA()
   if (v === 'equipo' && !props.soloLectura) {
     cargarRapidas()
-    cargarTurnos()
   }
   if (v === 'guarderia' && !ocupacion.value) cargarOcupacion()
   if (v === 'reporte' && !resumen.value) cargarResumen()
@@ -1272,9 +1221,8 @@ async function cargarDetalle() {
 function abrirForm(e) {
   errorForm.value = ''
   form.value = e
-    ? { tutorId: e.tutorId, nombre: e.nombreCorto, apellido: e.apellido, usuario: e.usuario, cargo: e.cargo, recibePerros: e.recibePerros, accesoClinico: e.accesoClinico, esPrueba: e.esPrueba, minutosAviso: e.minutosAviso ?? 15,
-        horarioFijo: !!e.turnoInicio, turnoInicio: (e.turnoInicio || '').slice(0, 5), turnoFin: (e.turnoFin || '').slice(0, 5), horasJornada: e.horasJornada ?? 8, password: '' }
-    : { nombre: '', apellido: '', usuario: '', cargo: 'Guardería', recibePerros: false, accesoClinico: false, esPrueba: false, minutosAviso: 15, horarioFijo: false, turnoInicio: '', turnoFin: '', horasJornada: 8, password: '' }
+    ? { tutorId: e.tutorId, nombre: e.nombreCorto, apellido: e.apellido, usuario: e.usuario, cargo: e.cargo, recibePerros: e.recibePerros, accesoClinico: e.accesoClinico, esPrueba: e.esPrueba, minutosAviso: e.minutosAviso ?? 15, horasJornada: e.horasJornada ?? 8, password: '' }
+    : { nombre: '', apellido: '', usuario: '', cargo: 'Guardería', recibePerros: false, accesoClinico: false, esPrueba: false, minutosAviso: 15, horasJornada: 8, password: '' }
 }
 
 async function guardar() {
@@ -1283,13 +1231,11 @@ async function guardar() {
   try {
     const f = form.value
     if (f.tutorId) {
-      const body = { nombre: f.nombre, apellido: f.apellido, cargo: f.cargo, recibePerros: String(!!f.recibePerros), accesoClinico: String(!!f.accesoClinico), esPrueba: String(!!f.esPrueba), minutosAviso: String(f.minutosAviso ?? 15), horasJornada: String(f.horasJornada ?? 8),
-        turnoInicio: f.horarioFijo ? f.turnoInicio : '', turnoFin: f.horarioFijo ? f.turnoFin : '' }
+      const body = { nombre: f.nombre, apellido: f.apellido, cargo: f.cargo, recibePerros: String(!!f.recibePerros), accesoClinico: String(!!f.accesoClinico), esPrueba: String(!!f.esPrueba), minutosAviso: String(f.minutosAviso ?? 15), horasJornada: String(f.horasJornada ?? 8) }
       if (f.password) body.password = f.password
       await api.patch(`/admin/jornada/empleados/${f.tutorId}`, body)
     } else {
-      await api.post('/admin/jornada/empleados', { ...f, recibePerros: String(!!f.recibePerros), accesoClinico: String(!!f.accesoClinico), esPrueba: String(!!f.esPrueba), minutosAviso: String(f.minutosAviso ?? 15), horasJornada: String(f.horasJornada ?? 8),
-        turnoInicio: f.horarioFijo ? f.turnoInicio : '', turnoFin: f.horarioFijo ? f.turnoFin : '' })
+      await api.post('/admin/jornada/empleados', { ...f, recibePerros: String(!!f.recibePerros), accesoClinico: String(!!f.accesoClinico), esPrueba: String(!!f.esPrueba), minutosAviso: String(f.minutosAviso ?? 15), horasJornada: String(f.horasJornada ?? 8) })
     }
     form.value = null
     cargarEmpleados()
@@ -1308,37 +1254,6 @@ async function terminarJornadaDe(e) {
     alert(err.response?.data?.message || 'No se pudo terminar la jornada')
   }
   cargarEmpleados()
-}
-
-// "07:00:00" → "7:00 a. m."
-function horaCorta(t) {
-  if (!t) return ''
-  const [h, m] = String(t).split(':').map(Number)
-  const d = new Date(); d.setHours(h, m, 0, 0)
-  return d.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' })
-}
-
-async function cargarTurnos() {
-  try {
-    const { data } = await api.get('/admin/jornada/turnos')
-    turnosEdit.value = data.map(t => ({ nombre: t.nombre, inicio: String(t.inicio).slice(0, 5), fin: String(t.fin).slice(0, 5) }))
-  } catch { /* backend sin turnos todavía */ }
-}
-
-async function guardarTurnos() {
-  guardandoTurnos.value = true
-  turnosMsg.value = ''
-  try {
-    await api.put('/admin/jornada/turnos', turnosEdit.value)
-    turnosOk.value = true
-    turnosMsg.value = '✓ Guardado'
-    cargarTurnos()
-  } catch (e) {
-    turnosOk.value = false
-    turnosMsg.value = e.response?.data?.message || 'No se pudo guardar'
-  } finally {
-    guardandoTurnos.value = false
-  }
 }
 
 async function quitarDeProductividad(e) {
