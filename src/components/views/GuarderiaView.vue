@@ -109,7 +109,6 @@ onMounted(() => {
       itemListElement: [
         { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Pasa Día Canino', description: 'Socialización y juego durante la jornada diurna. Ideal para perros que pasan solos el día.' } },
         { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Hotel Canino', description: 'Alojamiento seguro con monitoreo profesional nocturno y áreas de descanso.' } },
-        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Internado Médico y Conductual', description: 'Cuidado especializado para mascotas que requieren adiestramiento o recuperación bajo vigilancia médica.' } },
       ]
     }
   });
@@ -133,18 +132,11 @@ const modalidades = [
     icon: "🏨",
     tags: ["Pernoctación", "Confort", "24/7"]
   },
-  { 
-    t: "Internado Méd./Cond.", 
-    d: "Cuidado especializado para mascotas que requieren adiestramiento o recuperación bajo vigilancia médica.", 
-    icon: "🎓",
-    tags: ["Historial Clínico", "Conducta", "Especializado"]
-  }
 ];
 
 const infoExtra = [
   { t: "Cámaras 24/7", icon: "📹" },
   { t: "Reportes Video", icon: "📱" },
-  { t: "Vet 24/7", icon: "🩺" },
   { t: "Zonas Verdes", icon: "🍃" }
 ];
 
