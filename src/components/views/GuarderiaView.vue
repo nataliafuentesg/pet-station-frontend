@@ -126,11 +126,17 @@ const modalidades = [
     icon: "☀️",
     tags: ["Recreación", "Socialización", "Zonas verdes"]
   },
-  { 
-    t: "Hotel", 
-    d: "Alojamiento seguro con monitoreo profesional nocturno y áreas de descanso.", 
+  {
+    t: "Hotel",
+    d: "Alojamiento seguro con monitoreo nocturno y áreas de descanso.",
     icon: "🏨",
     tags: ["Pernoctación", "Confort", "24/7"]
+  },
+  {
+    t: "Internado",
+    d: "Estancia prolongada entre semana o por temporadas. Tu mascota regresa a casa los fines de semana.",
+    icon: "🏡",
+    tags: ["Semanal", "Temporal", "Flexible"]
   },
 ];
 
