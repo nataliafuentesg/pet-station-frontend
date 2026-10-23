@@ -13,7 +13,7 @@
               FUN & <br/> <span class="text-[#DE1F27]">SAFE.</span>
             </h1>
             <p class="text-green-900/60 dark:text-slate-400 font-bold uppercase text-[10px] md:text-xs mt-6 leading-relaxed max-w-xl">
-              Más que cuidado, brindamos experiencias de socialización controlada bajo supervisión veterinaria profesional 24/7.
+              Más que cuidado, brindamos experiencias de socialización controlada en un ambiente seguro y con atención personalizada.
             </p>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12">
@@ -99,7 +99,7 @@ onMounted(() => {
     '@context': 'https://schema.org',
     '@type': 'Service',
     name: 'Guardería y Hotel Canino — Pet Station Chía',
-    description: 'Guardería canina, hotel para perros y colegio en Chía. Socialización controlada, supervisión veterinaria 24/7, cámaras y zonas verdes.',
+    description: 'Guardería canina y hotel para perros en Chía. Socialización controlada, cámaras y zonas verdes.',
     url: 'https://petstationvet.com/servicios/guarderia',
     provider: { '@type': 'LocalBusiness', name: 'Pet Station', telephone: '+573053462413', address: { '@type': 'PostalAddress', addressLocality: 'Chía', addressRegion: 'Cundinamarca', addressCountry: 'CO' } },
     areaServed: { '@type': 'City', name: 'Chía' },
@@ -124,7 +124,7 @@ const modalidades = [
     t: "Pasa Día", 
     d: "Socialización y juego durante la jornada diurna. Ideal para mascotas que pasan solas el día.", 
     icon: "☀️",
-    tags: ["Recreación", "Socialización", "Veterinario"]
+    tags: ["Recreación", "Socialización", "Zonas verdes"]
   },
   { 
     t: "Hotel", 
