@@ -48,6 +48,8 @@
                 {{ resumeMensaje(conv) }}
               </p>
               <div class="flex items-center gap-1 shrink-0">
+                <span v-if="conv.borradorPendiente" title="Respuesta del agente esperando aprobación"
+                  class="bg-purple-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">🤖 Aprobar</span>
                 <span v-if="!conv.ventanaAbierta" title="Ventana cerrada" class="text-[10px]">🔒</span>
                 <span v-if="conv.modo === 'HUMAN'" title="Asesor activo" class="text-[10px]">👤</span>
                 <span v-if="conv.sinLeer > 0"
@@ -217,6 +219,29 @@
 
         <!-- Barra de entrada -->
         <div class="wa-input-area">
+          <!-- Borrador del agente: no sale hasta que alguien lo apruebe -->
+          <div v-if="borrador" class="mb-3 rounded-2xl border border-purple-500/40 bg-purple-900/30 p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <p class="text-[11px] font-black uppercase tracking-wider text-purple-200">🤖 Propuesta del agente · aún no se ha enviado</p>
+              <span class="text-[10px] text-white/40">{{ formatHora(borrador.creadoEn) }}</span>
+            </div>
+            <textarea v-model="textoBorrador" rows="4"
+              class="w-full rounded-xl bg-black/30 border border-white/10 text-sm text-white p-3 focus:outline-none focus:border-purple-400 resize-y"></textarea>
+            <p v-for="d in borrador.documentos" :key="d.link" class="text-xs text-purple-100">
+              📄 Adjunto: <a :href="d.link" target="_blank" class="underline">{{ d.caption }}</a>
+            </p>
+            <div class="flex gap-2 justify-end">
+              <button @click="descartarBorrador" :disabled="procesandoBorrador"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold text-white/70 hover:text-white border border-white/20">
+                🗑️ Descartar
+              </button>
+              <button @click="enviarBorrador" :disabled="procesandoBorrador || !textoBorrador.trim()"
+                class="px-3 py-1.5 rounded-lg text-xs font-black text-white bg-purple-600 hover:bg-purple-500 disabled:opacity-50">
+                ✅ {{ textoBorrador.trim() !== (borrador.contenido || '').trim() ? 'Enviar editado' : 'Aprobar y enviar' }}
+              </button>
+            </div>
+          </div>
+
           <!-- Mensaje citado activo -->
           <div v-if="mensajeCitado" class="wa-cite-preview">
             <div class="flex-1 min-w-0">
@@ -272,6 +297,9 @@ const conversaciones = ref([]);
 const conversacionActual = ref(null);
 const mensajes = ref([]);
 const cargandoMensajes = ref(false);
+const borrador = ref(null);
+const textoBorrador = ref('');
+const procesandoBorrador = ref(false);
 const textoNuevo = ref('');
 const enviando = ref(false);
 const mensajeCitado = ref(null);
@@ -327,6 +355,8 @@ async function abrirConversacion(conv) {
   mensajes.value = [];
   mensajeCitado.value = null;
   atBottom.value = true;
+  borrador.value = null;
+  cargarBorrador(conv.telefono);
   try {
     const { data } = await api.get(`/admin/wa/conversaciones/${conv.telefono}/mensajes`);
     mensajes.value = data;
@@ -342,6 +372,41 @@ async function abrirConversacion(conv) {
 }
 
 // ── ACCIONES ────────────────────────────────────────────────────────
+
+async function cargarBorrador(telefono) {
+  const { data, status } = await api.get(`/admin/wa/conversaciones/${telefono}/borrador`);
+  if (conversacionActual.value?.telefono !== telefono) return;
+  const nuevo = status === 200 ? data : null;
+  // Si ya lo estaban editando, no pisar el texto
+  if (!nuevo || nuevo.id !== borrador.value?.id) textoBorrador.value = nuevo?.contenido || '';
+  borrador.value = nuevo;
+}
+
+async function enviarBorrador() {
+  if (!borrador.value || procesandoBorrador.value) return;
+  procesandoBorrador.value = true;
+  try {
+    const editado = textoBorrador.value.trim() !== (borrador.value.contenido || '').trim();
+    await api.post(`/admin/wa/borradores/${borrador.value.id}/enviar`, editado ? { texto: textoBorrador.value } : {});
+    borrador.value = null;
+  } catch (e) {
+    alert(e.response?.data?.error || 'No se pudo enviar el borrador');
+  } finally {
+    procesandoBorrador.value = false;
+  }
+}
+
+async function descartarBorrador() {
+  if (!borrador.value || procesandoBorrador.value) return;
+  if (!confirm('¿Descartar la propuesta del agente? Puedes responder tú a mano.')) return;
+  procesandoBorrador.value = true;
+  try {
+    await api.post(`/admin/wa/borradores/${borrador.value.id}/descartar`);
+    borrador.value = null;
+  } finally {
+    procesandoBorrador.value = false;
+  }
+}
 
 async function tomarControl() {
   const asesor = prompt('Tu nombre:') || 'Asesor';
@@ -377,6 +442,7 @@ async function enviar() {
     });
     textoNuevo.value = '';
     mensajeCitado.value = null;
+    borrador.value = null; // el backend descarta la propuesta del agente al responder a mano
     if (inputRef.value) inputRef.value.style.height = 'auto';
   } catch (e) {
     const err = e.response?.data?.error;
@@ -453,6 +519,9 @@ function conectarWS() {
     } else if (ev.type === 'status') {
       const m = mensajes.value.find(x => x.wamid === ev.wamid);
       if (m) m.estado = ev.estado;
+    } else if (ev.type === 'borrador') {
+      if (conversacionActual.value?.telefono === ev.telefono) await cargarBorrador(ev.telefono);
+      await cargarConversaciones();
     }
   };
 
@@ -468,6 +537,7 @@ async function refrescar() {
   await cargarConversaciones();
   if (conversacionActual.value?.telefono) {
     const tel = conversacionActual.value.telefono;
+    cargarBorrador(tel);
     const resp = await api.get(`/admin/wa/conversaciones/${tel}/mensajes`);
     const nuevos = resp.data;
     if (nuevos.length !== mensajes.value.length) {
