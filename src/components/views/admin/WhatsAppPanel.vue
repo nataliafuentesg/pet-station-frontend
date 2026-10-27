@@ -791,6 +791,7 @@ onMounted(async () => {
 .wa-panel {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   background: #0c1a3a;
   font-family: system-ui, sans-serif;
   overflow: hidden;
@@ -809,6 +810,8 @@ onMounted(async () => {
 .wa-sidebar-header {
   background: #152c77;
   padding: 10px 16px;
+  /* App instalada en iPhone: no quedar debajo de la hora y la batería */
+  padding-top: max(10px, env(safe-area-inset-top));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -863,6 +866,7 @@ onMounted(async () => {
 .wa-chat-header {
   background: #152c77;
   padding: 8px 16px;
+  padding-top: max(8px, env(safe-area-inset-top));
   display: flex;
   align-items: center;
   gap: 10px;
@@ -951,6 +955,7 @@ onMounted(async () => {
 .wa-input-area {
   background: #152c77;
   padding: 10px 16px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255,255,255,0.08);
 }
 .wa-textarea {
@@ -1039,6 +1044,7 @@ onMounted(async () => {
 .wa-perfil-header {
   background: #152c77;
   padding: 12px 16px;
+  padding-top: max(12px, env(safe-area-inset-top));
   display: flex;
   align-items: center;
   min-height: 56px;
