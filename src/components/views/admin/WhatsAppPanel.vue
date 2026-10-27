@@ -12,6 +12,9 @@
           <span v-if="totalSinLeer > 0" class="bg-[#de1f27] text-white text-[10px] font-black px-2 py-0.5 rounded-full">
             {{ totalSinLeer }}
           </span>
+          <button @click="clicAvisos" :title="tituloAvisos" class="text-white/60 hover:text-white text-sm leading-none">
+            {{ avisos === 'activos' ? '🔔' : '🔕' }}
+          </button>
           <button @click="cargarConversaciones" title="Actualizar" class="text-white/60 hover:text-white">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           </button>
@@ -292,6 +295,8 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import api from '@/api/axios.js';
+import { useRoute } from 'vue-router';
+import { obtenerTokenPush } from '@/composables/usePushNotifications';
 
 const conversaciones = ref([]);
 const conversacionActual = ref(null);
@@ -672,17 +677,105 @@ function reproducirSonido() {
 
 // ── CICLO DE VIDA ────────────────────────────────────────────────────
 
+// ── APP INSTALABLE Y AVISOS PUSH ─────────────────────────────────────
+
+const route = useRoute();
+const avisos = ref('inactivos'); // activos | inactivos | bloqueados | no-soportado | instalar-iphone
+
+const esIphone = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const instalada = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+
+const tituloAvisos = computed(() => ({
+  activos: 'Avisos activos en este dispositivo (clic para enviar una prueba)',
+  inactivos: 'Activar avisos en este dispositivo',
+  bloqueados: 'Los avisos están bloqueados en la configuración del navegador',
+  'no-soportado': 'Este navegador no soporta avisos',
+  'instalar-iphone': 'En iPhone primero instala la app: Compartir → Agregar a inicio',
+}[avisos.value]));
+
+function estadoInicialAvisos() {
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    return esIphone && !instalada ? 'instalar-iphone' : 'no-soportado';
+  }
+  if (Notification.permission === 'denied') return 'bloqueados';
+  let guardado = null;
+  try { guardado = localStorage.getItem('ps_wa_push_token'); } catch { /* sin almacenamiento */ }
+  return Notification.permission === 'granted' && guardado ? 'activos' : 'inactivos';
+}
+
+async function registrarCelular() {
+  const token = await obtenerTokenPush();
+  if (!token) throw new Error('Firebase no entregó token');
+  await api.post('/admin/wa/push-token', { token });
+  try { localStorage.setItem('ps_wa_push_token', token); } catch { /* sin almacenamiento */ }
+}
+
+async function clicAvisos() {
+  if (avisos.value === 'instalar-iphone') {
+    alert('En iPhone los avisos solo llegan con la app instalada:\n\n1. Abre esta página en Safari\n2. Toca Compartir ⬆️\n3. "Agregar a pantalla de inicio"\n4. Abre la app desde el ícono y toca 🔕 otra vez');
+    return;
+  }
+  if (avisos.value === 'no-soportado') return alert('Este navegador no soporta avisos. Usa Chrome (Android/PC) o la app instalada en iPhone.');
+  if (avisos.value === 'bloqueados') return alert('Los avisos están bloqueados. Actívalos en la configuración del navegador para este sitio y recarga.');
+  if (avisos.value === 'activos') {
+    const { data } = await api.post('/admin/wa/push-token/probar');
+    return alert('Aviso de prueba: ' + (data.resultados || []).join(', ') + '\n\nSi tienes el panel abierto en primer plano, puede que no se vea; ciérralo un momento.');
+  }
+  const permiso = await Notification.requestPermission();
+  if (permiso !== 'granted') { avisos.value = permiso === 'denied' ? 'bloqueados' : 'inactivos'; return; }
+  try {
+    await registrarCelular();
+    avisos.value = 'activos';
+  } catch (e) {
+    alert('No se pudieron activar los avisos: ' + (e?.message || e));
+  }
+}
+
+function instalarManifest() {
+  const agregados = [];
+  const add = (tag, attrs) => {
+    const el = document.createElement(tag);
+    Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+    document.head.appendChild(el);
+    agregados.push(el);
+  };
+  add('link', { rel: 'manifest', href: '/whatsapp.webmanifest' });
+  add('link', { rel: 'apple-touch-icon', href: '/images/logo-pet-station.png' });
+  add('meta', { name: 'apple-mobile-web-app-capable', content: 'yes' });
+  add('meta', { name: 'apple-mobile-web-app-title', content: 'WhatsApp PS' });
+  add('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' });
+  return () => agregados.forEach(el => el.remove());
+}
+
+// Al tocar un aviso se abre /admin/whatsapp?tel=… → ir directo a ese chat
+async function abrirChatDeLaUrl() {
+  const tel = route.query.tel;
+  if (!tel) return;
+  const conv = conversaciones.value.find(c => c.telefono === tel);
+  if (conv && conversacionActual.value?.telefono !== tel) await abrirConversacion(conv);
+}
+
+watch(() => route.query.tel, abrirChatDeLaUrl);
+
+const quitarManifest = instalarManifest();
+
+onUnmounted(() => {
+  desmontado = true;
+  detenerPolling();
+  clearTimeout(wsReconnectTimer);
+  ws?.close();
+  Object.values(mediaBlobs).forEach(url => URL.revokeObjectURL(url));
+  quitarManifest();
+});
+
 onMounted(async () => {
+  avisos.value = estadoInicialAvisos();
+  // El token de Firebase puede cambiar: si ya había permiso, se vuelve a registrar en silencio
+  if (avisos.value === 'activos') registrarCelular().catch(() => {});
   await cargarConversaciones();
+  await abrirChatDeLaUrl();
   iniciarPolling();
   conectarWS();
-  onUnmounted(() => {
-    desmontado = true;
-    detenerPolling();
-    clearTimeout(wsReconnectTimer);
-    ws?.close();
-    Object.values(mediaBlobs).forEach(url => URL.revokeObjectURL(url));
-  });
 });
 </script>
 
