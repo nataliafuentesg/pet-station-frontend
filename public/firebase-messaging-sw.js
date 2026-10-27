@@ -28,6 +28,14 @@ messaging.onBackgroundMessage((payload) => {
   });
 });
 
+// Avisos del panel de WhatsApp: traen el total sin leer para la burbujita del ícono de la app
+self.addEventListener('push', (event) => {
+  let badge;
+  try { badge = Number(event.data?.json()?.data?.badge); } catch { return; }
+  if (!Number.isFinite(badge) || !self.navigator.setAppBadge) return;
+  event.waitUntil(badge > 0 ? self.navigator.setAppBadge(badge) : self.navigator.clearAppBadge());
+});
+
 self.addEventListener('notificationclick', (event) => {
   const link = event.notification.data && event.notification.data.link;
   if (!link) return;

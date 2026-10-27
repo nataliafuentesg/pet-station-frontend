@@ -22,14 +22,14 @@
       </div>
 
       <!-- Buscador -->
-      <div class="px-3 py-2 bg-[#1a2936]">
+      <div class="px-3 py-2 bg-white border-b border-slate-100">
         <input v-model="busqueda" placeholder="Buscar conversación..."
-          class="w-full bg-white/10 text-white text-sm rounded-lg px-3 py-2 outline-none placeholder-white/40" />
+          class="w-full bg-slate-100 text-slate-800 text-sm rounded-lg px-3 py-2 outline-none placeholder-slate-400" />
       </div>
 
       <!-- Lista -->
       <div class="wa-conv-list">
-        <div v-if="conversacionesFiltradas.length === 0" class="p-6 text-center text-white/30 text-sm">
+        <div v-if="conversacionesFiltradas.length === 0" class="p-6 text-center text-slate-400 text-sm">
           Sin conversaciones
         </div>
         <button v-for="conv in conversacionesFiltradas" :key="conv.telefono"
@@ -42,11 +42,11 @@
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex justify-between items-start">
-              <span class="font-semibold text-sm text-white truncate">{{ conv.nombre || formatTel(conv.telefono) }}</span>
-              <span class="text-[10px] text-white/40 shrink-0 ml-1">{{ formatHora(conv.ultimoMensajeTs) }}</span>
+              <span class="font-semibold text-sm text-slate-800 truncate">{{ conv.nombre || formatTel(conv.telefono) }}</span>
+              <span class="text-[10px] text-slate-400 shrink-0 ml-1">{{ formatHora(conv.ultimoMensajeTs) }}</span>
             </div>
             <div class="flex justify-between items-center mt-0.5">
-              <p class="text-xs text-white/50 truncate">
+              <p class="text-xs text-slate-500 truncate">
                 <span v-if="conv.ultimoMensajeDireccion === 'OUTBOUND'" class="text-[#de1f27] mr-1">✓✓</span>
                 {{ resumeMensaje(conv) }}
               </p>
@@ -79,17 +79,17 @@
             :class="conversacionActual.modo === 'HUMAN' ? 'bg-[#152c77]' : 'bg-[#de1f27]'">
             {{ iniciales(conversacionActual.nombre || conversacionActual.telefono) }}
           </div>
-          <p class="text-white font-bold text-base mt-1">{{ conversacionActual.nombre || 'Sin nombre' }}</p>
-          <p class="text-white/50 text-sm">{{ formatTel(conversacionActual.telefono) }}</p>
+          <p class="text-slate-800 font-bold text-base mt-1">{{ conversacionActual.nombre || 'Sin nombre' }}</p>
+          <p class="text-slate-500 text-sm">{{ formatTel(conversacionActual.telefono) }}</p>
         </div>
         <!-- Info -->
         <div class="px-4 space-y-3">
           <div class="wa-perfil-row">
-            <span class="text-white/40 text-xs">Modo</span>
-            <span class="text-white text-sm">{{ conversacionActual.modo === 'HUMAN' ? `👤 Asesor: ${conversacionActual.asesor}` : '🤖 Bot activo' }}</span>
+            <span class="text-slate-400 text-xs">Modo</span>
+            <span class="text-slate-700 text-sm">{{ conversacionActual.modo === 'HUMAN' ? `👤 Asesor: ${conversacionActual.asesor}` : '🤖 Bot activo' }}</span>
           </div>
           <div class="wa-perfil-row">
-            <span class="text-white/40 text-xs">Ventana</span>
+            <span class="text-slate-400 text-xs">Ventana</span>
             <span class="text-sm" :class="conversacionActual.ventanaAbierta ? 'text-[#de1f27]' : 'text-orange-400'">
               {{ conversacionActual.ventanaAbierta ? '✅ Abierta (24h)' : '🔒 Cerrada' }}
             </span>
@@ -97,9 +97,9 @@
         </div>
         <!-- Fotos compartidas -->
         <div class="px-4 mt-5">
-          <p class="text-white/40 text-xs font-bold uppercase tracking-wider mb-3">Fotos compartidas</p>
+          <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-3">Fotos compartidas</p>
           <div class="grid grid-cols-3 gap-1">
-            <div v-if="fotosCompartidas.length === 0" class="col-span-3 text-white/30 text-xs py-4 text-center">
+            <div v-if="fotosCompartidas.length === 0" class="col-span-3 text-slate-400 text-xs py-4 text-center">
               Sin fotos
             </div>
             <template v-for="m in fotosCompartidas" :key="m.id">
@@ -107,7 +107,7 @@
                 :src="mediaUrl(m.mediaId, m.mediaMime)"
                 class="w-full aspect-square object-cover rounded cursor-pointer hover:opacity-80"
                 @click="verImagen(m.mediaId)" />
-              <div v-else class="w-full aspect-square rounded bg-white/5 flex items-center justify-center text-lg">📷</div>
+              <div v-else class="w-full aspect-square rounded bg-slate-100 flex items-center justify-center text-lg">📷</div>
             </template>
           </div>
         </div>
@@ -121,7 +121,7 @@
       <div v-if="!conversacionActual" class="wa-empty">
         <div class="text-center space-y-3">
           <div class="text-6xl">💬</div>
-          <p class="text-white/40 text-sm">Selecciona una conversación</p>
+          <p class="text-slate-400 text-sm">Selecciona una conversación</p>
         </div>
       </div>
 
@@ -169,7 +169,7 @@
 
         <!-- Mensajes -->
         <div ref="chatBody" class="wa-messages" @scroll="onScroll">
-          <div v-if="cargandoMensajes" class="text-center py-4 text-white/30 text-sm">Cargando...</div>
+          <div v-if="cargandoMensajes" class="text-center py-4 text-slate-400 text-sm">Cargando...</div>
           <template v-else>
             <div v-for="m in mensajes" :key="m.id" class="wa-msg-wrapper" :class="m.direccion === 'OUTBOUND' ? 'outbound' : 'inbound'">
               <div class="wa-bubble" :class="m.direccion === 'OUTBOUND' ? 'outbound' : 'inbound'" :data-wamid="m.wamid">
@@ -223,19 +223,19 @@
         <!-- Barra de entrada -->
         <div class="wa-input-area">
           <!-- Borrador del agente: no sale hasta que alguien lo apruebe -->
-          <div v-if="borrador" class="mb-3 rounded-2xl border border-purple-500/40 bg-purple-900/30 p-3 space-y-2">
+          <div v-if="borrador" class="mb-3 rounded-2xl border border-purple-200 bg-purple-50 p-3 space-y-2">
             <div class="flex items-center justify-between">
-              <p class="text-[11px] font-black uppercase tracking-wider text-purple-200">🤖 Propuesta del agente · aún no se ha enviado</p>
-              <span class="text-[10px] text-white/40">{{ formatHora(borrador.creadoEn) }}</span>
+              <p class="text-[11px] font-black uppercase tracking-wider text-purple-700">🤖 Propuesta del agente · aún no se ha enviado</p>
+              <span class="text-[10px] text-slate-400">{{ formatHora(borrador.creadoEn) }}</span>
             </div>
             <textarea v-model="textoBorrador" rows="4"
-              class="w-full rounded-xl bg-black/30 border border-white/10 text-sm text-white p-3 focus:outline-none focus:border-purple-400 resize-y"></textarea>
-            <p v-for="d in borrador.documentos" :key="d.link" class="text-xs text-purple-100">
+              class="w-full rounded-xl bg-white border border-purple-200 text-sm text-slate-800 p-3 focus:outline-none focus:border-purple-400 resize-y"></textarea>
+            <p v-for="d in borrador.documentos" :key="d.link" class="text-xs text-purple-700">
               📄 Adjunto: <a :href="d.link" target="_blank" class="underline">{{ d.caption }}</a>
             </p>
             <div class="flex gap-2 justify-end">
               <button @click="descartarBorrador" :disabled="procesandoBorrador"
-                class="px-3 py-1.5 rounded-lg text-xs font-bold text-white/70 hover:text-white border border-white/20">
+                class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-300">
                 🗑️ Descartar
               </button>
               <button @click="enviarBorrador" :disabled="procesandoBorrador || !textoBorrador.trim()"
@@ -249,9 +249,9 @@
           <div v-if="mensajeCitado" class="wa-cite-preview">
             <div class="flex-1 min-w-0">
               <p class="text-[10px] text-[#de1f27] font-bold">Respondiendo a</p>
-              <p class="text-xs text-white/70 truncate">{{ mensajeCitado.contenido }}</p>
+              <p class="text-xs text-slate-600 truncate">{{ mensajeCitado.contenido }}</p>
             </div>
-            <button @click="mensajeCitado = null" class="text-white/40 hover:text-white text-lg ml-2">×</button>
+            <button @click="mensajeCitado = null" class="text-slate-400 hover:text-slate-700 text-lg ml-2">×</button>
           </div>
 
           <!-- Bloqueo si ventana cerrada -->
@@ -740,7 +740,7 @@ function instalarManifest() {
     agregados.push(el);
   };
   add('link', { rel: 'manifest', href: '/whatsapp.webmanifest' });
-  add('link', { rel: 'apple-touch-icon', href: '/images/logo-pet-station.png' });
+  add('link', { rel: 'apple-touch-icon', href: '/images/app-whatsapp/icono-180.png' });
   add('meta', { name: 'apple-mobile-web-app-capable', content: 'yes' });
   add('meta', { name: 'apple-mobile-web-app-title', content: 'WhatsApp PS' });
   add('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' });
@@ -756,6 +756,14 @@ async function abrirChatDeLaUrl() {
 }
 
 watch(() => route.query.tel, abrirChatDeLaUrl);
+
+// Burbujita con el número en el ícono de la app instalada (iPhone 16.4+ con avisos activos, Android según el celular)
+watch(totalSinLeer, (n) => {
+  try {
+    if (n > 0) navigator.setAppBadge?.(n);
+    else navigator.clearAppBadge?.();
+  } catch { /* el navegador no lo soporta */ }
+}, { immediate: true });
 
 const quitarManifest = instalarManifest();
 
@@ -781,7 +789,7 @@ onMounted(async () => {
 
 <style scoped>
 /* ── PALETA PET STATION ─────────────────────────────────────────────
-   Azul oscuro: #0c1a3a  (fondo principal)
+   Fondo: blanco / #eef2f8 (chat) — barras en azul #152c77
    Azul medio:  #152c77  (headers, acciones)
    Azul claro:  #1e3a8a  (hover, inputs)
    Rojo:        #de1f27  (acento, enviar, badges)
@@ -792,7 +800,7 @@ onMounted(async () => {
   display: flex;
   height: 100vh;
   height: 100dvh;
-  background: #0c1a3a;
+  background: #ffffff;
   font-family: system-ui, sans-serif;
   overflow: hidden;
 }
@@ -801,10 +809,10 @@ onMounted(async () => {
 .wa-sidebar {
   width: 360px;
   min-width: 280px;
-  border-right: 1px solid rgba(255,255,255,0.08);
+  border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
-  background: #0c1a3a;
+  background: #ffffff;
   overflow: hidden;
 }
 .wa-sidebar-header {
@@ -826,12 +834,12 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid #f1f5f9;
   transition: background 0.1s;
   text-align: left;
 }
-.wa-conv-item:hover { background: rgba(21,44,119,0.4); }
-.wa-conv-item.active { background: rgba(21,44,119,0.7); }
+.wa-conv-item:hover { background: #f1f5ff; }
+.wa-conv-item.active { background: #e0e8ff; }
 .wa-avatar {
   width: 44px; height: 44px;
   border-radius: 50%;
@@ -852,7 +860,7 @@ onMounted(async () => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #091228;
+  background: #eef2f8;
   min-width: 0;
   position: relative;
   overflow: hidden;
@@ -890,8 +898,8 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  background-color: #091228;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' opacity='0.03'%3E%3Ctext x='10' y='40' font-size='32'%3E🐾%3C/text%3E%3C/svg%3E");
+  background-color: #eef2f8;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' opacity='0.06'%3E%3Ctext x='10' y='40' font-size='32'%3E🐾%3C/text%3E%3C/svg%3E");
 }
 .wa-msg-wrapper {
   display: flex;
@@ -953,15 +961,15 @@ onMounted(async () => {
 
 /* INPUT */
 .wa-input-area {
-  background: #152c77;
+  background: #ffffff;
   padding: 10px 16px;
   padding-bottom: max(10px, env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid #e5e7eb;
 }
 .wa-textarea {
   flex: 1;
-  background: rgba(255,255,255,0.1);
-  color: white;
+  background: #f1f5f9;
+  color: #1f2937;
   border-radius: 24px;
   padding: 9px 16px;
   font-size: 14px;
@@ -969,9 +977,9 @@ onMounted(async () => {
   outline: none;
   max-height: 120px;
   line-height: 1.4;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid #e2e8f0;
 }
-.wa-textarea::placeholder { color: rgba(255,255,255,0.4); }
+.wa-textarea::placeholder { color: #94a3b8; }
 .wa-send-btn {
   background: #de1f27;
   color: white;
@@ -985,7 +993,7 @@ onMounted(async () => {
 .wa-cite-preview {
   display: flex;
   align-items: center;
-  background: rgba(0,0,0,0.2);
+  background: #f1f5f9;
   border-left: 3px solid #de1f27;
   padding: 6px 10px;
   border-radius: 6px;
@@ -993,25 +1001,25 @@ onMounted(async () => {
 }
 .wa-ventana-cerrada {
   text-align: center;
-  color: #fbbf24;
+  color: #b45309;
   font-size: 12px;
   font-weight: 600;
   padding: 10px;
-  background: rgba(251,191,36,0.1);
+  background: #fef3c7;
   border-radius: 8px;
 }
 
 .wa-attach-btn {
-  background: rgba(255,255,255,0.1);
+  background: #f1f5f9;
   border-radius: 50%;
   width: 40px; height: 40px;
   display: flex; align-items: center; justify-content: center;
   font-size: 18px;
   flex-shrink: 0;
   transition: background 0.15s;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid #e2e8f0;
 }
-.wa-attach-btn:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
+.wa-attach-btn:hover:not(:disabled) { background: #e2e8f0; }
 .wa-attach-btn:disabled { opacity: 0.5; }
 
 /* Botón ir al final */
@@ -1035,8 +1043,8 @@ onMounted(async () => {
 .wa-perfil {
   width: 300px;
   min-width: 260px;
-  background: #0c1a3a;
-  border-left: 1px solid rgba(255,255,255,0.08);
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1059,7 +1067,7 @@ onMounted(async () => {
   flex-direction: column;
   gap: 2px;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid #f1f5f9;
 }
 
 /* Scrollbars */
@@ -1072,12 +1080,12 @@ onMounted(async () => {
 
 /* Buscador */
 .wa-sidebar input {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
-  color: white;
+  color: #1f2937;
 }
-.wa-sidebar input::placeholder { color: rgba(255,255,255,0.35); }
+.wa-sidebar input::placeholder { color: #94a3b8; }
 
 /* Responsive móvil */
 @media (max-width: 768px) {
