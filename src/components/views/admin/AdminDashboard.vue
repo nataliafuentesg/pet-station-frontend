@@ -18,6 +18,7 @@ import AdminHealth from './AdminHealth.vue';
 import AdminJornada from './AdminJornada.vue';
 import AdminFormularios from './AdminFormularios.vue';
 import AdminAccesos from './AdminAccesos.vue';
+import AdminChatWeb from './AdminChatWeb.vue';
 import { suscribirNotificaciones } from '@/composables/usePushNotifications';
 import { messaging, onMessage } from '@/firebase';
 
@@ -64,6 +65,7 @@ const todasLasTabs = [
     { id: 'wa-analytics', label: 'WA Analytics', icon: '📲' },
     { id: 'formularios', label: 'Formularios', icon: '📝' },
     { id: 'health', label: 'Sistema', icon: '🖥️' },
+    { id: 'chat-web', label: 'Chat Web', icon: '💬' },
     { id: 'accesos', label: 'Accesos', icon: '🔐' }
 ];
 
@@ -247,6 +249,7 @@ const doLogout = () => {
                         <AdminJornada v-if="currentTab === 'jornada'" :solo-lectura="!accesos?.completo" />
                         <AdminFormularios v-if="currentTab === 'formularios'" />
                         <AdminHealth v-if="currentTab === 'health'" />
+                        <AdminChatWeb v-if="currentTab === 'chat-web'" />
                         <AdminAccesos v-if="currentTab === 'accesos'" />
                     </div>
                 </Transition>
