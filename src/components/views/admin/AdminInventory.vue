@@ -35,6 +35,7 @@
                 <div class="flex flex-col">
                     <span class="uppercase italic font-[1000] text-xs dark:text-white">{{ prod.nombre }}</span>
                     <span class="text-[9px] opacity-40 uppercase">{{ prod.marca }}</span>
+                    <span v-if="prod.ocultoEnWeb" class="mt-1 self-start px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 rounded text-[8px] uppercase font-black">Oculto en web · solo WhatsApp</span>
                 </div>
             </td>
             <td class="p-5">
@@ -278,6 +279,14 @@
             </div>
           </div>
 
+          <div class="md:col-span-3 flex items-center gap-6 bg-amber-500/5 p-6 rounded-[2rem] border border-amber-500/20">
+            <input type="checkbox" v-model="form.ocultoEnWeb" class="w-5 h-5 accent-amber-500">
+            <div>
+                <p class="text-[10px] font-[1000] uppercase text-amber-600 italic">Ocultar en la web (solo WhatsApp)</p>
+                <p class="text-[9px] opacity-60 dark:text-white/40">No sale en la tienda, ni en Google, ni se puede comprar en la página. Los chats dicen que sí lo tenemos y lo mandan a WhatsApp.</p>
+            </div>
+          </div>
+
           <div class="md:col-span-3">
             <label class="label">Imágenes (URLs - Una por línea)</label>
             <textarea v-model="fotosTexto" class="admin-input h-20 font-mono text-[10px]"></textarea>
@@ -419,7 +428,7 @@ const abrirModal = (prod = null) => {
         fotosTexto.value = prod.fotosUrls ? prod.fotosUrls.join('\n') : '';
         editMode.value = true;
     } else {
-        form.value = { stock: 0, precio: 0, especie: 'TODOS', etapaVida: 'TODOS', categoria: 'NUTRICION', rangoPeso: 'TODOS', requiereReceta: false };
+        form.value = { stock: 0, precio: 0, especie: 'TODOS', etapaVida: 'TODOS', categoria: 'NUTRICION', rangoPeso: 'TODOS', requiereReceta: false, ocultoEnWeb: false };
         fotosTexto.value = '';
         editMode.value = false;
     }
