@@ -114,10 +114,24 @@
                 </span>
               </div>
               
-              <div class="flex items-center bg-white/10 rounded-2xl p-2 border border-white/10 shadow-inner">
-                <button @click="quantity > 1 ? quantity-- : null" class="w-12 h-12 flex items-center justify-center text-2xl font-black hover:text-ps-red transition-colors">-</button>
-                <span class="w-12 text-center font-[1000] text-2xl">{{ quantity }}</span>
-                <button @click="quantity < product.stock ? quantity++ : null" class="w-12 h-12 flex items-center justify-center text-2xl font-black hover:text-ps-red transition-colors">+</button>
+              <div class="flex flex-col items-end gap-2">
+                <!-- Indicador de stock -->
+                <div v-if="product.stock > 0"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest"
+                  :class="product.stock <= 5
+                    ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                    : 'bg-green-500/20 text-green-300 border border-green-500/30'">
+                  <span class="w-1.5 h-1.5 rounded-full"
+                    :class="product.stock <= 5 ? 'bg-amber-400' : 'bg-green-400'"></span>
+                  <span v-if="product.stock <= 5">¡Solo quedan {{ product.stock }}!</span>
+                  <span v-else>{{ product.stock }} disponibles</span>
+                </div>
+
+                <div class="flex items-center bg-white/10 rounded-2xl p-2 border border-white/10 shadow-inner">
+                  <button @click="quantity > 1 ? quantity-- : null" class="w-12 h-12 flex items-center justify-center text-2xl font-black hover:text-ps-red transition-colors">-</button>
+                  <span class="w-12 text-center font-[1000] text-2xl">{{ quantity }}</span>
+                  <button @click="quantity < product.stock ? quantity++ : null" class="w-12 h-12 flex items-center justify-center text-2xl font-black hover:text-ps-red transition-colors">+</button>
+                </div>
               </div>
             </div>
 
