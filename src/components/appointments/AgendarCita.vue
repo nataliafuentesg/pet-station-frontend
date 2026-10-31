@@ -120,7 +120,7 @@
 
           <!-- Anti-spam Cloudflare Turnstile -->
           <div v-if="CF_SITE_KEY !== 'PENDING'" class="flex justify-center">
-            <CfTurnstile :site-key="CF_SITE_KEY" @verified="turnstileToken = $event" @error="turnstileToken = ''" />
+            <CfTurnstile ref="turnstileRef" :site-key="CF_SITE_KEY" @verified="turnstileToken = $event" @error="turnstileToken = ''" @expired="turnstileToken = ''" />
           </div>
 
           <!-- Autorización Ley 1581 -->
@@ -165,6 +165,7 @@ const loading = ref(false);
 const cargandoHoras = ref(false);
 const autorizoDatos = ref(false);
 const turnstileToken = ref('');
+const turnstileRef = ref(null);
 const CF_SITE_KEY = import.meta.env.VITE_CF_TURNSTILE_KEY || 'PENDING';
 
 const tempDate = ref('');
@@ -380,6 +381,7 @@ const handleSubmit = async () => {
       ...form,
       fbp: getCookie('_fbp'),
       fbc: getCookie('_fbc'),
+      turnstileToken: turnstileToken.value,
     });
     trackCitaAgendada(
       form.servicioTipo,
@@ -404,6 +406,8 @@ const handleSubmit = async () => {
 
   } catch (e) {
     loading.value = false;
+    turnstileToken.value = '';
+    turnstileRef.value?.reset();
     const errorMsg = e.response?.data?.message || 'Error al agendar la cita';
     emit('notify', { msg: errorMsg, type: 'error' });
   }

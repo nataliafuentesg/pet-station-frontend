@@ -19,57 +19,7 @@
           <button @click="toggleChat" class="relative z-10 text-white/60 hover:text-white text-3xl p-1 transition-colors leading-none">×</button>
         </div>
 
-        <!-- PASO 1: Formulario de datos -->
-        <div v-if="paso === 'form'" class="p-5 overflow-y-auto custom-scrollbar flex-1">
-          <div class="flex items-end gap-2 mb-5">
-            <div class="w-8 h-8 bg-[#152C77] rounded-full flex items-center justify-center text-white text-sm shrink-0 shadow-md">🤖</div>
-            <div class="bg-white dark:bg-[#152C77] border border-slate-200 dark:border-white/5 p-4 rounded-2xl rounded-bl-none shadow-sm relative">
-              <p class="text-[11px] font-bold text-slate-600 dark:text-white leading-relaxed">
-                ¡Hola! 👋 Soy el asistente virtual de Pet Station.<br><br>
-                Antes de empezar, cuéntame cómo te llamas y tu número de WhatsApp para poder ayudarte mejor.
-              </p>
-              <div class="absolute -bottom-1 -left-1 w-3 h-3 bg-white dark:bg-[#152C77] transform rotate-45 border-b border-l border-slate-200 dark:border-transparent"></div>
-            </div>
-          </div>
-
-          <div class="flex flex-col gap-3 pl-10">
-            <input
-              v-model="lead.nombre"
-              type="text"
-              placeholder="Tu nombre *"
-              maxlength="60"
-              class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#152C77] transition-colors text-slate-700 dark:text-white placeholder-slate-400"
-              @keyup.enter="lead.whatsapp && lead.nombre && iniciarChat()"
-            />
-            <input
-              v-model="lead.whatsapp"
-              type="tel"
-              placeholder="Tu WhatsApp (10 dígitos) *"
-              maxlength="15"
-              class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#152C77] transition-colors text-slate-700 dark:text-white placeholder-slate-400"
-              @keyup.enter="lead.whatsapp && lead.nombre && iniciarChat()"
-            />
-            <input
-              v-model="lead.correo"
-              type="email"
-              placeholder="Correo electrónico (opcional)"
-              maxlength="80"
-              class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#152C77] transition-colors text-slate-700 dark:text-white placeholder-slate-400"
-              @keyup.enter="lead.whatsapp && lead.nombre && iniciarChat()"
-            />
-            <p v-if="errorForm" class="text-[10px] font-bold text-[#DE1F27]">{{ errorForm }}</p>
-            <button
-              @click="iniciarChat"
-              :disabled="!lead.nombre.trim() || !lead.whatsapp.trim()"
-              class="w-full text-center px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest italic transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-[#152C77] text-white shadow-lg mt-1"
-            >
-              Empezar chat →
-            </button>
-          </div>
-        </div>
-
-        <!-- PASO 2: Chat -->
-        <template v-else-if="paso === 'chat'">
+        <!-- Chat: se escribe de una, sin pedir datos antes -->
           <!-- Mensajes -->
           <div ref="mensajesRef" class="p-4 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-3">
             <div v-for="(msg, i) in mensajes" :key="i" class="flex gap-2" :class="msg.rol === 'USER' ? 'flex-row-reverse' : 'flex-row'">
@@ -94,6 +44,23 @@
               </div>
             </div>
 
+            <!-- Datos de contacto: opcionales, después de la primera respuesta -->
+            <div v-if="mostrarTarjetaContacto" class="ml-9 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-3 flex flex-col gap-2">
+              <p class="text-[10px] font-bold text-slate-600 dark:text-white/80 leading-snug">📲 ¿Quieres que el equipo te escriba por WhatsApp? Déjanos tu número (opcional).</p>
+              <input v-model="lead.nombre" type="text" placeholder="Tu nombre" maxlength="60"
+                class="w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#152C77] text-slate-700 dark:text-white placeholder-slate-400" />
+              <input v-model="lead.whatsapp" type="tel" placeholder="Tu WhatsApp (10 dígitos)" maxlength="15"
+                class="w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#152C77] text-slate-700 dark:text-white placeholder-slate-400"
+                @keyup.enter="guardarContacto" />
+              <p v-if="errorForm" class="text-[10px] font-bold text-[#DE1F27]">{{ errorForm }}</p>
+              <div class="flex gap-2">
+                <button @click="guardarContacto" :disabled="!lead.whatsapp.trim()"
+                  class="flex-1 px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-[#152C77] text-white disabled:opacity-50">Enviar</button>
+                <button @click="contacto = 'omitido'"
+                  class="px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">Ahora no</button>
+              </div>
+            </div>
+
             <!-- Typing indicator -->
             <div v-if="cargando" class="flex gap-2 items-end">
               <div class="w-7 h-7 bg-[#152C77] rounded-full flex items-center justify-center text-white text-xs shrink-0 shadow-md">🤖</div>
@@ -107,6 +74,12 @@
 
           <!-- Input -->
           <div class="p-3 border-t border-slate-200 dark:border-white/10 shrink-0">
+            <!-- Anti-bots: invisible, solo aparece si Cloudflare necesita un clic -->
+            <div class="flex justify-center empty:hidden">
+              <CfTurnstile v-if="CF_SITE_KEY !== 'PENDING' && turnstileKey" :key="turnstileKey" :site-key="CF_SITE_KEY" size="compact" appearance="interaction-only"
+                @verified="tokenListo" @error="tokenFallo" @expired="turnstileToken = ''" />
+            </div>
+            <p v-if="errorChat" class="text-[10px] font-bold text-[#DE1F27] text-center mb-2">{{ errorChat }}</p>
             <div class="flex gap-2 items-end">
               <textarea
                 v-model="inputMensaje"
@@ -127,7 +100,6 @@
             </div>
             <p class="text-[8px] font-bold text-slate-400 text-center mt-2 uppercase tracking-widest">Pet Station · Chía, Cundinamarca</p>
           </div>
-        </template>
 
       </div>
     </Transition>
@@ -161,21 +133,40 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import api from '@/api/axios';
+import CfTurnstile from '@/components/shared/CfTurnstile.vue';
+
+const generarUUID = () =>
+  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
 
 const isOpen = ref(false);
 const hasOpened = ref(false);
-const paso = ref('form'); // 'form' | 'chat'
 
-const lead = ref({ nombre: '', whatsapp: '', correo: '' });
+// Los datos de contacto son opcionales: se piden en una tarjeta después de la primera respuesta
+const lead = ref({ nombre: '', whatsapp: '' });
+const contacto = ref('pendiente'); // 'pendiente' | 'guardado' | 'omitido'
 const errorForm = ref('');
-const sessionId = ref('');
+const errorChat = ref('');
+
+const CF_SITE_KEY = import.meta.env.VITE_CF_TURNSTILE_KEY || 'PENDING';
+const turnstileToken = ref('');
+const turnstileKey = ref(0); // al cambiarla se vuelve a montar el widget y pide un token nuevo
+const verificado = ref(false); // el back ya validó esta sesión
+let avisarToken = null;
+
+const sessionId = ref(generarUUID());
 const mensajes = ref([]);
 const inputMensaje = ref('');
 const cargando = ref(false);
 const mensajesRef = ref(null);
 const inputRef = ref(null);
+
+const mostrarTarjetaContacto = computed(() =>
+  contacto.value === 'pendiente' && !cargando.value && mensajes.value.some(m => m.rol === 'USER'));
 
 const WA_REGEX = /https?:\/\/wa\.me\/[^\s)\]>]*/i;
 
@@ -194,12 +185,6 @@ const textoSinWa = (texto) => {
     .trim();
 };
 
-const generarUUID = () =>
-  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0;
-    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-  });
-
 const scrollAbajo = async () => {
   await nextTick();
   if (mensajesRef.value) mensajesRef.value.scrollTop = mensajesRef.value.scrollHeight;
@@ -213,36 +198,36 @@ const autoResize = (e) => {
 
 const toggleChat = () => {
   isOpen.value = !isOpen.value;
-  if (isOpen.value) {
-    hasOpened.value = true;
-    if (paso.value === 'chat') {
-      scrollAbajo();
-      nextTick(() => inputRef.value?.focus());
-    }
+  if (!isOpen.value) return;
+  hasOpened.value = true;
+  if (!mensajes.value.length) {
+    mensajes.value.push({
+      rol: 'BOT',
+      contenido: '¡Hola! 👋 Soy el asistente virtual de Pet Station. Pregúntame lo que necesites: servicios, precios, productos u horarios 🐾'
+    });
   }
+  if (!turnstileKey.value) turnstileKey.value = 1;
+  scrollAbajo();
+  nextTick(() => inputRef.value?.focus());
 };
 
-const iniciarChat = () => {
-  const nombre = lead.value.nombre.trim();
-  const whatsapp = lead.value.whatsapp.trim().replace(/\D/g, '');
-  errorForm.value = '';
+const tokenListo = (token) => {
+  turnstileToken.value = token;
+  avisarToken?.();
+};
 
-  if (!nombre) { errorForm.value = 'Por favor ingresa tu nombre.'; return; }
-  if (whatsapp.length < 7) { errorForm.value = 'Ingresa un número de WhatsApp válido.'; return; }
+// Si Turnstile falla no se deja a la persona esperando: el back decide
+const tokenFallo = () => {
+  turnstileToken.value = '';
+  avisarToken?.();
+};
 
-  sessionId.value = generarUUID();
-  mensajes.value = [];
-  paso.value = 'chat';
-
-  // Mensaje de bienvenida del bot
-  mensajes.value.push({
-    rol: 'BOT',
-    contenido: `¡Hola ${nombre}! 😊 Estoy aquí para ayudarte con información sobre los servicios de Pet Station. ¿En qué te puedo ayudar hoy?`
-  });
-
-  nextTick(() => {
-    scrollAbajo();
-    inputRef.value?.focus();
+// Turnstile trabaja en segundo plano; si la persona escribe muy rápido, se espera el token un momento
+const esperarToken = () => {
+  if (CF_SITE_KEY === 'PENDING' || verificado.value || turnstileToken.value) return Promise.resolve();
+  return new Promise(resolve => {
+    const t = setTimeout(resolve, 15000);
+    avisarToken = () => { clearTimeout(t); avisarToken = null; resolve(); };
   });
 };
 
@@ -250,6 +235,7 @@ const enviarMensaje = async () => {
   const texto = inputMensaje.value.trim();
   if (!texto || cargando.value) return;
 
+  errorChat.value = '';
   mensajes.value.push({ rol: 'USER', contenido: texto });
   inputMensaje.value = '';
   if (inputRef.value) { inputRef.value.style.height = 'auto'; }
@@ -257,15 +243,28 @@ const enviarMensaje = async () => {
   scrollAbajo();
 
   try {
+    await esperarToken();
+    const conDatos = contacto.value === 'guardado';
     const { data } = await api.post('/chat/mensaje', {
       sessionId: sessionId.value,
-      nombre: lead.value.nombre.trim(),
-      whatsapp: lead.value.whatsapp.trim().replace(/\D/g, ''),
-      correo: lead.value.correo.trim() || undefined,
+      nombre: conDatos ? lead.value.nombre.trim() || undefined : undefined,
+      whatsapp: conDatos ? lead.value.whatsapp.replace(/\D/g, '') : undefined,
       mensaje: texto,
+      turnstileToken: turnstileToken.value || undefined,
     });
+    verificado.value = true;
     mensajes.value.push({ rol: 'BOT', contenido: data.respuesta });
-  } catch {
+  } catch (e) {
+    if (e.response?.status === 403 && e.response?.data?.error === 'turnstile') {
+      // Token vencido o inválido: se pide uno nuevo (si Cloudflare duda, aparece la casilla) y se deja el mensaje para reenviar
+      mensajes.value.pop();
+      inputMensaje.value = texto;
+      turnstileToken.value = '';
+      verificado.value = false;
+      turnstileKey.value++;
+      errorChat.value = 'No pudimos verificar que no eres un robot. Vuelve a enviar tu mensaje.';
+      return;
+    }
     mensajes.value.push({
       rol: 'BOT',
       contenido: 'Disculpa, no pude procesar tu mensaje ahora mismo. Escríbenos directamente al WhatsApp 3053462413 🙏'
@@ -274,6 +273,28 @@ const enviarMensaje = async () => {
     cargando.value = false;
     scrollAbajo();
     nextTick(() => inputRef.value?.focus());
+  }
+};
+
+const guardarContacto = async () => {
+  const whatsapp = lead.value.whatsapp.replace(/\D/g, '');
+  errorForm.value = '';
+  if (whatsapp.length < 7) { errorForm.value = 'Ingresa un número de WhatsApp válido.'; return; }
+  try {
+    await api.post('/chat/contacto', {
+      sessionId: sessionId.value,
+      nombre: lead.value.nombre.trim() || undefined,
+      whatsapp,
+    });
+    contacto.value = 'guardado';
+    const nombre = lead.value.nombre.trim();
+    mensajes.value.push({
+      rol: 'BOT',
+      contenido: `¡Gracias${nombre ? ' ' + nombre : ''}! 🙌 Ya tenemos tu número. Si necesitas algo más, sigue escribiendo por aquí.`
+    });
+    scrollAbajo();
+  } catch {
+    errorForm.value = 'No pudimos guardar tu número. Inténtalo de nuevo.';
   }
 };
 </script>
