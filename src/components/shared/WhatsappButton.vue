@@ -32,7 +32,8 @@
                   ? 'bg-[#152C77] text-white rounded-tr-none'
                   : 'bg-white dark:bg-[#1a1a2e] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white rounded-tl-none'"
               >
-                <span class="whitespace-pre-wrap">{{ textoSinWa(msg.contenido) }}</span>
+                <span v-if="msg.rol === 'BOT'" class="whitespace-pre-wrap" v-html="formatearBot(msg.contenido)"></span>
+                <span v-else class="whitespace-pre-wrap">{{ msg.contenido }}</span>
                 <a v-if="msg.rol === 'BOT' && waLinkDe(msg.contenido)"
                   :href="waLinkDe(msg.contenido)" target="_blank" rel="noopener"
                   class="mt-2 flex items-center gap-2 w-full bg-[#25D366] hover:bg-green-600 text-white text-[9px] font-black uppercase tracking-widest px-3 py-2.5 rounded-xl transition-all active:scale-95">
@@ -175,14 +176,29 @@ const waLinkDe = (texto) => {
   return m ? m[0] : null;
 };
 
-const textoSinWa = (texto) => {
+const escaparHtml = (t) => t
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+// GPT a veces responde con Markdown: se limpia y solo se dejan negritas y links clicables.
+// El link de WhatsApp se quita del texto porque va en el botón verde.
+const formatearBot = (texto) => {
   if (!texto) return '';
-  return texto
-    .replace(WA_REGEX, '')
-    .replace(/\[\s*WhatsApp\s*\]\s*\(\s*\)/gi, '')
+  let t = texto
+    .replace(/\[([^\]]*)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/g, (_, txt, url) => (WA_REGEX.test(url) ? '' : url))
+    .replace(new RegExp(WA_REGEX.source, 'gi'), '')
+    .replace(/\[\s*\]|\(\s*\)/g, '')
+    .replace(/:\s*([.!])/g, '$1')
     .replace(/\*?\[?\s*WhatsApp\s*\]?\*?:\s*$/gim, '')
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/[ \t]+$/gm, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+  t = escaparHtml(t)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*\*/g, '')
+    .replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)])/g, '<a href="$1" target="_blank" rel="noopener" class="underline break-all">$1</a>');
+  return t;
 };
 
 const scrollAbajo = async () => {
