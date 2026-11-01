@@ -99,7 +99,7 @@
                 class="w-10 h-10 bg-[#152C77] text-white rounded-xl flex items-center justify-center text-base font-black disabled:opacity-40 hover:bg-[#DE1F27] transition-colors shrink-0"
               >→</button>
             </div>
-            <p class="text-[8px] font-bold text-slate-400 text-center mt-2 uppercase tracking-widest">Pet Station · Chía, Cundinamarca</p>
+            <p class="text-[8px] font-bold text-slate-400 text-center mt-2 leading-snug">Asistente automático: puede equivocarse. Los precios y condiciones válidos son los de la tienda y tu factura.</p>
           </div>
 
       </div>
