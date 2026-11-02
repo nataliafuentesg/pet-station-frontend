@@ -81,6 +81,7 @@
         <p v-if="seleccion.it.tipo === 'TAREA'" class="text-[11px] font-bold" :class="seleccion.it.fueraDeArea ? 'text-[#DE1F27]' : 'text-slate-500 dark:text-white/50'">
           Área: {{ AREAS[seleccion.it.area] || 'sin clasificar' }}<span v-if="seleccion.it.fueraDeArea"> · fuera de su área ({{ AREAS[seleccion.persona.areaPropia] }})</span>
         </p>
+        <p v-if="seleccion.it.apoyoMotivo" class="text-[11px] font-semibold text-sky-700 dark:text-sky-300">🤝 Por qué fue: "{{ seleccion.it.apoyoMotivo }}"</p>
         <p v-if="seleccion.it.nota" class="text-[11px] font-semibold text-amber-700 dark:text-amber-300">⚠️ {{ seleccion.it.nota }}</p>
         <p v-if="seleccion.it.explicacion" class="text-[11px] font-semibold text-slate-700 dark:text-white/80">💬 Explicó: "{{ seleccion.it.explicacion }}"</p>
         <p class="text-[11px] text-slate-500 dark:text-white/50 pt-1">
@@ -106,6 +107,7 @@
             </p>
             <p class="text-[12px]" :class="m.sinTarea ? 'text-red-600 dark:text-red-300' : 'text-[#DE1F27]'">
               mientras <b>{{ m.b }}</b> {{ m.sinTarea ? 'no tenía tarea registrada' : `estaba en ${m.tareaB} (${AREAS[m.areaB] || 'sin clasificar'})` }}
+              <span v-if="m.motivoB" class="block text-[11px] font-semibold text-sky-700 dark:text-sky-300">🤝 Por qué fue: "{{ m.motivoB }}"</span>
               <span v-if="m.notaB" class="block text-[11px] font-semibold text-amber-700 dark:text-amber-300">⚠️ {{ m.notaB }}</span>
               <span v-if="m.explicacionB" class="block text-[11px] font-semibold text-slate-700 dark:text-white/80">💬 Explicó: "{{ m.explicacionB }}"</span>
             </p>
@@ -272,6 +274,7 @@ const momentos = computed(() => {
             tareaA: a.descripcion, areaA: a.area,
             sinTarea: b.tipo === 'SIN_TAREA', tareaB: b.descripcion, areaB: b.area,
             notaB: b.nota, explicacionB: b.explicacion,
+            motivoB: b.apoyoMotivo,
             mascotas: mascotasEn(ini),
           })
         }

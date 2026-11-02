@@ -77,6 +77,20 @@
         </div>
       </div>
 
+      <!-- Salidas del área con lo que contaron al empezar -->
+      <div v-if="salidasArea.length" class="space-y-2">
+        <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">
+          🤝 Salidas de {{ AREAS[area].toLowerCase() }} con su explicación · {{ salidasArea.length }}
+        </h3>
+        <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
+          <div v-for="(x, i) in salidasArea" :key="i" class="px-4 py-3 space-y-0.5">
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 tabular-nums">{{ diaCorto(x.fecha) }} · {{ x.desde }} – {{ x.hasta }} · {{ dur(x.seg) }} · {{ AREAS[x.a] || 'otra área' }}</p>
+            <p class="text-[12px] dark:text-white/80"><b class="dark:text-white">{{ x.quien }}</b>: {{ x.tarea }}</p>
+            <p class="text-[12px] text-slate-600 dark:text-white/70">"{{ x.motivo }}"</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Día por día -->
       <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-x-auto">
         <table class="w-full text-left min-w-[560px]">
@@ -262,6 +276,13 @@ const solas = computed(() => {
   }
   return out.sort((x, y) => (x.fecha + x.desde).localeCompare(y.fecha + y.desde))
 })
+
+// Lo que contaron al empezar una tarea de otra área (se pregunta desde noviembre)
+const salidasArea = computed(() => dias.value.flatMap(d => d.personas.filter(p => p.areaPropia === area.value).flatMap(p =>
+  itemsDe(d.fecha, p).filter(it => it.apoyoMotivo).map(it => ({
+    fecha: d.fecha, desde: hora(it.inicio), hasta: hora(it.fin), seg: it.segundos, quien: p.nombre, tarea: it.descripcion,
+    a: it.apoyoArea, motivo: it.apoyoMotivo,
+  })))).sort((a, b) => (b.fecha + b.desde).localeCompare(a.fecha + a.desde)))
 
 const hechos = computed(() => {
   const ps = personas.value

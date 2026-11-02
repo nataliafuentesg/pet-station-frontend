@@ -296,6 +296,29 @@
       </Transition>
     </Teleport>
 
+    <!-- Tarea de otra área: una sola pregunta, para entender por qué fue -->
+    <Teleport to="body">
+      <div v-if="fueraArea" class="fixed inset-0 z-[9002] flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="fueraArea = null"></div>
+        <div class="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
+          <p class="text-[10px] font-black uppercase tracking-widest text-sky-300">🤝 Vas a ayudar en {{ fueraArea.nombre }}</p>
+          <p class="text-lg font-[1000] leading-tight">¿Qué pasó? ¿Por qué vas a ayudar allá?</p>
+          <div class="flex flex-wrap gap-2">
+            <button v-for="c in INICIOS_APOYO" :key="c" @click="fueraArea.texto = fueraArea.texto.trim() ? fueraArea.texto : c + ' '"
+              class="text-[11px] font-bold rounded-full px-3 py-1.5 border bg-white/5 border-white/10 text-white/70">{{ c }}…</button>
+          </div>
+          <textarea v-model="fueraArea.texto" rows="3" maxlength="500" placeholder="Ej: La doctora me llamó para sostener un perro mientras lo canalizaba."
+            class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-sky-400 resize-none placeholder:text-white/20"></textarea>
+          <p v-if="fueraArea.texto.trim().length < 10" class="text-[10px] text-white/30">Con una frase basta 🙂</p>
+          <div class="grid grid-cols-2 gap-3">
+            <button @click="fueraArea = null" class="bg-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
+            <button @click="continuarFueraArea" :disabled="fueraArea.texto.trim().length < 10 || enviando"
+              class="bg-sky-500 text-black py-4 rounded-2xl font-[1000] uppercase tracking-widest text-[10px] disabled:opacity-40">Empezar</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Motivo para terminar la jornada sin completar sus horas -->
     <Teleport to="body">
       <div v-if="salida" class="fixed inset-0 z-[9002] flex items-end sm:items-center justify-center p-4">
@@ -526,6 +549,10 @@ const cierre = ref(null)
 const recepcion = ref(null)
 const hueco = ref(null)
 const salida = ref(null)
+const fueraArea = ref(null)
+const NOMBRE_AREA = { GUARDERIA: 'guardería', PELUQUERIA: 'peluquería', VETERINARIA: 'veterinaria', CAJA: 'caja', DOMICILIOS: 'domicilios', CONTABILIDAD: 'contabilidad' }
+const INICIOS_APOYO = ['Me llamó', 'Me pidieron ayuda porque', 'Mi área está al día y', 'No había nadie más y']
+let reintentoFueraArea = null
 const motivoSalida = ref('')
 const MOTIVOS_SALIDA = ['Calamidad doméstica', 'Cita médica', 'Permiso autorizado', 'Me pidieron salir antes']
 const explicacionHueco = ref('')
@@ -675,6 +702,10 @@ async function accion(url, body) {
     // El servidor pide explicación (ej: el rato pasó de 1 h justo ahora): se abre la ventana y se reintenta
     if (e.response?.data?.codigo === 'EXPLICAR_HUECO') abrirHueco(null, e.response.data.desde)
     if (e.response?.data?.codigo === 'EXPLICAR_SALIDA') abrirSalida()
+    if (e.response?.data?.codigo === 'FUERA_DE_AREA') {
+      error.value = ''
+      fueraArea.value = { texto: '', nombre: NOMBRE_AREA[e.response.data.area] || 'otra área', reintentar: reintentoFueraArea }
+    }
     return false
   } finally {
     enviando.value = false
@@ -713,9 +744,10 @@ function iniciarTarea() {
   crearTarea()
 }
 
-async function crearTarea(notaAnterior, checklist) {
+async function crearTarea(notaAnterior, checklist, motivoFueraDeArea) {
   const anterior = tareaActual.value
-  const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior, checklist, explicacionHueco: explicacionHueco.value || undefined })
+  reintentoFueraArea = m => crearTarea(notaAnterior, checklist, m)
+  const ok = await accion('/jornada/tarea', { descripcion: nuevaTarea.value, notaAnterior, checklist, explicacionHueco: explicacionHueco.value || undefined, motivoFueraDeArea })
   if (ok) {
     nuevaTarea.value = ''
     avisarCambio(anterior ? `✅ Terminaste "${anterior.descripcion}"` : null)
@@ -872,6 +904,13 @@ function salirAlmuerzo() {
 
 function abrirSalida() {
   salida.value = { texto: '', llevas: dur(segDia.value), de: dur(sesion.value?.segundosLimite || 28800) }
+}
+
+async function continuarFueraArea() {
+  const { texto, reintentar } = fueraArea.value
+  fueraArea.value = null
+  // Si venía de "cambiar de tarea", esa ventana sigue abierta: se cierra al lograr empezar
+  if (await reintentar?.(texto.trim())) cierre.value = null
 }
 
 function continuarSalida() {
