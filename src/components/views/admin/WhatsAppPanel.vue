@@ -161,6 +161,26 @@
           </div>
         </div>
 
+        <!-- Resumen: qué pasa en la conversación sin tener que leerla toda -->
+        <div v-if="resumen.texto || resumen.cargando || resumen.error" class="wa-resumen">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <button class="text-[11px] font-bold uppercase tracking-wider text-[#152c77] flex items-center gap-1" @click="resumen.abierto = !resumen.abierto">
+              📝 Resumen <span class="text-slate-400">{{ resumen.abierto ? '▲' : '▼' }}</span>
+            </button>
+            <button v-if="!resumen.cargando" class="text-[11px] text-slate-400 hover:text-[#152c77]" @click="cargarResumen(conversacionActual.telefono, true)">↻ Actualizar</button>
+          </div>
+          <template v-if="resumen.abierto">
+            <p v-if="resumen.cargando" class="text-xs text-slate-400">Leyendo la conversación…</p>
+            <p v-else-if="resumen.error" class="text-xs text-red-500">{{ resumen.error }}</p>
+            <div v-else class="space-y-0.5">
+              <p v-for="(linea, i) in resumen.texto.split('\n').filter(l => l.trim())" :key="i" class="text-xs text-slate-700 leading-snug">
+                <template v-if="linea.includes(':')"><b>{{ linea.slice(0, linea.indexOf(':') + 1) }}</b>{{ linea.slice(linea.indexOf(':') + 1) }}</template>
+                <template v-else>{{ linea }}</template>
+              </p>
+            </div>
+          </template>
+        </div>
+
         <!-- Botón "ir al final" -->
         <button v-if="!atBottom" @click="scrollAbajo(true)"
           class="wa-scroll-bottom">
@@ -303,6 +323,7 @@ const conversacionActual = ref(null);
 const mensajes = ref([]);
 const cargandoMensajes = ref(false);
 const borrador = ref(null);
+const resumen = ref({ texto: '', cargando: false, error: '', abierto: true });
 const textoBorrador = ref('');
 const procesandoBorrador = ref(false);
 const textoNuevo = ref('');
@@ -362,6 +383,7 @@ async function abrirConversacion(conv) {
   atBottom.value = true;
   borrador.value = null;
   cargarBorrador(conv.telefono);
+  cargarResumen(conv.telefono);
   try {
     const { data } = await api.get(`/admin/wa/conversaciones/${conv.telefono}/mensajes`);
     mensajes.value = data;
@@ -377,6 +399,19 @@ async function abrirConversacion(conv) {
 }
 
 // ── ACCIONES ────────────────────────────────────────────────────────
+
+// El back solo llama a la IA si hay mensajes nuevos desde el último resumen
+async function cargarResumen(telefono, actualizar = false) {
+  resumen.value = { ...resumen.value, cargando: true, error: '', texto: actualizar ? resumen.value.texto : '' };
+  try {
+    const { data } = await api.get(`/admin/wa/conversaciones/${telefono}/resumen`, { params: actualizar ? { actualizar: true } : {} });
+    if (conversacionActual.value?.telefono !== telefono) return;
+    resumen.value = { ...resumen.value, cargando: false, texto: data.resumen || '' };
+  } catch {
+    if (conversacionActual.value?.telefono !== telefono) return;
+    resumen.value = { ...resumen.value, cargando: false, error: 'No se pudo generar el resumen' };
+  }
+}
 
 async function cargarBorrador(telefono) {
   const { data, status } = await api.get(`/admin/wa/conversaciones/${telefono}/borrador`);
@@ -880,6 +915,14 @@ onMounted(async () => {
   gap: 10px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   min-height: 56px;
+}
+.wa-resumen {
+  background: #eef2ff;
+  border-bottom: 1px solid #dbe3ff;
+  padding: 8px 16px;
+  max-height: 30vh;
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 .wa-btn-action {
   padding: 5px 12px;
