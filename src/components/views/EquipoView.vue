@@ -296,6 +296,21 @@
       </Transition>
     </Teleport>
 
+    <!-- Mientras el celular afina la ubicación al marcar -->
+    <Teleport to="body">
+      <div v-if="ubicando" class="fixed inset-0 z-[9600] flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-xs bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-3 text-white text-center">
+          <p class="text-4xl animate-pulse">📍</p>
+          <p class="text-[15px] font-[1000] leading-tight">Confirmando tu ubicación…</p>
+          <p class="text-[12px] text-white/60 tabular-nums">
+            {{ ubicando.precision == null ? 'Buscando señal' : `Precisión: ${ubicando.precision} m` }}
+          </p>
+          <p class="text-[10px] text-white/30">Solo se guarda este momento. Con el WiFi encendido es más rápido y más exacto.</p>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Tarea de otra área: una sola pregunta, para entender por qué fue -->
     <Teleport to="body">
       <div v-if="fueraArea" class="fixed inset-0 z-[9002] flex items-end sm:items-center justify-center p-4">
@@ -524,6 +539,7 @@ import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import api from '@/api/axios'
 import { messaging, onMessage } from '@/firebase'
 import { obtenerTokenPush } from '@/composables/usePushNotifications'
+import { obtenerUbicacion } from '@/composables/useUbicacion'
 import PerroDatosForm from './equipo/PerroDatosForm.vue'
 import AvisoJornada from './equipo/AvisoJornada.vue'
 
@@ -533,6 +549,7 @@ const usuario = ref('')
 const password = ref('')
 const cargando = ref(false)
 const enviando = ref(false)
+const ubicando = ref(null)
 const error = ref('')
 const logueado = ref(false)
 
@@ -690,7 +707,43 @@ async function cargar() {
   }
 }
 
+const SIN_REGRESO = ['/jornada/almuerzo/', '/jornada/cerrar', '/jornada/cierre-visto', '/jornada/extra']
+
+// Entrada, regreso del almuerzo y salida guardan dónde estaba el celular en ese momento (nada más)
+let ultimaUbicacion = null
+async function ubicacionParaMarcar() {
+  if (ultimaUbicacion && Date.now() - ultimaUbicacion.t < 180000) return ultimaUbicacion.u
+  ubicando.value = { precision: null, lecturas: 0 }
+  const u = await obtenerUbicacion({ onProgreso: p => { ubicando.value = p } })
+  ubicando.value = null
+  ultimaUbicacion = { t: Date.now(), u }
+  return u
+}
+
+function avisarSinUbicacion(u) {
+  if (!u?.error) return
+  toast.value = u.error === 'DENEGADO'
+    ? '📍 Quedó marcado, pero sin tu ubicación porque no diste el permiso. Actívalo en los ajustes del navegador.'
+    : '📍 Quedó marcado, pero el celular no logró ubicarse. Revisa que tengas la ubicación encendida.'
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { toast.value = '' }, 7000)
+}
+
+async function marcar(url, body = {}) {
+  const u = await ubicacionParaMarcar()
+  const ok = await accion(url, { ...body, ubicacion: u })
+  if (ok) {
+    ultimaUbicacion = null
+    avisarSinUbicacion(u)
+  }
+  return ok
+}
+
 async function accion(url, body) {
+  // Hacer cualquier cosa estando en almuerzo marca el regreso: primero se marca con la ubicación
+  if (sesion.value?.estado === 'ALMUERZO' && !SIN_REGRESO.some(u => url.startsWith(u))) {
+    if (!await marcar('/jornada/almuerzo/volver')) return false
+  }
   enviando.value = true
   error.value = ''
   try {
@@ -794,7 +847,7 @@ async function cierreVisto() {
 
 async function iniciarJornada() {
   if (yaTerminoHoy.value && !confirm('Ya terminaste una jornada hoy. ¿Seguro que quieres iniciar otra?')) return
-  await accion('/jornada/iniciar')
+  await marcar('/jornada/iniciar')
 }
 
 function abrirRecepcion() {
@@ -890,7 +943,7 @@ async function confirmarCierre(nota) {
 }
 
 function volverAlmuerzo() {
-  if (confirm(`¿Ya volviste del almuerzo? Llevas ${dur(segPausa.value)}.`)) accion('/jornada/almuerzo/volver')
+  if (confirm(`¿Ya volviste del almuerzo? Llevas ${dur(segPausa.value)}.`)) marcar('/jornada/almuerzo/volver')
 }
 
 // Iniciar algo estando en almuerzo marca el regreso: se confirma para que no pase por error
@@ -933,11 +986,11 @@ function cerrarJornada() {
     return
   }
   if (confirm('¿Terminar tu jornada de hoy?'))
-    accion('/jornada/cerrar', { explicacionHueco: explicacionHueco.value || undefined, motivoSalida: motivoSalida.value || undefined })
+    marcar('/jornada/cerrar', { explicacionHueco: explicacionHueco.value || undefined, motivoSalida: motivoSalida.value || undefined })
 }
 
 async function cerrarConMotivo() {
-  if (await accion('/jornada/cerrar', { motivoExtra: motivoExtra.value, explicacionHueco: explicacionHueco.value || undefined, motivoSalida: motivoSalida.value || undefined })) {
+  if (await marcar('/jornada/cerrar', { motivoExtra: motivoExtra.value, explicacionHueco: explicacionHueco.value || undefined, motivoSalida: motivoSalida.value || undefined })) {
     cierreJornada.value = false
     motivoExtra.value = ''
   }

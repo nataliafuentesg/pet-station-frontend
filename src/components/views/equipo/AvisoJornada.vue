@@ -17,6 +17,7 @@
         <li>Tu nombre y tu usuario.</li>
         <li>Las tareas que tú escribes, con su hora de inicio y fin, y las notas que agregues.</li>
         <li>La hora en que empiezas y terminas la jornada y el almuerzo.</li>
+        <li><b class="text-white">Tu ubicación solo en tres momentos:</b> cuando inicias la jornada, cuando vuelves del almuerzo y cuando la terminas. Sirve para confirmar que marcaste desde el Pet o desde una ruta de trabajo.</li>
         <li>Si respondes o no la pregunta de cada 15 minutos.</li>
         <li>Los perros que recibes y entregas: nombre, horas, comida y checklist.</li>
         <li>Si activas los avisos, un código técnico del navegador para poder enviártelos.</li>
@@ -26,7 +27,8 @@
     <section class="space-y-1.5">
       <h3 class="text-[10px] font-black uppercase tracking-widest text-white/40">🚫 Qué NO se registra</h3>
       <ul class="list-disc pl-5 space-y-1">
-        <li>No usamos tu ubicación, tu cámara ni tu micrófono.</li>
+        <li>No seguimos tu ubicación durante el día ni fuera de esos tres momentos. Tampoco usamos tu cámara ni tu micrófono.</li>
+        <li>Si no das permiso de ubicación igual puedes marcar; solo queda anotado que no se compartió.</li>
         <li>No vemos tus fotos, mensajes, contactos ni nada más de tu celular.</li>
         <li>Solo se guarda lo que tú registras dentro de esta app.</li>
       </ul>

@@ -334,6 +334,7 @@
 
     <AdminJornadaDiaEquipo v-if="vista === 'dia'" />
     <AdminJornadaEquilibrio v-if="vista === 'equilibrio'" />
+    <AdminJornadaMarcas v-if="vista === 'marcas'" />
 
     <!-- RESUMEN DEL DÍA CON IA -->
     <div v-if="vista === 'ia'" class="flex gap-2">
@@ -719,6 +720,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import api from '@/api/axios'
 import AdminJornadaDiaEquipo from './AdminJornadaDiaEquipo.vue'
 import AdminJornadaEquilibrio from './AdminJornadaEquilibrio.vue'
+import AdminJornadaMarcas from './AdminJornadaMarcas.vue'
 
 const props = defineProps({
   // Administrador limitado: puede consultar todo pero no cambia el equipo ni genera resúmenes
@@ -731,6 +733,7 @@ const vistas = [
   { id: 'guarderia', label: '🐕 Guardería' },
   { id: 'dia', label: '🕒 Día del equipo' },
   { id: 'equilibrio', label: '⚖️ Equilibrio' },
+  { id: 'marcas', label: '📍 Marcas' },
   { id: 'ia', label: '🤖 Resumen IA' },
   { id: 'equipo', label: '👥 Equipo' },
 ]
