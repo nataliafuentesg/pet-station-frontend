@@ -66,6 +66,12 @@
         </p>
       </div>
 
+      <!-- Mapa de marcas -->
+      <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-hidden">
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 p-5 pb-3">🗺️ Mapa de marcas</p>
+        <div ref="mapaEl" style="height:340px" class="w-full z-0"></div>
+      </div>
+
       <!-- Todas las marcas, por persona -->
       <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-x-auto">
         <table class="w-full text-[12px] min-w-[620px]">
@@ -93,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import api from '@/api/axios'
 import { obtenerUbicacion } from '@/composables/useUbicacion'
 
@@ -108,6 +114,109 @@ const SIN = {
   AUTOMATICO: '⏰ No marcó el regreso: el almuerzo se cerró solo',
 }
 const inputClass = 'bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold dark:text-white outline-none focus:ring-2 focus:ring-[#152C77]'
+
+// ── Mapa ────────────────────────────────────────────────────────────────────
+const mapaEl = ref(null)
+let leafletMap = null
+let L = null
+
+const COLORES = {
+  EN_PET: '#16a34a',
+  FUERA: '#DE1F27',
+  SIN_REFERENCIA: '#64748b',
+  SIN_UBICACION: '#64748b',
+  IMPRECISA: '#d97706',
+}
+
+const iconoColor = (color) => {
+  if (!L) return null
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  })
+}
+
+async function iniciarMapa() {
+  if (!mapaEl.value) return
+  if (!L) {
+    // Leaflet CSS
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link')
+      link.id = 'leaflet-css'
+      link.rel = 'stylesheet'
+      link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'
+      document.head.appendChild(link)
+    }
+    // Leaflet JS
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script')
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'
+      s.onload = resolve
+      s.onerror = reject
+      document.head.appendChild(s)
+    })
+    L = window.L
+  }
+  if (leafletMap) { leafletMap.remove(); leafletMap = null }
+  leafletMap = L.map(mapaEl.value, { zoomControl: true, scrollWheelZoom: false })
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 19,
+  }).addTo(leafletMap)
+  renderizarPines()
+}
+
+function renderizarPines() {
+  if (!leafletMap || !L) return
+  // Limpiar capas anteriores
+  leafletMap.eachLayer(l => { if (l instanceof L.Marker || l instanceof L.Circle) leafletMap.removeLayer(l) })
+
+  const puntos = []
+
+  // Pin del Pet Station
+  if (pet.value?.lat && pet.value?.lon) {
+    const petLatLon = [pet.value.lat, pet.value.lon]
+    puntos.push(petLatLon)
+    L.circle(petLatLon, {
+      radius: pet.value.radio || 60,
+      color: '#152C77', fillColor: '#152C77', fillOpacity: 0.1, weight: 2,
+    }).addTo(leafletMap).bindPopup('<b>Pet Station</b><br>Radio de referencia')
+    L.marker(petLatLon, {
+      icon: L.divIcon({
+        className: '',
+        html: `<div style="background:#152C77;color:white;font-size:16px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4)">🏠</div>`,
+        iconSize: [28, 28], iconAnchor: [14, 14],
+      })
+    }).addTo(leafletMap).bindPopup('<b>Pet Station</b>')
+  }
+
+  // Pines de cada marca con ubicación
+  const conUbicacion = marcas.value.filter(m => m.lat != null && m.lon != null)
+  for (const m of conUbicacion) {
+    const color = COLORES[m.estado] || COLORES.IMPRECISA
+    const ll = [m.lat, m.lon]
+    puntos.push(ll)
+    L.marker(ll, { icon: iconoColor(color) })
+      .addTo(leafletMap)
+      .bindPopup(`<b>${nombre(m)}</b><br>${TIPO[m.tipo]} · ${hora(m.momento)}<br>${texto(m)}`)
+  }
+
+  if (puntos.length) {
+    leafletMap.fitBounds(L.latLngBounds(puntos), { padding: [30, 30], maxZoom: 17 })
+  } else {
+    // Sin puntos: centrar en Chía
+    leafletMap.setView([4.8625, -74.0397], 13)
+  }
+}
+
+watch(marcas, async () => {
+  await nextTick()
+  if (leafletMap) renderizarPines()
+  else iniciarMapa()
+})
+// ── fin Mapa ─────────────────────────────────────────────────────────────────
 
 const preset = ref(7)
 const desde = ref('')
