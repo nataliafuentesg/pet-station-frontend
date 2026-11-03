@@ -311,18 +311,18 @@
       </div>
     </Teleport>
 
-    <!-- Tarea de otra área: una sola pregunta, para entender por qué fue -->
+    <!-- Ir a peluquería: una sola pregunta, porque es el único flujo que no medimos -->
     <Teleport to="body">
       <div v-if="fueraArea" class="fixed inset-0 z-[9002] flex items-end sm:items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="fueraArea = null"></div>
         <div class="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
-          <p class="text-[10px] font-black uppercase tracking-widest text-sky-300">🤝 Vas a ayudar en {{ fueraArea.nombre }}</p>
+          <p class="text-[10px] font-black uppercase tracking-widest text-sky-300">✂️ Vas a ayudar en {{ fueraArea.nombre }}</p>
           <p class="text-lg font-[1000] leading-tight">¿Qué pasó? ¿Por qué vas a ayudar allá?</p>
           <div class="flex flex-wrap gap-2">
             <button v-for="c in INICIOS_APOYO" :key="c" @click="fueraArea.texto = fueraArea.texto.trim() ? fueraArea.texto : c + ' '"
               class="text-[11px] font-bold rounded-full px-3 py-1.5 border bg-white/5 border-white/10 text-white/70">{{ c }}…</button>
           </div>
-          <textarea v-model="fueraArea.texto" rows="3" maxlength="500" placeholder="Ej: La doctora me llamó para sostener un perro mientras lo canalizaba."
+          <textarea v-model="fueraArea.texto" rows="3" maxlength="500" placeholder="Ej: Hay 5 perros esperando y la peluquera me pidió ayuda con los baños."
             class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-sky-400 resize-none placeholder:text-white/20"></textarea>
           <p v-if="fueraArea.texto.trim().length < 10" class="text-[10px] text-white/30">Con una frase basta 🙂</p>
           <div class="grid grid-cols-2 gap-3">
@@ -568,7 +568,7 @@ const hueco = ref(null)
 const salida = ref(null)
 const fueraArea = ref(null)
 const NOMBRE_AREA = { GUARDERIA: 'guardería', PELUQUERIA: 'peluquería', VETERINARIA: 'veterinaria', CAJA: 'caja', DOMICILIOS: 'domicilios', CONTABILIDAD: 'contabilidad' }
-const INICIOS_APOYO = ['Me llamó', 'Me pidieron ayuda porque', 'Mi área está al día y', 'No había nadie más y']
+const INICIOS_APOYO = ['Me pidieron ayuda porque', 'Hay muchos perros en peluquería', 'Es un perro de larga estancia', 'Mi área está al día y']
 let reintentoFueraArea = null
 const motivoSalida = ref('')
 const MOTIVOS_SALIDA = ['Calamidad doméstica', 'Cita médica', 'Permiso autorizado', 'Me pidieron salir antes']
