@@ -115,7 +115,7 @@ const SIN = {
 }
 const inputClass = 'bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold dark:text-white outline-none focus:ring-2 focus:ring-[#152C77]'
 
-// ── Mapa ────────────────────────────────────────────────────────────────────
+// ── refs del componente ──────────────────────────────────────────────────────
 const mapaEl = ref(null)
 let leafletMap = null
 let L = null
@@ -210,13 +210,6 @@ function renderizarPines() {
     leafletMap.setView([4.8625, -74.0397], 13)
   }
 }
-
-watch(marcas, async () => {
-  await nextTick()
-  if (leafletMap) renderizarPines()
-  else iniciarMapa()
-})
-// ── fin Mapa ─────────────────────────────────────────────────────────────────
 
 const preset = ref(7)
 const desde = ref('')
@@ -323,4 +316,10 @@ const hora = iso => new Date(iso).toLocaleTimeString('es-CO', { hour: 'numeric',
 const fechaHora = iso => `${fecha(iso)} ${hora(iso)}`
 
 onMounted(() => aplicarPreset(7))
+
+watch(marcas, async () => {
+  await nextTick()
+  if (leafletMap) renderizarPines()
+  else iniciarMapa()
+})
 </script>
