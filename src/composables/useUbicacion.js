@@ -2,7 +2,7 @@
 // y las siguientes se van afinando con el GPS. Termina apenas logra buena precisión o al agotar el tiempo.
 const CODIGOS = { 1: 'DENEGADO', 2: 'NO_DISPONIBLE', 3: 'TIEMPO' }
 
-export function obtenerUbicacion({ objetivo = 15, minLecturas = 2, maxSeg = 15, onProgreso } = {}) {
+export function obtenerUbicacion({ objetivo = 15, minLecturas = 2, maxSeg = 20, onProgreso } = {}) {
   return new Promise(resolve => {
     if (!navigator.geolocation) return resolve({ error: 'NO_SOPORTADO' })
     const lecturas = []
@@ -16,7 +16,12 @@ export function obtenerUbicacion({ objetivo = 15, minLecturas = 2, maxSeg = 15, 
       terminado = true
       if (watchId != null) navigator.geolocation.clearWatch(watchId)
       clearTimeout(timer)
-      if (!lecturas.length) return resolve({ error: CODIGOS[errorCodigo] || 'TIEMPO' })
+      if (!lecturas.length) {
+        // Solo marcar como DENEGADO si el sistema confirma que el permiso fue negado
+        // y no han pasado más de 3 s (error temprano = permiso real; error tardío = GPS lento)
+        const esDenegado = errorCodigo === 1 && Date.now() - inicio < 3000
+        return resolve({ error: esDenegado ? 'DENEGADO' : CODIGOS[errorCodigo] || 'TIEMPO' })
+      }
       resolve(promediar(lecturas))
     }
 
@@ -27,8 +32,12 @@ export function obtenerUbicacion({ objetivo = 15, minLecturas = 2, maxSeg = 15, 
         onProgreso?.({ precision: Math.round(mejor), lecturas: lecturas.length })
         if (mejor <= objetivo && lecturas.length >= minLecturas) terminar()
       },
-      e => { if (e.code === 1 || !lecturas.length && Date.now() - inicio > maxSeg * 1000) terminar(e.code) },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: maxSeg * 1000 },
+      e => {
+        // Code 1 = permiso denegado: terminar siempre. Code 2/3 = GPS lento: solo terminar si no hay lecturas y ya pasó el tiempo.
+        if (e.code === 1) terminar(e.code)
+        else if (!lecturas.length && Date.now() - inicio > maxSeg * 1000) terminar(e.code)
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: maxSeg * 1000 },
     )
     timer = setTimeout(() => terminar(3), maxSeg * 1000)
   })
