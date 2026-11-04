@@ -75,17 +75,48 @@ const lista = computed(() => {
   )
 })
 
-async function descargarPdf(f) {
+async function descargarPdf(f, original = false) {
   try {
-    const resp = await api.get(`/admin/formularios/${f.id}/pdf`, { responseType: 'blob' })
+    const resp = await api.get(`/admin/formularios/${f.id}/pdf`, {
+      responseType: 'blob',
+      params: original ? { version: 'original' } : undefined
+    })
     const url = URL.createObjectURL(resp.data)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${f.radicado || `${f.tipo.toLowerCase()}_${f.id}`}.pdf`
+    a.download = `${f.radicado || `${f.tipo.toLowerCase()}_${f.id}`}${original ? '_original' : ''}.pdf`
     a.click()
     URL.revokeObjectURL(url)
   } catch (e) {
     alert('Error descargando PDF')
+  }
+}
+
+const evidencias = ref({})
+
+const NOMBRE_EVENTO = {
+  LINK_CREADO: 'Link creado',
+  CODIGO_VERIFICADO: 'Código de WhatsApp verificado',
+  TERMINOS_ACEPTADOS: 'Términos aceptados',
+  CORREO_CONFIRMADO: 'Correo confirmado en pantalla',
+  FIRMA_TUTOR: 'Firma del tutor',
+  FIRMA_VETERINARIO: 'Firma del veterinario',
+  PDF_ORIGINAL: 'PDF original guardado',
+  REVISION_INGRESO: 'Revisión de ingreso',
+  COPIA_ENVIADA: 'Copia enviada por correo',
+  COPIA_FALLIDA: 'No se pudo enviar la copia'
+}
+
+async function alternarEvidencia(f) {
+  if (evidencias.value[f.id]) {
+    delete evidencias.value[f.id]
+    return
+  }
+  try {
+    const { data } = await api.get(`/admin/formularios/${f.id}/evidencia`)
+    evidencias.value[f.id] = data
+  } catch (e) {
+    alert('No se pudo cargar el historial')
   }
 }
 
@@ -370,6 +401,34 @@ async function guardarRevision() {
               class="flex-1 py-2 bg-[#152C77] text-white font-black uppercase text-[9px] tracking-widest rounded-xl hover:bg-[#DE1F27] transition-colors">
               ⬇ PDF
             </button>
+          </div>
+
+          <div class="flex gap-2">
+            <button v-if="f.pdfOriginalPath && f.pdfOriginalPath !== f.pdfPath" @click.stop="descargarPdf(f, true)"
+              class="flex-1 py-2 border border-[#152C77] text-[#152C77] dark:text-white dark:border-white/30 font-black uppercase text-[9px] tracking-widest rounded-xl">
+              ⬇ PDF original firmado
+            </button>
+            <button @click.stop="alternarEvidencia(f)"
+              class="flex-1 py-2 border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 font-black uppercase text-[9px] tracking-widest rounded-xl">
+              🧾 {{ evidencias[f.id] ? 'Ocultar historial' : 'Historial' }}
+            </button>
+          </div>
+
+          <div v-if="evidencias[f.id]" class="text-xs space-y-2 border-t border-slate-100 dark:border-white/10 pt-3" @click.stop>
+            <p v-if="evidencias[f.id].originalIntacto === true" class="font-bold text-green-600">✓ El PDF original está intacto</p>
+            <p v-else-if="evidencias[f.id].originalIntacto === false" class="font-bold text-red-600">⚠ El PDF original no coincide con su huella o no se encuentra</p>
+            <p v-else class="text-slate-400">Este documento se firmó antes de que se guardara el PDF original.</p>
+            <p v-if="evidencias[f.id].huellaOriginal" class="text-[10px] text-slate-400 break-all">Huella SHA-256: {{ evidencias[f.id].huellaOriginal }}</p>
+            <ul class="space-y-1.5">
+              <li v-for="e in evidencias[f.id].eventos" :key="e.id">
+                <p class="font-bold text-slate-700 dark:text-slate-200">{{ NOMBRE_EVENTO[e.tipo] || e.tipo }}</p>
+                <p class="text-[10px] text-slate-400 break-all">
+                  {{ formatFecha(e.momento) }}<template v-if="e.destino"> · {{ e.destino }}</template><template v-if="e.ip"> · IP {{ e.ip }}</template>
+                </p>
+                <p v-if="e.detalle" class="text-[10px] text-slate-400 break-all">{{ e.detalle }}</p>
+              </li>
+              <li v-if="!evidencias[f.id].eventos.length" class="text-slate-400">Sin eventos registrados.</li>
+            </ul>
           </div>
         </div>
       </div>
