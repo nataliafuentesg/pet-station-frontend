@@ -128,13 +128,16 @@ const COLORES = {
   IMPRECISA: '#d97706',
 }
 
-const iconoColor = (color) => {
+const iconoPin = (color, iniciales) => {
   if (!L) return null
   return L.divIcon({
     className: '',
-    html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`,
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
+    html: `<div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="width:16px;height:16px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>
+      <div style="background:rgba(0,0,0,.65);color:white;font-size:9px;font-weight:bold;padding:0 3px;border-radius:3px;white-space:nowrap;line-height:14px">${iniciales}</div>
+    </div>`,
+    iconSize: [40, 36],
+    iconAnchor: [20, 8],
   })
 }
 
@@ -198,9 +201,12 @@ function renderizarPines() {
     const color = COLORES[m.estado] || COLORES.IMPRECISA
     const ll = [m.lat, m.lon]
     puntos.push(ll)
-    L.marker(ll, { icon: iconoColor(color) })
+    const nombreCompleto = nombre(m)
+    const partes = nombreCompleto.trim().split(/\s+/)
+    const iniciales = partes.length >= 2 ? partes[0][0] + partes[1][0] : nombreCompleto.slice(0, 2)
+    L.marker(ll, { icon: iconoPin(color, iniciales.toUpperCase()) })
       .addTo(leafletMap)
-      .bindPopup(`<b>${nombre(m)}</b><br>${TIPO[m.tipo]} · ${hora(m.momento)}<br>${texto(m)}`)
+      .bindPopup(`<b>${nombreCompleto}</b><br>${TIPO[m.tipo]} · ${hora(m.momento)}<br>${texto(m)}`)
   }
 
   if (puntos.length) {
@@ -211,7 +217,7 @@ function renderizarPines() {
   }
 }
 
-const preset = ref(7)
+const preset = ref(1)
 const desde = ref('')
 const hasta = ref('')
 const marcas = ref([])
@@ -315,7 +321,7 @@ const fecha = iso => new Date(iso).toLocaleDateString('es-CO', { weekday: 'short
 const hora = iso => new Date(iso).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' })
 const fechaHora = iso => `${fecha(iso)} ${hora(iso)}`
 
-onMounted(() => aplicarPreset(7))
+onMounted(() => aplicarPreset(1))
 
 watch(marcas, async () => {
   await nextTick()
