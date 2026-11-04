@@ -12,6 +12,7 @@ const enviandoRevision = ref(false)
 const revision = reactive({
   ojos: 'Normal', orejas: 'Normal', boca: 'Normal',
   piel: 'Normal', pulpejos: 'Normal', zonaPerianal: 'Normal',
+  desenrede: 'No', ectoparasitos: 'No', valorServicio: '',
   pesoKg: '', observacionesIngreso: ''
 })
 const empleadoRevision = ref('')
@@ -33,19 +34,20 @@ const lista = computed(() => {
   const q = busqueda.value.toLowerCase()
   if (!q) return formularios.value
   return formularios.value.filter(f =>
+    f.radicado?.toLowerCase().includes(q) ||
     f.nombreCliente?.toLowerCase().includes(q) ||
     f.cedula?.includes(q) ||
     f.nombreMascota?.toLowerCase().includes(q)
   )
 })
 
-async function descargarPdf(id, cedula, tipo) {
+async function descargarPdf(f) {
   try {
-    const resp = await api.get(`/admin/formularios/${id}/pdf`, { responseType: 'blob' })
+    const resp = await api.get(`/admin/formularios/${f.id}/pdf`, { responseType: 'blob' })
     const url = URL.createObjectURL(resp.data)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${tipo.toLowerCase()}_${cedula}.pdf`
+    a.download = `${f.radicado || `${f.tipo.toLowerCase()}_${f.id}`}.pdf`
     a.click()
     URL.revokeObjectURL(url)
   } catch (e) {
@@ -74,6 +76,7 @@ function abrirRevision(f) {
   Object.assign(revision, {
     ojos: 'Normal', orejas: 'Normal', boca: 'Normal',
     piel: 'Normal', pulpejos: 'Normal', zonaPerianal: 'Normal',
+    desenrede: 'No', ectoparasitos: 'No', valorServicio: '',
     pesoKg: '', observacionesIngreso: ''
   })
   empleadoRevision.value = ''
@@ -117,7 +120,7 @@ async function guardarRevision() {
 
     <!-- Filtros -->
     <div class="flex flex-col sm:flex-row gap-3">
-      <input v-model="busqueda" type="text" placeholder="Buscar por nombre, cédula o mascota..."
+      <input v-model="busqueda" type="text" placeholder="Buscar por radicado, nombre, cédula o mascota..."
         class="flex-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#152C77] dark:text-white" />
       <select v-model="filtroTipo" @change="cargar"
         class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#152C77] dark:text-white">
@@ -165,6 +168,7 @@ async function guardarRevision() {
               {{ f.tipo === 'PELUQUERIA' ? '✂️ Pelu' : '🏡 Guard' }}
             </span>
             <div class="min-w-0">
+              <p v-if="f.radicado" class="text-[10px] font-black text-[#152C77] dark:text-blue-300">{{ f.radicado }}</p>
               <p class="font-black text-sm text-slate-800 dark:text-white truncate">{{ f.nombreCliente }}</p>
               <p class="text-[10px] text-slate-400">CC {{ f.cedula }} · 🐾 {{ f.nombreMascota }}</p>
             </div>
@@ -223,7 +227,7 @@ async function guardarRevision() {
             <span v-else class="flex-1 py-2 text-center text-[9px] font-black uppercase text-green-600 bg-green-50 rounded-xl">
               ✓ Revisión completada
             </span>
-            <button @click.stop="descargarPdf(f.id, f.cedula, f.tipo)"
+            <button @click.stop="descargarPdf(f)"
               class="flex-1 py-2 bg-[#152C77] text-white font-black uppercase text-[9px] tracking-widest rounded-xl hover:bg-[#DE1F27] transition-colors">
               ⬇ PDF
             </button>
@@ -274,6 +278,29 @@ async function guardarRevision() {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div class="space-y-2">
+            <div v-for="(label, campo) in { desenrede: 'Desenrede', ectoparasitos: 'Ectoparásitos' }"
+              :key="campo" class="flex items-center justify-between gap-3">
+              <span class="text-sm font-medium text-slate-700 dark:text-slate-200 w-28 shrink-0">{{ label }}</span>
+              <div class="flex gap-2 flex-1">
+                <button v-for="op in ['No', 'Sí']" :key="op"
+                  @click="revision[campo] = op"
+                  :class="['flex-1 py-1.5 text-[9px] font-black uppercase rounded-xl border transition-colors',
+                    revision[campo] === op
+                      ? op === 'No' ? 'bg-green-500 text-white border-green-500' : 'bg-red-500 text-white border-red-500'
+                      : 'border-slate-200 dark:border-white/10 text-slate-400 hover:border-slate-300']">
+                  {{ op }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Valor del servicio desde</label>
+            <input v-model="revision.valorServicio" type="text" placeholder="Ej: $60.000"
+              class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]" />
           </div>
 
           <!-- Observaciones -->

@@ -1,0 +1,55 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import api from '@/api/axios'
+
+const props = defineProps({ tipo: { type: String, required: true } })
+const emit = defineEmits(['cambio'])
+
+const terminos = ref(null)
+const cargando = ref(true)
+const fallo = ref(false)
+const aceptado = ref(false)
+
+onMounted(cargar)
+
+async function cargar() {
+  cargando.value = true
+  fallo.value = false
+  try {
+    const { data } = await api.get(`/formularios/terminos/${props.tipo}`)
+    terminos.value = data
+  } catch {
+    fallo.value = true
+  } finally {
+    cargando.value = false
+  }
+}
+
+function alCambiar() {
+  emit('cambio', { aceptado: aceptado.value, version: terminos.value.version })
+}
+</script>
+
+<template>
+  <div class="bg-white rounded-2xl p-5 shadow-sm">
+    <h2 class="font-black uppercase text-sm text-[#152C77] mb-3 tracking-wide">Autorización y términos</h2>
+
+    <p v-if="cargando" class="text-sm text-gray-400">Cargando términos...</p>
+
+    <div v-else-if="fallo" class="text-sm text-center space-y-2">
+      <p class="text-red-500">No pudimos cargar los términos. No es posible firmar sin leerlos.</p>
+      <button @click="cargar" class="font-bold text-[#152C77] underline">Reintentar</button>
+    </div>
+
+    <template v-else>
+      <p class="text-sm text-gray-700 leading-relaxed mb-3">{{ terminos.introduccion }}</p>
+      <ol class="list-decimal pl-5 space-y-2 text-sm text-gray-700 leading-relaxed">
+        <li v-for="clausula in terminos.clausulas" :key="clausula">{{ clausula }}</li>
+      </ol>
+      <label class="flex items-start gap-3 mt-5 p-3 rounded-xl border-2 border-[#152C77]/20 bg-[#152C77]/5 cursor-pointer">
+        <input v-model="aceptado" @change="alCambiar" type="checkbox" class="w-5 h-5 mt-0.5 shrink-0 accent-[#152C77]" />
+        <span class="text-sm font-bold text-[#152C77]">He leído y acepto la autorización y los términos anteriores.</span>
+      </label>
+    </template>
+  </div>
+</template>

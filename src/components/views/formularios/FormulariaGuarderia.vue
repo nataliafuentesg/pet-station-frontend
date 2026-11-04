@@ -3,6 +3,7 @@ import { ref, reactive, computed } from 'vue'
 import api from '@/api/axios'
 import FirmaCanvas from './FirmaCanvas.vue'
 import OtpVerificacion from './OtpVerificacion.vue'
+import TerminosFormulario from './TerminosFormulario.vue'
 
 const paso = ref(1)
 const enviando = ref(false)
@@ -22,7 +23,6 @@ const form = reactive({
   sexo: '',
   fechaIngreso: '',
   fechaSalida: '',
-  alimentacion: '',
   observaciones: '',
   checklist: {
     vacunacion: false,
@@ -34,24 +34,28 @@ const form = reactive({
     antecedentesAgresividad: false,
     tratamientoActual: '',
     alergias: '',
-    estadoFisico: {
-      ojos: 'normal',
-      orejas: 'normal',
-      boca: 'normal',
-      piel: 'normal',
-      pulpejos: 'normal',
-      zonaPerianal: 'normal',
-    }
+    acostumbradoGuarderia: false,
+    atendidoAntes: false,
   }
 })
 
+const tipoAlimentacion = ref('')
+const horarioComida = ref('')
 const firmaBase64 = ref('')
 const otpVerificado = ref(false)
+const terminos = ref({ aceptado: false, version: '' })
+const radicado = ref('')
+const copiaEnviada = ref(false)
 
 const paso1Valido = computed(() =>
   form.cedula && form.nombreCliente && form.telefono &&
   form.nombreMascota && form.fechaIngreso && form.fechaSalida
 )
+
+function onTerminos(valor) {
+  terminos.value = valor
+  if (!valor.aceptado) firmaBase64.value = ''
+}
 
 function onOtpVerificado() {
   otpVerificado.value = true
@@ -66,13 +70,17 @@ async function enviar() {
   enviando.value = true
   error.value = ''
   try {
-    await api.post('/formularios/guardar', {
+    const { data } = await api.post('/formularios/guardar', {
       tipo: 'GUARDERIA',
       ...form,
+      alimentacion: `Tipo: ${tipoAlimentacion.value || '-'} · Horario: ${horarioComida.value || '-'}`,
       checklistJson: JSON.stringify(form.checklist),
       firmaBase64: firmaBase64.value,
-      otpVerificado: true
+      aceptaTerminos: terminos.value.aceptado,
+      versionTerminos: terminos.value.version
     })
+    radicado.value = data.radicado
+    copiaEnviada.value = data.copiaEnviada
     paso.value = 4
   } catch (e) {
     error.value = e.response?.data?.error || 'Error al enviar el formulario'
@@ -85,9 +93,9 @@ async function enviar() {
 <template>
   <div class="min-h-screen bg-gray-50">
     <div class="bg-[#152C77] text-white py-6 px-4 text-center">
-      <img src="https://petstationvet.com/favicon.ico" alt="Pet Station" class="w-10 h-10 mx-auto mb-2 rounded-lg" />
+      <img src="/images/logo-pet-station.png" alt="Pet Station" class="w-10 h-10 mx-auto mb-2 rounded-lg" />
       <h1 class="text-xl font-black uppercase tracking-wide">Pet Station</h1>
-      <p class="text-sm opacity-80 mt-1">Registro de Guardería</p>
+      <p class="text-sm opacity-80 mt-1">Formato Guardería</p>
     </div>
 
     <div class="max-w-lg mx-auto px-4 py-6">
@@ -127,7 +135,7 @@ async function enviar() {
             </div>
             <div>
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Email</label>
-              <input v-model="form.email" type="email" placeholder="opcional"
+              <input v-model="form.email" type="email" placeholder="Para enviarte copia del documento firmado"
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
             <div>
@@ -195,20 +203,26 @@ async function enviar() {
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
           </div>
-          <div class="mt-3">
-            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Alimentación y rutina</label>
-            <textarea v-model="form.alimentacion" rows="2"
-              placeholder="Ej: 1 taza de croquetas dos veces al día, paseo en la mañana..."
-              class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]"></textarea>
+          <div class="mt-3 space-y-3">
+            <div>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Tipo de alimentación</label>
+              <input v-model="tipoAlimentacion" type="text" placeholder="Ej: Croquetas, 1 taza"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Horario de comida</label>
+              <input v-model="horarioComida" type="text" placeholder="Ej: 7 a.m. y 6 p.m."
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </div>
           </div>
         </div>
 
         <div class="bg-white rounded-2xl p-5 shadow-sm">
-          <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">Condiciones de salud</h2>
+          <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">Condiciones especiales de la mascota</h2>
           <div class="grid grid-cols-2 gap-3 mb-3">
             <label class="flex items-center gap-2 text-sm">
               <input type="checkbox" v-model="form.checklist.vacunacion" class="w-4 h-4 accent-[#152C77]" />
-              Vacunas al día
+              Esquema de vacunación completo
             </label>
             <label class="flex items-center gap-2 text-sm">
               <input type="checkbox" v-model="form.checklist.desparasitado" class="w-4 h-4 accent-[#152C77]" />
@@ -226,6 +240,14 @@ async function enviar() {
               <input type="checkbox" v-model="form.checklist.antecedentesAgresividad" class="w-4 h-4 accent-[#152C77]" />
               Antecedentes de agresividad
             </label>
+            <label class="flex items-center gap-2 text-sm col-span-2">
+              <input type="checkbox" v-model="form.checklist.acostumbradoGuarderia" class="w-4 h-4 accent-[#152C77]" />
+              Está acostumbrado(a) a guardería
+            </label>
+            <label class="flex items-center gap-2 text-sm col-span-2">
+              <input type="checkbox" v-model="form.checklist.atendidoAntes" class="w-4 h-4 accent-[#152C77]" />
+              Ha sido atendido anteriormente en Pet Station
+            </label>
           </div>
           <div class="space-y-3">
             <div>
@@ -238,7 +260,7 @@ async function enviar() {
               </select>
             </div>
             <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Sociabilidad</label>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">¿Es sociable con otros perros?</label>
               <select v-model="form.checklist.sociable" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]">
                 <option value="">Selecciona</option>
                 <option>Muy sociable</option>
@@ -253,7 +275,7 @@ async function enviar() {
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
             <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Alergias conocidas</label>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Alergias o condiciones médicas importantes</label>
               <input v-model="form.checklist.alergias" type="text" placeholder="Ej: Ninguna"
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
@@ -280,17 +302,19 @@ async function enviar() {
 
       <!-- Paso 3: Firma -->
       <div v-if="paso === 3" class="space-y-5">
-        <div class="bg-white rounded-2xl p-5 shadow-sm">
-          <h2 class="font-black uppercase text-sm text-[#152C77] mb-2 tracking-wide">Autorización y firma</h2>
+        <TerminosFormulario tipo="GUARDERIA" @cambio="onTerminos" />
+
+        <div v-if="terminos.aceptado" class="bg-white rounded-2xl p-5 shadow-sm">
+          <h2 class="font-black uppercase text-sm text-[#152C77] mb-2 tracking-wide">Firma</h2>
           <p class="text-xs text-gray-500 mb-4 leading-relaxed">
-            Al firmar confirmas que la información es verídica y autorizas a Pet Station para el cuidado de tu mascota. Esta firma tiene validez legal conforme a la Ley 527 de 1999.
+            Esta firma tiene validez legal conforme a la Ley 527 de 1999.
           </p>
           <FirmaCanvas @firmado="v => firmaBase64 = v" />
         </div>
 
         <p v-if="error" class="text-red-500 text-sm text-center">{{ error }}</p>
 
-        <button @click="enviar" :disabled="enviando || !firmaBase64"
+        <button @click="enviar" :disabled="enviando || !firmaBase64 || !terminos.aceptado"
           class="w-full py-4 bg-[#DE1F27] text-white font-black uppercase text-sm tracking-widest rounded-2xl disabled:opacity-40 active:scale-95 transition-transform">
           {{ enviando ? 'Enviando...' : 'Enviar formulario' }}
         </button>
@@ -299,9 +323,16 @@ async function enviar() {
       <!-- Paso 4: Éxito -->
       <div v-if="paso === 4" class="text-center py-12 space-y-4">
         <div class="text-6xl">🏡</div>
-        <h2 class="font-black uppercase text-xl text-[#152C77]">¡Registro enviado!</h2>
+        <h2 class="font-black uppercase text-xl text-[#152C77]">¡Formulario enviado!</h2>
         <p class="text-gray-500 text-sm max-w-xs mx-auto">
-          El registro de guardería de {{ form.nombreMascota }} quedó guardado. Te esperamos en Pet Station.
+          El formato de guardería de {{ form.nombreMascota }} quedó registrado. Te esperamos en Pet Station.
+        </p>
+        <div class="bg-white rounded-2xl p-4 shadow-sm max-w-xs mx-auto">
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Radicado No.</p>
+          <p class="text-xl font-black text-[#152C77]">{{ radicado }}</p>
+        </div>
+        <p v-if="copiaEnviada" class="text-gray-500 text-sm max-w-xs mx-auto">
+          Te enviamos una copia del documento firmado a {{ form.email }}.
         </p>
         <a href="https://wa.me/573053462413" target="_blank"
           class="inline-block mt-4 px-6 py-3 bg-green-500 text-white font-bold rounded-2xl text-sm">

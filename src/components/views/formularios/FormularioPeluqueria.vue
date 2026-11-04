@@ -3,6 +3,7 @@ import { ref, reactive, computed } from 'vue'
 import api from '@/api/axios'
 import FirmaCanvas from './FirmaCanvas.vue'
 import OtpVerificacion from './OtpVerificacion.vue'
+import TerminosFormulario from './TerminosFormulario.vue'
 
 const paso = ref(1) // 1: datos, 2: otp, 3: firma, 4: éxito
 const enviando = ref(false)
@@ -28,18 +29,15 @@ const form = reactive({
     alergias: '',
     braquicefala: false,
     temperamento: '',
-    estadoFisico: {
-      ojos: 'normal',
-      orejas: 'normal',
-      boca: 'normal',
-      piel: 'normal',
-      pulpejos: 'normal',
-    }
   }
 })
 
+const servicioOtro = ref('')
 const firmaBase64 = ref('')
 const otpVerificado = ref(false)
+const terminos = ref({ aceptado: false, version: '' })
+const radicado = ref('')
+const copiaEnviada = ref(false)
 
 const servicios = [
   'Baño',
@@ -56,6 +54,11 @@ const paso1Valido = computed(() =>
   form.nombreMascota && form.servicioSolicitado
 )
 
+function onTerminos(valor) {
+  terminos.value = valor
+  if (!valor.aceptado) firmaBase64.value = ''
+}
+
 function onOtpVerificado() {
   otpVerificado.value = true
   paso.value = 3
@@ -69,13 +72,17 @@ async function enviar() {
   enviando.value = true
   error.value = ''
   try {
-    await api.post('/formularios/guardar', {
+    const { data } = await api.post('/formularios/guardar', {
       tipo: 'PELUQUERIA',
       ...form,
+      servicioSolicitado: form.servicioSolicitado === 'Otro' ? `Otro: ${servicioOtro.value}` : form.servicioSolicitado,
       checklistJson: JSON.stringify(form.checklist),
       firmaBase64: firmaBase64.value,
-      otpVerificado: true
+      aceptaTerminos: terminos.value.aceptado,
+      versionTerminos: terminos.value.version
     })
+    radicado.value = data.radicado
+    copiaEnviada.value = data.copiaEnviada
     paso.value = 4
   } catch (e) {
     error.value = e.response?.data?.error || 'Error al enviar el formulario'
@@ -89,9 +96,9 @@ async function enviar() {
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
     <div class="bg-[#152C77] text-white py-6 px-4 text-center">
-      <img src="https://petstationvet.com/favicon.ico" alt="Pet Station" class="w-10 h-10 mx-auto mb-2 rounded-lg" />
+      <img src="/images/logo-pet-station.png" alt="Pet Station" class="w-10 h-10 mx-auto mb-2 rounded-lg" />
       <h1 class="text-xl font-black uppercase tracking-wide">Pet Station</h1>
-      <p class="text-sm opacity-80 mt-1">Orden de Peluquería</p>
+      <p class="text-sm opacity-80 mt-1">Formato Peluquería</p>
     </div>
 
     <div class="max-w-lg mx-auto px-4 py-6">
@@ -131,7 +138,12 @@ async function enviar() {
             </div>
             <div>
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Email</label>
-              <input v-model="form.email" type="email" placeholder="opcional"
+              <input v-model="form.email" type="email" placeholder="Para enviarte copia del documento firmado"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Dirección</label>
+              <input v-model="form.direccion" type="text" placeholder="opcional"
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
           </div>
@@ -190,19 +202,23 @@ async function enviar() {
               {{ s }}
             </label>
           </div>
+          <div v-if="form.servicioSolicitado === 'Otro'" class="mt-3">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">¿Cuál servicio?</label>
+            <input v-model="servicioOtro" type="text" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+          </div>
           <div class="mt-3">
-            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Instrucciones de corte</label>
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Instrucciones de corte (si aplica)</label>
             <textarea v-model="form.instruccionesCorte" rows="2" placeholder="Ej: Corte cachorro, sin cortar orejas..."
               class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]"></textarea>
           </div>
         </div>
 
         <div class="bg-white rounded-2xl p-5 shadow-sm">
-          <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">Condiciones de ingreso</h2>
+          <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">Preguntas de ingreso</h2>
           <div class="space-y-3">
             <label class="flex items-center gap-3 text-sm">
               <input type="checkbox" v-model="form.checklist.vacunacion" class="w-4 h-4 accent-[#152C77]" />
-              <span>Vacunas al día</span>
+              <span>Tiene el esquema de vacunación completo</span>
             </label>
             <label class="flex items-center gap-3 text-sm">
               <input type="checkbox" v-model="form.checklist.braquicefala" class="w-4 h-4 accent-[#152C77]" />
@@ -218,7 +234,7 @@ async function enviar() {
               </select>
             </div>
             <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Alergias conocidas</label>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Alergias o condiciones médicas importantes</label>
               <input v-model="form.checklist.alergias" type="text" placeholder="Ej: Ninguna / champú con fragancia"
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
@@ -245,17 +261,19 @@ async function enviar() {
 
       <!-- Paso 3: Firma -->
       <div v-if="paso === 3" class="space-y-5">
-        <div class="bg-white rounded-2xl p-5 shadow-sm">
-          <h2 class="font-black uppercase text-sm text-[#152C77] mb-2 tracking-wide">Autorización y firma</h2>
+        <TerminosFormulario tipo="PELUQUERIA" @cambio="onTerminos" />
+
+        <div v-if="terminos.aceptado" class="bg-white rounded-2xl p-5 shadow-sm">
+          <h2 class="font-black uppercase text-sm text-[#152C77] mb-2 tracking-wide">Firma</h2>
           <p class="text-xs text-gray-500 mb-4 leading-relaxed">
-            Al firmar confirmas que la información es verídica y autorizas a Pet Station para realizar el servicio. Esta firma tiene validez legal conforme a la Ley 527 de 1999.
+            Esta firma tiene validez legal conforme a la Ley 527 de 1999.
           </p>
           <FirmaCanvas @firmado="v => firmaBase64 = v" />
         </div>
 
         <p v-if="error" class="text-red-500 text-sm text-center">{{ error }}</p>
 
-        <button @click="enviar" :disabled="enviando || !firmaBase64"
+        <button @click="enviar" :disabled="enviando || !firmaBase64 || !terminos.aceptado"
           class="w-full py-4 bg-[#DE1F27] text-white font-black uppercase text-sm tracking-widest rounded-2xl disabled:opacity-40 active:scale-95 transition-transform">
           {{ enviando ? 'Enviando...' : 'Enviar formulario' }}
         </button>
@@ -266,7 +284,14 @@ async function enviar() {
         <div class="text-6xl">🐾</div>
         <h2 class="font-black uppercase text-xl text-[#152C77]">¡Formulario enviado!</h2>
         <p class="text-gray-500 text-sm max-w-xs mx-auto">
-          Tu orden de peluquería quedó registrada. Te esperamos con {{ form.nombreMascota }} en Pet Station.
+          Tu formato de peluquería quedó registrado. Te esperamos con {{ form.nombreMascota }} en Pet Station.
+        </p>
+        <div class="bg-white rounded-2xl p-4 shadow-sm max-w-xs mx-auto">
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Radicado No.</p>
+          <p class="text-xl font-black text-[#152C77]">{{ radicado }}</p>
+        </div>
+        <p v-if="copiaEnviada" class="text-gray-500 text-sm max-w-xs mx-auto">
+          Te enviamos una copia del documento firmado a {{ form.email }}.
         </p>
         <a href="https://wa.me/573053462413" target="_blank"
           class="inline-block mt-4 px-6 py-3 bg-green-500 text-white font-bold rounded-2xl text-sm">

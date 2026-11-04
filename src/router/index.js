@@ -236,13 +236,13 @@ const routes = [
     path: '/formularios/peluqueria',
     name: 'FormularioPeluqueria',
     component: () => import('@/components/views/formularios/FormularioPeluqueria.vue'),
-    meta: { title: 'Orden de Peluquería | Pet Station' }
+    meta: { title: 'Formato Peluquería | Pet Station' }
   },
   {
     path: '/formularios/guarderia',
     name: 'FormulariosGuarderia',
     component: () => import('@/components/views/formularios/FormulariaGuarderia.vue'),
-    meta: { title: 'Registro de Guardería | Pet Station' }
+    meta: { title: 'Formato Guardería | Pet Station' }
   },
   {
     path: '/admin/formularios',
