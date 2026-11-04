@@ -20,7 +20,9 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   (response) => response, 
   (error) => {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    // En los formularios públicos un 401/403 es un código mal escrito, no una sesión vencida
+    const esFormularioPublico = error.config?.url?.startsWith('/formularios/');
+    if (!esFormularioPublico && error.response && (error.response.status === 401 || error.response.status === 403)) {
       const tieneToken = localStorage.getItem('ps_token');
       // Solo redirigir si había un token activo (sesión real expirada)
       // y no estamos ya en la página de inicio para evitar el loop
