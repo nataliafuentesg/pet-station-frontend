@@ -72,7 +72,7 @@ async function reenviar() {
     <div v-else class="space-y-4">
       <p class="text-xs text-green-600 font-bold">✓ Código enviado por WhatsApp</p>
 
-      <input v-model="codigo" type="number" maxlength="6" placeholder="_ _ _ _ _ _"
+      <input v-model.trim="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="_ _ _ _ _ _"
         class="w-full text-center text-3xl font-black tracking-[1rem] border-2 border-gray-200 rounded-2xl py-4 focus:outline-none focus:border-[#152C77]"
         @keyup.enter="verificar" />
 
