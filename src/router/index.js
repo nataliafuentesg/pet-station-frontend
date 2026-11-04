@@ -245,6 +245,12 @@ const routes = [
     meta: { title: 'Formato Guardería | Pet Station' }
   },
   {
+    path: '/formularios/firmar',
+    name: 'FirmarFormato',
+    component: () => import('@/components/views/formularios/FirmarFormato.vue'),
+    meta: { title: 'Documento para firmar | Pet Station' }
+  },
+  {
     path: '/admin/formularios',
     name: 'AdminFormularios',
     component: () => import('@/components/views/admin/AdminFormularios.vue'),

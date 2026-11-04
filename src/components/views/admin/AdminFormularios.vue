@@ -1,6 +1,21 @@
 <script setup>
 import { ref, onMounted, computed, reactive } from 'vue'
+import QRCode from 'qrcode'
 import api from '@/api/axios'
+import FirmaCanvas from '@/components/views/formularios/FirmaCanvas.vue'
+
+const TIPOS = {
+  PELUQUERIA: { etiqueta: '✂️ Pelu', clase: 'bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300' },
+  GUARDERIA: { etiqueta: '🏡 Guard', clase: 'bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300' },
+  CONSENTIMIENTO: { etiqueta: '🩺 Consent', clase: 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300' },
+  EUTANASIA: { etiqueta: '🕊️ Eutan', clase: 'bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-slate-200' },
+  DECLINACION: { etiqueta: '🚫 Declin', clase: 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-300' },
+}
+const CLINICOS = [
+  { valor: 'CONSENTIMIENTO', nombre: 'Consentimiento (hospitalización, cirugía, vacunas, medicamentos, exámenes)' },
+  { valor: 'EUTANASIA', nombre: 'Eutanasia' },
+  { valor: 'DECLINACION', nombre: 'Declinación de tratamiento / alta voluntaria' },
+]
 
 const formularios = ref([])
 const cargando = ref(true)
@@ -16,6 +31,25 @@ const revision = reactive({
   pesoKg: '', observacionesIngreso: ''
 })
 const empleadoRevision = ref('')
+
+const nuevoVacio = () => ({
+  tipo: 'CONSENTIMIENTO', nombreCliente: '', cedula: '', telefono: '', email: '', nombreMascota: '',
+  especie: '', raza: '', edad: '', sexo: '', historiaClinica: '', ciudad: 'Chía', tratamientoRechazado: ''
+})
+const modalNuevo = ref(false)
+const nuevo = reactive(nuevoVacio())
+const creando = ref(false)
+const errorNuevo = ref('')
+const linkGenerado = ref(null)
+const nuevoValido = computed(() =>
+  nuevo.nombreCliente.trim() && nuevo.cedula.toString().trim() && nuevo.telefono.trim() && nuevo.nombreMascota.trim() &&
+  (nuevo.tipo !== 'DECLINACION' || nuevo.tratamientoRechazado.trim())
+)
+
+const modalVeterinario = ref(null)
+const firmaVet = reactive({ nombre: '', matricula: '', firmaBase64: '' })
+const firmandoVet = ref(false)
+const errorVet = ref('')
 
 onMounted(cargar)
 
@@ -52,6 +86,86 @@ async function descargarPdf(f) {
     URL.revokeObjectURL(url)
   } catch (e) {
     alert('Error descargando PDF')
+  }
+}
+
+function abrirNuevo() {
+  Object.assign(nuevo, nuevoVacio())
+  errorNuevo.value = ''
+  modalNuevo.value = true
+}
+
+async function mostrarLink(data, f) {
+  const url = `${window.location.origin}/formularios/firmar#${data.token}`
+  linkGenerado.value = {
+    url,
+    tipo: data.tipo,
+    expira: data.expira,
+    nombre: f.nombreCliente,
+    telefono: f.telefono,
+    qr: await QRCode.toDataURL(url, { width: 260, margin: 1 })
+  }
+}
+
+async function crearFormato() {
+  creando.value = true
+  errorNuevo.value = ''
+  try {
+    const { data } = await api.post('/admin/formularios/clinicos', { ...nuevo, cedula: nuevo.cedula.toString() })
+    modalNuevo.value = false
+    await mostrarLink(data, nuevo)
+    await cargar()
+  } catch (e) {
+    errorNuevo.value = e.response?.data?.message || e.response?.data?.error || 'No se pudo crear el formato'
+  } finally {
+    creando.value = false
+  }
+}
+
+async function generarOtroLink(f) {
+  try {
+    const { data } = await api.post(`/admin/formularios/${f.id}/nuevo-link`)
+    await mostrarLink(data, f)
+    await cargar()
+  } catch (e) {
+    alert(e.response?.data?.error || 'No se pudo generar el link')
+  }
+}
+
+function copiarLinkGenerado() {
+  navigator.clipboard?.writeText(linkGenerado.value.url)
+    .then(() => alert('Link copiado'))
+    .catch(() => alert(linkGenerado.value.url))
+}
+
+// El mensaje no dice qué documento es: WhatsApp lo muestra en notificaciones y en pantalla bloqueada
+function whatsappLink(l) {
+  const numero = l.telefono.replace(/\D/g, '').replace(/^(?!57)/, '57')
+  const texto = `Hola ${l.nombre}, te escribimos de Pet Station. Te enviamos un documento para leer y firmar: ${l.url}\nPara abrirlo te llegará un código a este WhatsApp.`
+  return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`
+}
+
+function linkVencido(f) {
+  return f.tokenExpira && new Date(f.tokenExpira) < new Date()
+}
+
+function abrirFirmaVeterinario(f) {
+  Object.assign(firmaVet, { nombre: '', matricula: '', firmaBase64: '' })
+  errorVet.value = ''
+  modalVeterinario.value = f
+}
+
+async function firmarVeterinario() {
+  firmandoVet.value = true
+  errorVet.value = ''
+  try {
+    await api.patch(`/admin/formularios/${modalVeterinario.value.id}/firma-veterinario`, firmaVet)
+    modalVeterinario.value = null
+    await cargar()
+  } catch (e) {
+    errorVet.value = e.response?.data?.message || e.response?.data?.error || 'No se pudo guardar la firma'
+  } finally {
+    firmandoVet.value = false
   }
 }
 
@@ -106,7 +220,11 @@ async function guardarRevision() {
         <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Formularios digitales</p>
         <h1 class="text-2xl font-[1000] uppercase italic text-slate-800 dark:text-white">Formularios</h1>
       </div>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
+        <button @click="abrirNuevo"
+          class="px-4 py-2 text-[9px] font-black uppercase tracking-widest bg-[#152C77] text-white rounded-xl hover:bg-[#DE1F27] transition-colors">
+          ＋ Formato clínico
+        </button>
         <button @click="copiarLink('PELUQUERIA')"
           class="px-4 py-2 text-[9px] font-black uppercase tracking-widest bg-[#152C77]/10 text-[#152C77] dark:text-blue-300 rounded-xl hover:bg-[#152C77]/20 transition-colors">
           📋 Link Peluquería
@@ -127,6 +245,9 @@ async function guardarRevision() {
         <option value="">Todos los tipos</option>
         <option value="PELUQUERIA">Peluquería</option>
         <option value="GUARDERIA">Guardería</option>
+        <option value="CONSENTIMIENTO">Consentimiento</option>
+        <option value="EUTANASIA">Eutanasia</option>
+        <option value="DECLINACION">Declinación</option>
       </select>
     </div>
 
@@ -163,9 +284,8 @@ async function guardarRevision() {
 
         <div class="flex items-start justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
-            <span :class="['text-[8px] font-black uppercase px-2 py-1 rounded-lg whitespace-nowrap',
-              f.tipo === 'PELUQUERIA' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300']">
-              {{ f.tipo === 'PELUQUERIA' ? '✂️ Pelu' : '🏡 Guard' }}
+            <span :class="['text-[8px] font-black uppercase px-2 py-1 rounded-lg whitespace-nowrap', TIPOS[f.tipo]?.clase]">
+              {{ TIPOS[f.tipo]?.etiqueta }}
             </span>
             <div class="min-w-0">
               <p v-if="f.radicado" class="text-[10px] font-black text-[#152C77] dark:text-blue-300">{{ f.radicado }}</p>
@@ -175,7 +295,11 @@ async function guardarRevision() {
           </div>
           <div class="text-right shrink-0">
             <p class="text-[9px] text-slate-400">{{ formatFecha(f.timestamp) }}</p>
-            <span v-if="f.otpVerificado" class="text-[8px] text-green-600 font-bold">✓ Verificado</span>
+            <span v-if="f.estado === 'PENDIENTE_TUTOR'" class="text-[8px] text-amber-600 font-bold block">
+              {{ linkVencido(f) ? 'Link vencido' : 'Falta firma del tutor' }}
+            </span>
+            <span v-else-if="f.estado === 'PENDIENTE_VETERINARIO'" class="text-[8px] text-amber-600 font-bold block">Falta firma del veterinario</span>
+            <span v-else-if="f.otpVerificado" class="text-[8px] text-green-600 font-bold">✓ Verificado</span>
           </div>
         </div>
 
@@ -219,7 +343,22 @@ async function guardarRevision() {
             <img :src="f.firmaBase64" alt="Firma" class="h-16 border border-slate-200 dark:border-white/10 rounded-lg bg-white" />
           </div>
 
-          <div class="flex gap-2">
+          <div v-if="f.estado" class="flex gap-2">
+            <button v-if="f.estado === 'PENDIENTE_TUTOR'" @click.stop="generarOtroLink(f)"
+              class="flex-1 py-2 bg-amber-500 text-white font-black uppercase text-[9px] tracking-widest rounded-xl hover:bg-amber-600 transition-colors">
+              🔗 Generar link nuevo
+            </button>
+            <button v-if="f.estado === 'PENDIENTE_VETERINARIO'" @click.stop="abrirFirmaVeterinario(f)"
+              class="flex-1 py-2 bg-amber-500 text-white font-black uppercase text-[9px] tracking-widest rounded-xl hover:bg-amber-600 transition-colors">
+              ✍️ Firmar como veterinario
+            </button>
+            <button v-if="f.estado !== 'PENDIENTE_TUTOR'" @click.stop="descargarPdf(f)"
+              class="flex-1 py-2 bg-[#152C77] text-white font-black uppercase text-[9px] tracking-widest rounded-xl hover:bg-[#DE1F27] transition-colors">
+              ⬇ PDF
+            </button>
+          </div>
+
+          <div v-else class="flex gap-2">
             <button v-if="!f.revisionCompletada" @click.stop="abrirRevision(f)"
               class="flex-1 py-2 bg-amber-500 text-white font-black uppercase text-[9px] tracking-widest rounded-xl hover:bg-amber-600 transition-colors">
               🔍 Completar revisión
@@ -322,6 +461,121 @@ async function guardarRevision() {
             {{ enviandoRevision ? 'Guardando...' : '✓ Guardar revisión y regenerar PDF' }}
           </button>
         </div>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- Modal nuevo formato clínico -->
+  <Teleport to="body">
+    <div v-if="modalNuevo" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="absolute inset-0 bg-black/50" @click="modalNuevo = false"></div>
+      <div class="relative bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="p-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
+          <h3 class="font-black text-slate-800 dark:text-white">Nuevo formato clínico</h3>
+          <button @click="modalNuevo = false" class="text-slate-400 hover:text-slate-600 text-xl">✕</button>
+        </div>
+        <div class="p-5 space-y-3">
+          <div>
+            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Formato</label>
+            <select v-model="nuevo.tipo" class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]">
+              <option v-for="t in CLINICOS" :key="t.valor" :value="t.valor">{{ t.nombre }}</option>
+            </select>
+          </div>
+          <div v-for="c in [
+            { campo: 'nombreCliente', label: 'Nombre del tutor *' },
+            { campo: 'cedula', label: 'Cédula *', tipo: 'number' },
+            { campo: 'telefono', label: 'Celular con WhatsApp *', tipo: 'tel', ayuda: 'El código para abrir el documento llega a este número.' },
+            { campo: 'email', label: 'Correo', tipo: 'email' },
+            { campo: 'nombreMascota', label: 'Nombre de la mascota *' },
+          ]" :key="c.campo">
+            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">{{ c.label }}</label>
+            <input v-model="nuevo[c.campo]" :type="c.tipo || 'text'"
+              class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]" />
+            <p v-if="c.ayuda" class="text-[10px] text-slate-400 mt-1">{{ c.ayuda }}</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div v-for="c in [
+              { campo: 'especie', label: 'Especie' }, { campo: 'raza', label: 'Raza' },
+              { campo: 'edad', label: 'Edad' }, { campo: 'sexo', label: 'Sexo' },
+              { campo: 'historiaClinica', label: 'Historia clínica No.' }, { campo: 'ciudad', label: 'Ciudad' },
+            ]" :key="c.campo">
+              <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">{{ c.label }}</label>
+              <input v-model="nuevo[c.campo]" type="text"
+                class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]" />
+            </div>
+          </div>
+          <div v-if="nuevo.tipo === 'DECLINACION'">
+            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Tratamiento o procedimiento rechazado *</label>
+            <textarea v-model="nuevo.tratamientoRechazado" rows="2"
+              class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]"></textarea>
+          </div>
+          <p v-if="errorNuevo" class="text-red-500 text-sm">{{ errorNuevo }}</p>
+          <button @click="crearFormato" :disabled="creando || !nuevoValido"
+            class="w-full py-3.5 bg-[#152C77] text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-[#DE1F27] transition-colors disabled:opacity-50">
+            {{ creando ? 'Creando...' : 'Crear y generar link' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- Modal link generado: el link no se puede volver a ver, solo generar uno nuevo -->
+  <Teleport to="body">
+    <div v-if="linkGenerado" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="absolute inset-0 bg-black/50" @click="linkGenerado = null"></div>
+      <div class="relative bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-2xl p-5 space-y-4 text-center">
+        <button @click="linkGenerado = null" class="absolute right-5 top-5 text-slate-400 hover:text-slate-600 text-xl">✕</button>
+        <h3 class="font-black text-slate-800 dark:text-white">Link listo para {{ linkGenerado.nombre }}</h3>
+        <img :src="linkGenerado.qr" alt="Código QR del documento" class="mx-auto w-56 h-56 rounded-xl bg-white p-2" />
+        <p class="text-xs text-slate-500 dark:text-slate-400">
+          Vence: {{ formatFecha(linkGenerado.expira) }}. Solo se puede usar una vez y pedirá un código al WhatsApp del tutor.
+        </p>
+        <p v-if="linkGenerado.tipo === 'EUTANASIA'" class="text-xs font-bold text-amber-700 bg-amber-50 rounded-xl p-3">
+          Este documento se firma en la clínica: pide al tutor que escanee el QR, después de hablar con el veterinario.
+        </p>
+        <a v-else :href="whatsappLink(linkGenerado)" target="_blank"
+          class="block py-3 bg-green-500 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl">
+          Enviar por WhatsApp
+        </a>
+        <button @click="copiarLinkGenerado"
+          class="w-full py-3 bg-[#152C77]/10 text-[#152C77] dark:text-blue-300 font-black uppercase text-[10px] tracking-widest rounded-2xl">
+          Copiar link
+        </button>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- Modal firma del veterinario -->
+  <Teleport to="body">
+    <div v-if="modalVeterinario" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="absolute inset-0 bg-black/50" @click="modalVeterinario = null"></div>
+      <div class="relative bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">{{ modalVeterinario.radicado }}</p>
+            <h3 class="font-black text-slate-800 dark:text-white">Firma del médico veterinario</h3>
+            <p class="text-xs text-slate-400">{{ modalVeterinario.nombreCliente }} · 🐾 {{ modalVeterinario.nombreMascota }}</p>
+          </div>
+          <button @click="modalVeterinario = null" class="text-slate-400 hover:text-slate-600 text-xl">✕</button>
+        </div>
+        <div>
+          <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Nombre del médico veterinario *</label>
+          <input v-model="firmaVet.nombre" type="text"
+            class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]" />
+        </div>
+        <div>
+          <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Matrícula profesional (MP) *</label>
+          <input v-model="firmaVet.matricula" type="text"
+            class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]" />
+        </div>
+        <div class="bg-white rounded-xl">
+          <FirmaCanvas @firmado="v => firmaVet.firmaBase64 = v" />
+        </div>
+        <p v-if="errorVet" class="text-red-500 text-sm">{{ errorVet }}</p>
+        <button @click="firmarVeterinario" :disabled="firmandoVet || !firmaVet.nombre.trim() || !firmaVet.matricula.trim() || !firmaVet.firmaBase64"
+          class="w-full py-3.5 bg-[#152C77] text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-[#DE1F27] transition-colors disabled:opacity-50">
+          {{ firmandoVet ? 'Guardando...' : 'Firmar y enviar copia al tutor' }}
+        </button>
       </div>
     </div>
   </Teleport>

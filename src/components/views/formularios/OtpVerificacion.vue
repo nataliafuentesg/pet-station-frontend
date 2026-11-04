@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import api from '@/api/axios'
 
-const props = defineProps({ telefono: String })
+const props = defineProps({ telefono: String, token: String })
 const emit = defineEmits(['verificado', 'volver'])
 
 const enviado = ref(false)
@@ -11,11 +11,15 @@ const cargando = ref(false)
 const error = ref('')
 const reenviando = ref(false)
 
+// Con token, el número lo pone el servidor: quien abre el link no puede escoger a dónde llega el código
+const base = props.token ? '/formularios/firmar/otp' : '/formularios/otp'
+const destino = props.token ? { token: props.token } : { telefono: props.telefono }
+
 async function enviarCodigo() {
   cargando.value = true
   error.value = ''
   try {
-    await api.post('/formularios/otp/solicitar', { telefono: props.telefono })
+    await api.post(`${base}/solicitar`, destino)
     enviado.value = true
   } catch (e) {
     error.value = e.response?.data?.error || 'No se pudo enviar el código'
@@ -28,7 +32,7 @@ async function verificar() {
   cargando.value = true
   error.value = ''
   try {
-    await api.post('/formularios/otp/verificar', { telefono: props.telefono, codigo: codigo.value })
+    await api.post(`${base}/verificar`, { ...destino, codigo: codigo.value })
     emit('verificado')
   } catch (e) {
     error.value = 'Código incorrecto o expirado'
@@ -42,7 +46,7 @@ async function reenviar() {
   codigo.value = ''
   error.value = ''
   try {
-    await api.post('/formularios/otp/solicitar', { telefono: props.telefono })
+    await api.post(`${base}/solicitar`, destino)
   } catch (e) {
     error.value = 'No se pudo reenviar el código'
   } finally {
@@ -72,7 +76,7 @@ async function reenviar() {
     <div v-else class="space-y-4">
       <p class="text-xs text-green-600 font-bold">✓ Código enviado por WhatsApp</p>
 
-      <input v-model="codigo" type="number" maxlength="6" placeholder="_ _ _ _ _ _"
+      <input v-model.trim="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="_ _ _ _ _ _"
         class="w-full text-center text-3xl font-black tracking-[1rem] border-2 border-gray-200 rounded-2xl py-4 focus:outline-none focus:border-[#152C77]"
         @keyup.enter="verificar" />
 
@@ -88,7 +92,7 @@ async function reenviar() {
       </button>
     </div>
 
-    <button @click="emit('volver')" class="text-xs text-gray-400 underline block w-full">
+    <button v-if="!token" @click="emit('volver')" class="text-xs text-gray-400 underline block w-full">
       ← Volver
     </button>
   </div>

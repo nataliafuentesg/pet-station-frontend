@@ -4,6 +4,7 @@ import api from '@/api/axios'
 import FirmaCanvas from './FirmaCanvas.vue'
 import OtpVerificacion from './OtpVerificacion.vue'
 import TerminosFormulario from './TerminosFormulario.vue'
+import ConfirmarCorreo from './ConfirmarCorreo.vue'
 
 const paso = ref(1)
 const enviando = ref(false)
@@ -46,6 +47,19 @@ const otpVerificado = ref(false)
 const terminos = ref({ aceptado: false, version: '' })
 const radicado = ref('')
 const copiaEnviada = ref(false)
+const confirmandoCorreo = ref(false)
+const tieneCorreo = computed(() => !!form.email?.trim())
+const correoValido = computed(() => !tieneCorreo.value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
+
+function continuarDatos() {
+  if (tieneCorreo.value) confirmandoCorreo.value = true
+  else paso.value = 2
+}
+
+function correoConfirmado() {
+  confirmandoCorreo.value = false
+  paso.value = 2
+}
 
 const paso1Valido = computed(() =>
   form.cedula && form.nombreCliente && form.telefono &&
@@ -77,7 +91,8 @@ async function enviar() {
       checklistJson: JSON.stringify(form.checklist),
       firmaBase64: firmaBase64.value,
       aceptaTerminos: terminos.value.aceptado,
-      versionTerminos: terminos.value.version
+      versionTerminos: terminos.value.version,
+      emailConfirmado: tieneCorreo.value
     })
     radicado.value = data.radicado
     copiaEnviada.value = data.copiaEnviada
@@ -113,7 +128,10 @@ async function enviar() {
       </div>
 
       <!-- Paso 1: Datos -->
-      <div v-if="paso === 1" class="space-y-5">
+      <ConfirmarCorreo v-if="paso === 1 && confirmandoCorreo" :email="form.email.trim()"
+        @confirmar="correoConfirmado" @corregir="confirmandoCorreo = false" />
+
+      <div v-if="paso === 1 && !confirmandoCorreo" class="space-y-5">
         <div class="bg-white rounded-2xl p-5 shadow-sm">
           <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">Datos del propietario</h2>
           <div class="space-y-3">
@@ -137,6 +155,7 @@ async function enviar() {
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Email</label>
               <input v-model="form.email" type="email" placeholder="Para enviarte copia del documento firmado"
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+              <p v-if="!correoValido" class="text-xs text-red-500 mt-1">Revisa el correo, parece incompleto.</p>
             </div>
             <div>
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Dirección</label>
@@ -288,7 +307,7 @@ async function enviar() {
             class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]"></textarea>
         </div>
 
-        <button @click="paso = 2" :disabled="!paso1Valido"
+        <button @click="continuarDatos" :disabled="!paso1Valido || !correoValido"
           class="w-full py-4 bg-[#152C77] text-white font-black uppercase text-sm tracking-widest rounded-2xl disabled:opacity-40 active:scale-95 transition-transform">
           Continuar → Verificar identidad
         </button>
