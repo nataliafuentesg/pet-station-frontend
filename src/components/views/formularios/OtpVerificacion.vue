@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import api from '@/api/axios'
 
 const props = defineProps({ telefono: String })
@@ -10,6 +10,26 @@ const codigo = ref('')
 const cargando = ref(false)
 const error = ref('')
 const reenviando = ref(false)
+const aviso = ref('')
+const segundos = ref(0)
+const ESPERA_REENVIO_SEGUNDOS = 60
+let intervalo = null
+
+const cuentaRegresiva = computed(() => `${Math.floor(segundos.value / 60)}:${String(segundos.value % 60).padStart(2, '0')}`)
+
+// Con la hora real y no contando ticks: el celular pausa los timers con la pantalla bloqueada
+function iniciarEspera() {
+  const hasta = Date.now() + ESPERA_REENVIO_SEGUNDOS * 1000
+  clearInterval(intervalo)
+  const tick = () => {
+    segundos.value = Math.max(0, Math.ceil((hasta - Date.now()) / 1000))
+    if (segundos.value === 0) clearInterval(intervalo)
+  }
+  tick()
+  intervalo = setInterval(tick, 1000)
+}
+
+onUnmounted(() => clearInterval(intervalo))
 
 async function enviarCodigo() {
   cargando.value = true
@@ -17,6 +37,7 @@ async function enviarCodigo() {
   try {
     await api.post('/formularios/otp/solicitar', { telefono: props.telefono })
     enviado.value = true
+    iniciarEspera()
   } catch (e) {
     error.value = e.response?.data?.error || 'No se pudo enviar el código'
   } finally {
@@ -31,7 +52,7 @@ async function verificar() {
     await api.post('/formularios/otp/verificar', { telefono: props.telefono, codigo: codigo.value })
     emit('verificado')
   } catch (e) {
-    error.value = 'Código incorrecto o expirado'
+    error.value = e.response?.status === 429 ? e.response.data.error : 'Código incorrecto o expirado'
   } finally {
     cargando.value = false
   }
@@ -41,10 +62,13 @@ async function reenviar() {
   reenviando.value = true
   codigo.value = ''
   error.value = ''
+  aviso.value = ''
   try {
     await api.post('/formularios/otp/solicitar', { telefono: props.telefono })
+    aviso.value = 'Te enviamos un código nuevo; el anterior ya no sirve.'
+    iniciarEspera()
   } catch (e) {
-    error.value = 'No se pudo reenviar el código'
+    error.value = e.response?.data?.error || 'No se pudo reenviar el código'
   } finally {
     reenviando.value = false
   }
@@ -76,6 +100,7 @@ async function reenviar() {
         class="w-full text-center text-3xl font-black tracking-[1rem] border-2 border-gray-200 rounded-2xl py-4 focus:outline-none focus:border-[#152C77]"
         @keyup.enter="verificar" />
 
+      <p v-if="aviso && !error" class="text-green-600 text-sm">{{ aviso }}</p>
       <p v-if="error" class="text-red-500 text-sm">{{ error }}</p>
 
       <button @click="verificar" :disabled="cargando || codigo.length < 4"
@@ -83,7 +108,8 @@ async function reenviar() {
         {{ cargando ? 'Verificando...' : 'Verificar código' }}
       </button>
 
-      <button @click="reenviar" :disabled="reenviando" class="text-xs text-gray-400 underline">
+      <p v-if="segundos > 0" class="text-xs text-gray-400">Reenviar en {{ cuentaRegresiva }}</p>
+      <button v-else @click="reenviar" :disabled="reenviando" class="text-xs text-gray-400 underline">
         {{ reenviando ? 'Reenviando...' : 'Reenviar código' }}
       </button>
     </div>
