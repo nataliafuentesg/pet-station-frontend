@@ -505,13 +505,13 @@ async function guardarRevision() {
           <!-- Observaciones -->
           <div>
             <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Observaciones del ingreso</label>
-            <textarea v-model="revision.observacionesIngreso" rows="3" placeholder="Estado general, comportamiento, notas del empleado..."
+            <textarea v-model="revision.observacionesIngreso" rows="3" placeholder="Estado general, comportamiento, notas de quien recibe..."
               class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]"></textarea>
           </div>
 
-          <!-- Empleado -->
+          <!-- Quien recibe -->
           <div>
-            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Nombre del empleado que recibe *</label>
+            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Persona que recibe *</label>
             <input v-model="empleadoRevision" type="text" placeholder="Tu nombre"
               class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]" />
           </div>

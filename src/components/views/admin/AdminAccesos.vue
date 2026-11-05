@@ -86,7 +86,7 @@
             <select v-model="existente.tutorId" :class="inputClass">
               <option :value="null" disabled>Elige una persona</option>
               <option v-for="c in candidatos" :key="c.tutorId" :value="c.tutorId">
-                {{ c.nombre }} · {{ c.rol === 'ROLE_VET' ? 'Veterinario' : 'Empleado' }} ({{ c.usuario }})
+                {{ c.nombre }} · {{ c.rol === 'ROLE_VET' ? 'Veterinario' : 'Colaborador' }} ({{ c.usuario }})
               </option>
             </select>
           </div>
