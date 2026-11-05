@@ -539,7 +539,7 @@ import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import api from '@/api/axios'
 import { messaging, onMessage } from '@/firebase'
 import { obtenerTokenPush } from '@/composables/usePushNotifications'
-import { obtenerUbicacion } from '@/composables/useUbicacion'
+import { obtenerUbicacion, estadoPermisoUbicacion } from '@/composables/useUbicacion'
 import PerroDatosForm from './equipo/PerroDatosForm.vue'
 import AvisoJornada from './equipo/AvisoJornada.vue'
 
@@ -713,6 +713,9 @@ const SIN_REGRESO = ['/jornada/almuerzo/', '/jornada/cerrar', '/jornada/cierre-v
 let ultimaUbicacion = null
 async function ubicacionParaMarcar() {
   if (ultimaUbicacion && Date.now() - ultimaUbicacion.t < 180000) return ultimaUbicacion.u
+  const estadoUbicacion = await estadoPermisoUbicacion()
+  if (estadoUbicacion === 'denied') return { error: 'DENEGADO' }
+  if (estadoUbicacion === 'no-preguntar') return { error: 'SIN_DATO' }
   ubicando.value = { precision: null, lecturas: 0 }
   const u = await obtenerUbicacion({ onProgreso: p => { ubicando.value = p } })
   ubicando.value = null
@@ -721,10 +724,8 @@ async function ubicacionParaMarcar() {
 }
 
 function avisarSinUbicacion(u) {
-  if (!u?.error) return
-  toast.value = u.error === 'DENEGADO'
-    ? '📍 Quedó marcado, pero sin tu ubicación porque no diste el permiso. Actívalo en los ajustes del navegador.'
-    : '📍 Quedó marcado, pero el celular no logró ubicarse. Revisa que tengas la ubicación encendida.'
+  if (u?.error !== 'TIEMPO' && u?.error !== 'NO_DISPONIBLE') return
+  toast.value = '📍 Quedó marcado, pero el celular no logró ubicarse. Revisa que tengas la ubicación encendida.'
   clearTimeout(toastTimer)
   toastTimer = setTimeout(() => { toast.value = '' }, 7000)
 }

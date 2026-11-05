@@ -54,3 +54,22 @@ function promediar(lecturas) {
   }
   return { lat: lat / w, lon: lon / w, precision: Math.round(mejor), lecturas: lecturas.length }
 }
+
+// Para marcar jornada: el permiso se pide una sola vez por celular. Después solo se toma la ubicación si ya está
+// permitida, porque algunos celulares vuelven a preguntar cada vez y el navegador no deja evitarlo de otra forma.
+const YA_PREGUNTADO = 'jornada-ubicacion-preguntada'
+
+export async function estadoPermisoUbicacion() {
+  let estado = null
+  try {
+    estado = (await navigator.permissions.query({ name: 'geolocation' })).state
+  } catch { /* navegador sin esta consulta */ }
+  if (estado === 'granted' || estado === 'denied') return estado
+  try {
+    if (localStorage.getItem(YA_PREGUNTADO)) return 'no-preguntar'
+    localStorage.setItem(YA_PREGUNTADO, '1')
+  } catch {
+    return 'no-preguntar'
+  }
+  return 'prompt'
+}
