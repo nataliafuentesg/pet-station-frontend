@@ -96,7 +96,7 @@ const evidencias = ref({})
 
 const NOMBRE_EVENTO = {
   LINK_CREADO: 'Link creado',
-  CODIGO_VERIFICADO: 'Código de WhatsApp verificado',
+  CODIGO_VERIFICADO: 'Código verificado',
   TERMINOS_ACEPTADOS: 'Términos aceptados',
   CORREO_CONFIRMADO: 'Correo confirmado en pantalla',
   FIRMA_TUTOR: 'Firma del tutor',
@@ -421,7 +421,9 @@ async function guardarRevision() {
             <p v-if="evidencias[f.id].huellaOriginal" class="text-[10px] text-slate-400 break-all">Huella SHA-256: {{ evidencias[f.id].huellaOriginal }}</p>
             <ul class="space-y-1.5">
               <li v-for="e in evidencias[f.id].eventos" :key="e.id">
-                <p class="font-bold text-slate-700 dark:text-slate-200">{{ NOMBRE_EVENTO[e.tipo] || e.tipo }}</p>
+                <p class="font-bold text-slate-700 dark:text-slate-200">
+                  {{ NOMBRE_EVENTO[e.tipo] || e.tipo }}<template v-if="e.tipo === 'CODIGO_VERIFICADO'"> por {{ e.canal === 'CORREO' ? 'correo' : 'WhatsApp' }}</template>
+                </p>
                 <p class="text-[10px] text-slate-400 break-all">
                   {{ formatFecha(e.momento) }}<template v-if="e.destino"> · {{ e.destino }}</template><template v-if="e.ip"> · IP {{ e.ip }}</template>
                 </p>
@@ -544,7 +546,7 @@ async function guardarRevision() {
             { campo: 'nombreCliente', label: 'Nombre del tutor *' },
             { campo: 'cedula', label: 'Cédula *', tipo: 'number' },
             { campo: 'telefono', label: 'Celular con WhatsApp *', tipo: 'tel', ayuda: 'El código para abrir el documento llega a este número.' },
-            { campo: 'email', label: 'Correo', tipo: 'email' },
+            { campo: 'email', label: 'Correo (respaldo si el WhatsApp no llega)', tipo: 'email' },
             { campo: 'nombreMascota', label: 'Nombre de la mascota *' },
           ]" :key="c.campo">
             <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">{{ c.label }}</label>

@@ -2,11 +2,13 @@
 import { ref, reactive, computed } from 'vue'
 import api from '@/api/axios'
 import FirmaCanvas from './FirmaCanvas.vue'
-import OtpVerificacion from './OtpVerificacion.vue'
+import InicioFormulario from './InicioFormulario.vue'
+import CampoCedula from './CampoCedula.vue'
+import { aplicarDatosGuardados } from './datosGuardados'
 import TerminosFormulario from './TerminosFormulario.vue'
 import ConfirmarCorreo from './ConfirmarCorreo.vue'
 
-const paso = ref(1)
+const paso = ref(1) // 1: verificar, 2: datos, 3: firma, 4: éxito
 const enviando = ref(false)
 const error = ref('')
 
@@ -43,7 +45,10 @@ const form = reactive({
 const tipoAlimentacion = ref('')
 const horarioComida = ref('')
 const firmaBase64 = ref('')
-const otpVerificado = ref(false)
+const sesion = ref('')
+const cedulaGuardada = ref('')
+const correoVerificado = ref('')
+const versionAceptada = ref('')
 const terminos = ref({ aceptado: false, version: '' })
 const radicado = ref('')
 const copiaEnviada = ref(false)
@@ -52,17 +57,18 @@ const tieneCorreo = computed(() => !!form.email?.trim())
 const correoValido = computed(() => !tieneCorreo.value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
 
 function continuarDatos() {
-  if (tieneCorreo.value) confirmandoCorreo.value = true
-  else paso.value = 2
+  // Si el código llegó a este correo, ya sabemos que está bien escrito
+  if (tieneCorreo.value && form.email.trim().toLowerCase() !== correoVerificado.value) confirmandoCorreo.value = true
+  else paso.value = 3
 }
 
 function correoConfirmado() {
   confirmandoCorreo.value = false
-  paso.value = 2
+  paso.value = 3
 }
 
 const paso1Valido = computed(() =>
-  form.cedula && form.nombreCliente && form.telefono &&
+  (form.cedula || cedulaGuardada.value) && form.nombreCliente && form.telefono &&
   form.nombreMascota && form.fechaIngreso && form.fechaSalida
 )
 
@@ -71,9 +77,13 @@ function onTerminos(valor) {
   if (!valor.aceptado) firmaBase64.value = ''
 }
 
-function onOtpVerificado() {
-  otpVerificado.value = true
-  paso.value = 3
+function onIdentificado(datos) {
+  aplicarDatosGuardados(form, datos)
+  sesion.value = datos.sesion
+  correoVerificado.value = datos.correoVerificado
+  cedulaGuardada.value = datos.perfil?.cedulaOculta || ''
+  versionAceptada.value = datos.perfil?.terminosAceptados?.GUARDERIA || ''
+  paso.value = 2
 }
 
 async function enviar() {
@@ -92,7 +102,9 @@ async function enviar() {
       firmaBase64: firmaBase64.value,
       aceptaTerminos: terminos.value.aceptado,
       versionTerminos: terminos.value.version,
-      emailConfirmado: tieneCorreo.value
+      emailConfirmado: tieneCorreo.value,
+      usarCedulaGuardada: !!cedulaGuardada.value,
+      sesion: sesion.value
     })
     radicado.value = data.radicado
     copiaEnviada.value = data.copiaEnviada
@@ -117,7 +129,7 @@ async function enviar() {
 
       <!-- Progreso -->
       <div class="flex items-center justify-between mb-8 text-xs font-bold uppercase tracking-widest">
-        <div v-for="(label, i) in ['Datos', 'Verificar', 'Firma', 'Listo']" :key="i"
+        <div v-for="(label, i) in ['Verificar', 'Datos', 'Firma', 'Listo']" :key="i"
           :class="['flex flex-col items-center gap-1', paso > i + 1 ? 'text-green-600' : paso === i + 1 ? 'text-[#152C77]' : 'text-gray-300']">
           <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-black',
             paso > i + 1 ? 'bg-green-500 text-white' : paso === i + 1 ? 'bg-[#152C77] text-white' : 'bg-gray-200']">
@@ -127,29 +139,26 @@ async function enviar() {
         </div>
       </div>
 
-      <!-- Paso 1: Datos -->
-      <ConfirmarCorreo v-if="paso === 1 && confirmandoCorreo" :email="form.email.trim()"
+      <!-- Paso 1: Verificar -->
+      <InicioFormulario v-if="paso === 1" @listo="onIdentificado" />
+
+      <!-- Paso 2: Datos -->
+      <ConfirmarCorreo v-if="paso === 2 && confirmandoCorreo" :email="form.email.trim()"
         @confirmar="correoConfirmado" @corregir="confirmandoCorreo = false" />
 
-      <div v-if="paso === 1 && !confirmandoCorreo" class="space-y-5">
+      <div v-if="paso === 2 && !confirmandoCorreo" class="space-y-5">
         <div class="bg-white rounded-2xl p-5 shadow-sm">
           <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">Datos del propietario</h2>
           <div class="space-y-3">
-            <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Cédula *</label>
-              <input v-model="form.cedula" type="number" placeholder="Número de cédula"
-                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
-            </div>
+            <CampoCedula v-model="form.cedula" v-model:guardada="cedulaGuardada" />
             <div>
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Nombre completo *</label>
               <input v-model="form.nombreCliente" type="text" placeholder="Tu nombre"
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
             <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">WhatsApp *</label>
-              <input v-model="form.telefono" type="tel" placeholder="3001234567"
-                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
-              <p class="text-xs text-gray-400 mt-1">Recibirás un código de verificación aquí</p>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">WhatsApp</label>
+              <p class="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 text-gray-700">{{ form.telefono }}</p>
             </div>
             <div>
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Email</label>
@@ -309,19 +318,13 @@ async function enviar() {
 
         <button @click="continuarDatos" :disabled="!paso1Valido || !correoValido"
           class="w-full py-4 bg-[#152C77] text-white font-black uppercase text-sm tracking-widest rounded-2xl disabled:opacity-40 active:scale-95 transition-transform">
-          Continuar → Verificar identidad
+          Continuar → Firmar
         </button>
       </div>
 
-      <!-- Paso 2: OTP -->
-      <OtpVerificacion v-if="paso === 2"
-        :telefono="form.telefono"
-        @verificado="onOtpVerificado"
-        @volver="paso = 1" />
-
       <!-- Paso 3: Firma -->
       <div v-if="paso === 3" class="space-y-5">
-        <TerminosFormulario tipo="GUARDERIA" @cambio="onTerminos" />
+        <TerminosFormulario tipo="GUARDERIA" :version-aceptada="versionAceptada" @cambio="onTerminos" />
 
         <div v-if="terminos.aceptado" class="bg-white rounded-2xl p-5 shadow-sm">
           <h2 class="font-black uppercase text-sm text-[#152C77] mb-2 tracking-wide">Firma</h2>

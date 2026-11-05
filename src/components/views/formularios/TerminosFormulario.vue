@@ -1,10 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '@/api/axios'
 
 const props = defineProps({
   tipo: { type: String, required: true },
-  terminos: { type: Object, default: null }
+  terminos: { type: Object, default: null },
+  versionAceptada: { type: String, default: '' }
 })
 const emit = defineEmits(['cambio'])
 
@@ -12,6 +13,8 @@ const texto = ref(props.terminos)
 const cargando = ref(!props.terminos)
 const fallo = ref(false)
 const aceptado = ref(false)
+const verTexto = ref(false)
+const yaLosAcepto = computed(() => !!props.versionAceptada && texto.value?.version === props.versionAceptada)
 
 onMounted(() => {
   if (!props.terminos) cargar()
@@ -47,7 +50,13 @@ function alCambiar() {
     </div>
 
     <template v-else>
-      <div v-for="bloque in texto.bloques" :key="bloque.texto" class="mb-4">
+      <div v-if="yaLosAcepto" class="mb-4 text-sm text-gray-600 space-y-2">
+        <p>Son los mismos términos que aceptaste en tu visita anterior; no han cambiado.</p>
+        <button type="button" @click="verTexto = !verTexto" class="font-bold text-[#152C77] underline">
+          {{ verTexto ? 'Ocultar los términos' : 'Volver a leerlos' }}
+        </button>
+      </div>
+      <div v-for="bloque in texto.bloques" v-show="!yaLosAcepto || verTexto" :key="bloque.texto" class="mb-4">
         <p class="text-sm text-gray-700 leading-relaxed mb-3">{{ bloque.texto }}</p>
         <component :is="bloque.numerado ? 'ol' : 'ul'"
           :class="['pl-5 space-y-2 text-sm text-gray-700 leading-relaxed', bloque.numerado ? 'list-decimal' : 'list-disc']">
@@ -56,7 +65,7 @@ function alCambiar() {
       </div>
       <label class="flex items-start gap-3 mt-5 p-3 rounded-xl border-2 border-[#152C77]/20 bg-[#152C77]/5 cursor-pointer">
         <input v-model="aceptado" @change="alCambiar" type="checkbox" class="w-5 h-5 mt-0.5 shrink-0 accent-[#152C77]" />
-        <span class="text-sm font-bold text-[#152C77]">He leído y acepto la autorización y los términos anteriores.</span>
+        <span class="text-sm font-bold text-[#152C77]">{{ yaLosAcepto ? 'Acepto nuevamente la autorización y los términos.' : 'He leído y acepto la autorización y los términos anteriores.' }}</span>
       </label>
     </template>
   </div>

@@ -13,6 +13,7 @@ const token = route.hash.slice(1)
 
 const paso = ref('cargando') // cargando | invalido | otp | documento | correo | firma | listo
 const telefono = ref('')
+const correoRegistrado = ref('')
 const documento = ref(null)
 const mensaje = ref('')
 const email = ref('')
@@ -39,6 +40,7 @@ onMounted(async () => {
   try {
     const { data } = await api.post('/formularios/firmar/estado', { token })
     telefono.value = data.telefono
+    correoRegistrado.value = data.correo || ''
     paso.value = 'otp'
   } catch (e) {
     mensaje.value = e.response?.data?.error || 'No pudimos abrir este link. Intenta de nuevo en unos minutos.'
@@ -110,7 +112,7 @@ async function enviar() {
         </a>
       </div>
 
-      <OtpVerificacion v-else-if="paso === 'otp'" :telefono="`terminado en ${telefono}`" :token="token" @verificado="onVerificado" />
+      <OtpVerificacion v-else-if="paso === 'otp'" :telefono="`terminado en ${telefono}`" :token="token" :correo-registrado="correoRegistrado" @verificado="onVerificado" />
 
       <!-- v-show: al corregir el correo no se pierde la casilla marcada ni el motivo -->
       <div v-if="documento" v-show="paso === 'documento'" class="space-y-5">
