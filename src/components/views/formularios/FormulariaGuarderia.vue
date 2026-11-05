@@ -4,6 +4,7 @@ import api from '@/api/axios'
 import FirmaCanvas from './FirmaCanvas.vue'
 import InicioFormulario from './InicioFormulario.vue'
 import CampoCedula from './CampoCedula.vue'
+import PreguntaSiNo from './PreguntaSiNo.vue'
 import { aplicarDatosGuardados } from './datosGuardados'
 import TerminosFormulario from './TerminosFormulario.vue'
 import ConfirmarCorreo from './ConfirmarCorreo.vue'
@@ -28,19 +29,28 @@ const form = reactive({
   fechaSalida: '',
   observaciones: '',
   checklist: {
-    vacunacion: false,
-    desparasitado: false,
-    esterilizado: false,
-    braquicefala: false,
+    vacunacion: null,
+    desparasitado: null,
+    esterilizado: null,
+    braquicefala: null,
     temperamento: '',
     sociable: '',
-    antecedentesAgresividad: false,
-    tratamientoActual: '',
-    alergias: '',
-    acostumbradoGuarderia: false,
-    atendidoAntes: false,
+    antecedentesAgresividad: null,
+    acostumbradoGuarderia: null,
+    atendidoAntes: null,
   }
 })
+
+const enTratamiento = ref(null)
+const cualTratamiento = ref('')
+const tieneAlergias = ref(null)
+const cualesAlergias = ref('')
+const respondida = (si, cual) => si === false || (si === true && !!cual.trim())
+const preguntasCompletas = computed(() =>
+  Object.values(form.checklist).every(v => v !== null && v !== '') &&
+  respondida(enTratamiento.value, cualTratamiento.value) &&
+  respondida(tieneAlergias.value, cualesAlergias.value)
+)
 
 const tipoAlimentacion = ref('')
 const horarioComida = ref('')
@@ -98,7 +108,11 @@ async function enviar() {
       tipo: 'GUARDERIA',
       ...form,
       alimentacion: `Tipo: ${tipoAlimentacion.value || '-'} · Horario: ${horarioComida.value || '-'}`,
-      checklistJson: JSON.stringify(form.checklist),
+      checklistJson: JSON.stringify({
+        ...form.checklist,
+        tratamientoActual: enTratamiento.value ? `Sí: ${cualTratamiento.value.trim()}` : 'No',
+        alergias: tieneAlergias.value ? `Sí: ${cualesAlergias.value.trim()}` : 'No'
+      }),
       firmaBase64: firmaBase64.value,
       aceptaTerminos: terminos.value.aceptado,
       versionTerminos: terminos.value.version,
@@ -247,39 +261,24 @@ async function enviar() {
 
         <div class="bg-white rounded-2xl p-5 shadow-sm">
           <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">Condiciones especiales de la mascota</h2>
-          <div class="grid grid-cols-2 gap-3 mb-3">
-            <label class="flex items-center gap-2 text-sm">
-              <input type="checkbox" v-model="form.checklist.vacunacion" class="w-4 h-4 accent-[#152C77]" />
-              Esquema de vacunación completo
-            </label>
-            <label class="flex items-center gap-2 text-sm">
-              <input type="checkbox" v-model="form.checklist.desparasitado" class="w-4 h-4 accent-[#152C77]" />
-              Desparasitado
-            </label>
-            <label class="flex items-center gap-2 text-sm">
-              <input type="checkbox" v-model="form.checklist.esterilizado" class="w-4 h-4 accent-[#152C77]" />
-              Esterilizado/a
-            </label>
-            <label class="flex items-center gap-2 text-sm">
-              <input type="checkbox" v-model="form.checklist.braquicefala" class="w-4 h-4 accent-[#152C77]" />
-              Raza braquicéfala
-            </label>
-            <label class="flex items-center gap-2 text-sm col-span-2">
-              <input type="checkbox" v-model="form.checklist.antecedentesAgresividad" class="w-4 h-4 accent-[#152C77]" />
-              Antecedentes de agresividad
-            </label>
-            <label class="flex items-center gap-2 text-sm col-span-2">
-              <input type="checkbox" v-model="form.checklist.acostumbradoGuarderia" class="w-4 h-4 accent-[#152C77]" />
-              Está acostumbrado(a) a guardería
-            </label>
-            <label class="flex items-center gap-2 text-sm col-span-2">
-              <input type="checkbox" v-model="form.checklist.atendidoAntes" class="w-4 h-4 accent-[#152C77]" />
-              Ha sido atendido anteriormente en Pet Station
-            </label>
-          </div>
           <div class="space-y-3">
+            <PreguntaSiNo v-model="form.checklist.braquicefala" pregunta="¿Es raza braquicéfala (nariz achatada)?" />
+            <PreguntaSiNo v-model="form.checklist.vacunacion" pregunta="¿Tiene el esquema de vacunación completo?" />
+            <PreguntaSiNo v-model="form.checklist.desparasitado" pregunta="¿Está desparasitado?" />
+            <PreguntaSiNo v-model="form.checklist.antecedentesAgresividad" pregunta="¿Tiene antecedentes de agresividad?" />
+            <PreguntaSiNo v-model="form.checklist.esterilizado" pregunta="¿Está esterilizado/castrado?" />
+            <PreguntaSiNo v-model="enTratamiento" pregunta="¿Está bajo tratamiento médico actualmente?">
+              <input v-model="cualTratamiento" type="text" placeholder="¿Cuál? *"
+                class="mt-2 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </PreguntaSiNo>
+            <PreguntaSiNo v-model="tieneAlergias" pregunta="¿Tiene alergias o condiciones médicas importantes?">
+              <input v-model="cualesAlergias" type="text" placeholder="¿Cuáles? *"
+                class="mt-2 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </PreguntaSiNo>
+            <PreguntaSiNo v-model="form.checklist.acostumbradoGuarderia" pregunta="¿Está acostumbrado(a) a guardería?" />
+            <PreguntaSiNo v-model="form.checklist.atendidoAntes" pregunta="¿Ha sido atendido anteriormente en Pet Station?" />
             <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Temperamento</label>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Temperamento *</label>
               <select v-model="form.checklist.temperamento" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]">
                 <option value="">Selecciona</option>
                 <option>Dócil</option>
@@ -288,7 +287,7 @@ async function enviar() {
               </select>
             </div>
             <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">¿Es sociable con otros perros?</label>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">¿Es sociable con otros perros? *</label>
               <select v-model="form.checklist.sociable" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]">
                 <option value="">Selecciona</option>
                 <option>Muy sociable</option>
@@ -296,16 +295,6 @@ async function enviar() {
                 <option>Poco sociable</option>
                 <option>No sociable</option>
               </select>
-            </div>
-            <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Tratamiento médico actual</label>
-              <input v-model="form.checklist.tratamientoActual" type="text" placeholder="Ej: Ninguno / antibióticos por 5 días"
-                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
-            </div>
-            <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Alergias o condiciones médicas importantes</label>
-              <input v-model="form.checklist.alergias" type="text" placeholder="Ej: Ninguna"
-                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
           </div>
         </div>
@@ -316,7 +305,9 @@ async function enviar() {
             class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]"></textarea>
         </div>
 
-        <button @click="continuarDatos" :disabled="!paso1Valido || !correoValido"
+        <p v-if="!preguntasCompletas" class="text-xs text-center text-gray-500">Responde todas las preguntas marcadas con * para continuar.</p>
+
+        <button @click="continuarDatos" :disabled="!paso1Valido || !correoValido || !preguntasCompletas"
           class="w-full py-4 bg-[#152C77] text-white font-black uppercase text-sm tracking-widest rounded-2xl disabled:opacity-40 active:scale-95 transition-transform">
           Continuar → Firmar
         </button>

@@ -4,6 +4,7 @@ import api from '@/api/axios'
 import FirmaCanvas from './FirmaCanvas.vue'
 import InicioFormulario from './InicioFormulario.vue'
 import CampoCedula from './CampoCedula.vue'
+import PreguntaSiNo from './PreguntaSiNo.vue'
 import { aplicarDatosGuardados } from './datosGuardados'
 import TerminosFormulario from './TerminosFormulario.vue'
 import ConfirmarCorreo from './ConfirmarCorreo.vue'
@@ -28,11 +29,18 @@ const form = reactive({
   instruccionesCorte: '',
   observaciones: '',
   checklist: {
-    vacunacion: false,
-    alergias: '',
-    braquicefala: false,
+    vacunacion: null,
+    braquicefala: null,
     temperamento: '',
   }
+})
+
+const tieneAlergias = ref(null)
+const cualesAlergias = ref('')
+const preguntasCompletas = computed(() => {
+  const c = form.checklist
+  return c.vacunacion !== null && c.braquicefala !== null && !!c.temperamento &&
+    (tieneAlergias.value === false || (tieneAlergias.value === true && !!cualesAlergias.value.trim()))
 })
 
 const servicioOtro = ref('')
@@ -100,7 +108,10 @@ async function enviar() {
       tipo: 'PELUQUERIA',
       ...form,
       servicioSolicitado: form.servicioSolicitado === 'Otro' ? `Otro: ${servicioOtro.value}` : form.servicioSolicitado,
-      checklistJson: JSON.stringify(form.checklist),
+      checklistJson: JSON.stringify({
+        ...form.checklist,
+        alergias: tieneAlergias.value ? `Sí: ${cualesAlergias.value.trim()}` : 'No'
+      }),
       firmaBase64: firmaBase64.value,
       aceptaTerminos: terminos.value.aceptado,
       versionTerminos: terminos.value.version,
@@ -244,27 +255,20 @@ async function enviar() {
         <div class="bg-white rounded-2xl p-5 shadow-sm">
           <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">Preguntas de ingreso</h2>
           <div class="space-y-3">
-            <label class="flex items-center gap-3 text-sm">
-              <input type="checkbox" v-model="form.checklist.vacunacion" class="w-4 h-4 accent-[#152C77]" />
-              <span>Tiene el esquema de vacunación completo</span>
-            </label>
-            <label class="flex items-center gap-3 text-sm">
-              <input type="checkbox" v-model="form.checklist.braquicefala" class="w-4 h-4 accent-[#152C77]" />
-              <span>Raza braquicéfala (nariz achatada)</span>
-            </label>
+            <PreguntaSiNo v-model="form.checklist.vacunacion" pregunta="¿Tiene el esquema de vacunación completo?" />
+            <PreguntaSiNo v-model="tieneAlergias" pregunta="¿Tiene alergias o condiciones médicas importantes?">
+              <input v-model="cualesAlergias" type="text" placeholder="¿Cuáles? *"
+                class="mt-2 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </PreguntaSiNo>
+            <PreguntaSiNo v-model="form.checklist.braquicefala" pregunta="¿Es raza braquicéfala (nariz achatada)?" />
             <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Temperamento</label>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Temperamento *</label>
               <select v-model="form.checklist.temperamento" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]">
                 <option value="">Selecciona</option>
                 <option>Dócil</option>
                 <option>Ansioso</option>
                 <option>Agresivo</option>
               </select>
-            </div>
-            <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Alergias o condiciones médicas importantes</label>
-              <input v-model="form.checklist.alergias" type="text" placeholder="Ej: Ninguna / champú con fragancia"
-                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
           </div>
         </div>
@@ -275,7 +279,9 @@ async function enviar() {
             class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]"></textarea>
         </div>
 
-        <button @click="continuarDatos" :disabled="!paso1Valido || !correoValido"
+        <p v-if="!preguntasCompletas" class="text-xs text-center text-gray-500">Responde todas las preguntas marcadas con * para continuar.</p>
+
+        <button @click="continuarDatos" :disabled="!paso1Valido || !correoValido || !preguntasCompletas"
           class="w-full py-4 bg-[#152C77] text-white font-black uppercase text-sm tracking-widest rounded-2xl disabled:opacity-40 active:scale-95 transition-transform">
           Continuar → Firmar
         </button>

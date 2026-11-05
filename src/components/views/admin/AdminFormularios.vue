@@ -24,13 +24,17 @@ const busqueda = ref('')
 const seleccionado = ref(null)
 const modalRevision = ref(null)
 const enviandoRevision = ref(false)
-const revision = reactive({
-  ojos: 'Normal', orejas: 'Normal', boca: 'Normal',
-  piel: 'Normal', pulpejos: 'Normal', zonaPerianal: 'Normal',
-  desenrede: 'No', ectoparasitos: 'No', valorServicio: '',
-  pesoKg: '', observacionesIngreso: ''
+// Nada marcado de entrada: lo que quede en el PDF debe ser lo que alguien revisó
+const revisionVacia = () => ({
+  ojos: '', orejas: '', boca: '', piel: '', pulpejos: '', zonaPerianal: '',
+  desenrede: '', ectoparasitos: '', valorServicio: '', pesoKg: '', observacionesIngreso: ''
 })
+const revision = reactive(revisionVacia())
 const empleadoRevision = ref('')
+const revisionCompleta = computed(() =>
+  ['ojos', 'orejas', 'boca', 'piel', 'pulpejos', 'zonaPerianal', 'desenrede', 'ectoparasitos'].every(c => revision[c]) &&
+  !!empleadoRevision.value.trim()
+)
 
 const nuevoVacio = () => ({
   tipo: 'CONSENTIMIENTO', nombreCliente: '', cedula: '', telefono: '', email: '', nombreMascota: '',
@@ -218,12 +222,7 @@ function checklist(f) {
 
 function abrirRevision(f) {
   modalRevision.value = f
-  Object.assign(revision, {
-    ojos: 'Normal', orejas: 'Normal', boca: 'Normal',
-    piel: 'Normal', pulpejos: 'Normal', zonaPerianal: 'Normal',
-    desenrede: 'No', ectoparasitos: 'No', valorServicio: '',
-    pesoKg: '', observacionesIngreso: ''
-  })
+  Object.assign(revision, revisionVacia())
   empleadoRevision.value = ''
 }
 
@@ -463,7 +462,7 @@ async function guardarRevision() {
           <div>
             <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">Estado físico al ingreso</p>
             <div class="space-y-2">
-              <div v-for="(label, campo) in { ojos: 'Ojos', orejas: 'Orejas', boca: 'Boca', piel: 'Piel', pulpejos: 'Pulpejos', zonaPerianal: 'Zona perianal' }"
+              <div v-for="(label, campo) in { ojos: 'Ojos', orejas: 'Orejas', boca: 'Boca y dientes', piel: 'Piel y pelaje', pulpejos: 'Pulpejos', zonaPerianal: 'Zona perianal' }"
                 :key="campo" class="flex items-center justify-between gap-3">
                 <span class="text-sm font-medium text-slate-700 dark:text-slate-200 w-28 shrink-0">{{ label }}</span>
                 <div class="flex gap-2 flex-1">
@@ -512,12 +511,14 @@ async function guardarRevision() {
 
           <!-- Empleado -->
           <div>
-            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Nombre del empleado que recibe</label>
+            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Nombre del empleado que recibe *</label>
             <input v-model="empleadoRevision" type="text" placeholder="Tu nombre"
               class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]" />
           </div>
 
-          <button @click="guardarRevision" :disabled="enviandoRevision"
+          <p v-if="!revisionCompleta" class="text-xs text-center text-slate-500">Marca cada punto y escribe quién recibe para guardar.</p>
+
+          <button @click="guardarRevision" :disabled="enviandoRevision || !revisionCompleta"
             class="w-full py-3.5 bg-[#152C77] text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-[#DE1F27] transition-colors disabled:opacity-50">
             {{ enviandoRevision ? 'Guardando...' : '✓ Guardar revisión y regenerar PDF' }}
           </button>
