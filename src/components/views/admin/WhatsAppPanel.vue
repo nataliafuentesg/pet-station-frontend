@@ -531,7 +531,10 @@ async function onFileSelected(e) {
 function conectarWS() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   const apiHost = (import.meta.env.VITE_API_URL || '').replace(/^https?:\/\//, '').replace(/\/.*$/, '') || `${location.hostname}:8080`;
-  ws = new WebSocket(`${proto}://${apiHost}/ws/wa-panel`);
+  // El servidor exige la sesión: el token va como subprotocolo porque el WebSocket no acepta headers
+  const token = localStorage.getItem('ps_token');
+  if (!token) return;
+  ws = new WebSocket(`${proto}://${apiHost}/ws/wa-panel`, ['bearer', token]);
 
   ws.onopen = () => {
     detenerPolling();

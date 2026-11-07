@@ -77,7 +77,10 @@ const nombre = computed(() => conv.value?.nombre || conv.value?.igUserId || '');
 function conectarWS() {
   const apiHost = (import.meta.env.VITE_API_URL || '').replace(/^https?:\/\//, '').replace(/\/.*$/, '') || `${location.hostname}:8080`;
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  ws = new WebSocket(`${proto}://${apiHost}/ws/ig-dm`);
+  // El servidor exige la sesión: el token va como subprotocolo porque el WebSocket no acepta headers
+  const token = localStorage.getItem('ps_token');
+  if (!token) return;
+  ws = new WebSocket(`${proto}://${apiHost}/ws/ig-dm`, ['bearer', token]);
 
   ws.onmessage = async (e) => {
     try {
