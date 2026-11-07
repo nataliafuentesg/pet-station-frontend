@@ -237,7 +237,7 @@ const doLogout = async () => {
 
         <aside
             :class="[
-                'fixed lg:sticky top-0 left-0 z-[120] lg:z-40 h-[100dvh] lg:h-screen shrink-0 flex flex-col',
+                'fixed top-0 left-0 z-[120] lg:z-40 h-[100dvh] flex flex-col',
                 'bg-white dark:bg-[#050505] border-r border-slate-200/80 dark:border-white/[0.06]',
                 'transition-[transform,width] duration-200 ease-out w-64',
                 menuMovilAbierto ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0',
@@ -298,7 +298,8 @@ const doLogout = async () => {
             </div>
         </aside>
 
-        <div class="flex-1 min-w-0 flex flex-col">
+        <!-- La barra es fija (el contenedor de App.vue no deja usar sticky): se le deja su espacio -->
+        <div :class="['flex-1 min-w-0 flex flex-col transition-[padding] duration-200 ease-out', barraColapsada ? 'lg:pl-[72px]' : 'lg:pl-60']">
             <!-- Celular: barra superior con el botón del menú -->
             <header class="lg:hidden sticky top-0 z-[100] flex items-center gap-3 h-14 px-3 bg-white/90 dark:bg-[#050505]/90 backdrop-blur border-b border-slate-200/80 dark:border-white/[0.06]">
                 <button @click="menuMovilAbierto = true" class="icon-btn" aria-label="Abrir menú">
