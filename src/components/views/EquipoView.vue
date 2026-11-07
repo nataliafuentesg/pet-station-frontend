@@ -1119,6 +1119,8 @@ async function logout() {
     await api.post('/jornada/push-token/quitar', { token }, { timeout: 4000 }).catch(() => {})
     try { localStorage.removeItem('ps_push_token') } catch { /* sin almacenamiento */ }
   }
+  // Ese token deja de servir en el servidor, no solo en este celular
+  await api.post('/sesiones/salir', null, { timeout: 4000 }).catch(() => {})
   localStorage.removeItem('ps_token')
   localStorage.removeItem('ps_session')
   logueado.value = false

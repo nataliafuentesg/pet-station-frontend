@@ -19,6 +19,7 @@ import AdminJornada from './AdminJornada.vue';
 import AdminFormularios from './AdminFormularios.vue';
 import AdminAccesos from './AdminAccesos.vue';
 import AdminChatWeb from './AdminChatWeb.vue';
+import AdminSesiones from './AdminSesiones.vue';
 import { suscribirNotificaciones } from '@/composables/usePushNotifications';
 import { messaging, onMessage } from '@/firebase';
 
@@ -66,14 +67,16 @@ const todasLasTabs = [
     { id: 'formularios', label: 'Formularios', icon: '📝' },
     { id: 'health', label: 'Sistema', icon: '🖥️' },
     { id: 'chat-web', label: 'Chat Web', icon: '💬' },
-    { id: 'accesos', label: 'Accesos', icon: '🔐' }
+    { id: 'accesos', label: 'Accesos', icon: '🔐' },
+    { id: 'sesiones', label: 'Sesiones', icon: '🛡️' }
 ];
 
-// Un administrador limitado solo ve las pestañas que se le asignaron; "Accesos" es solo del admin completo
+// Un administrador limitado solo ve las pestañas que se le asignaron; "Accesos" y "Sesiones" son solo del admin completo
+const SOLO_ADMIN_COMPLETO = ['accesos', 'sesiones'];
 const accesos = ref(null);
 const tabs = computed(() => {
     if (!accesos.value) return [];
-    return todasLasTabs.filter(t => t.id === 'accesos' ? accesos.value.completo : accesos.value.secciones.includes(t.id));
+    return todasLasTabs.filter(t => SOLO_ADMIN_COMPLETO.includes(t.id) ? accesos.value.completo : accesos.value.secciones.includes(t.id));
 });
 
 async function iniciarPanel() {
@@ -151,7 +154,9 @@ const tabClass = (active) => [
 ];
 
 // LÓGICA DE LOGOUT DIRECTA (Sin depender de App.vue)
-const doLogout = () => {
+const doLogout = async () => {
+    // Ese token deja de servir en el servidor, no solo en este navegador
+    await api.post('/sesiones/salir', null, { timeout: 4000 }).catch(() => {});
     localStorage.removeItem('ps_token');
     localStorage.removeItem('ps_session');
     localStorage.removeItem('ps_active_pet');
@@ -251,6 +256,7 @@ const doLogout = () => {
                         <AdminHealth v-if="currentTab === 'health'" />
                         <AdminChatWeb v-if="currentTab === 'chat-web'" />
                         <AdminAccesos v-if="currentTab === 'accesos'" />
+                        <AdminSesiones v-if="currentTab === 'sesiones'" />
                     </div>
                 </Transition>
             </template>
