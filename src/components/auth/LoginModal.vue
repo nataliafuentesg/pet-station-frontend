@@ -113,6 +113,8 @@ const handleLogin = async () => {
       emit('notify', { msg: 'Correo o contraseña incorrectos', type: 'error' });
     } else if (status === 404) {
       emit('notify', { msg: 'No encontramos una cuenta con ese correo', type: 'error' });
+    } else if (status === 429) {
+      emit('notify', { msg: 'Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo', type: 'error' });
     } else {
       emit('notify', { msg: 'Error al iniciar sesión. Intenta de nuevo', type: 'error' });
     }

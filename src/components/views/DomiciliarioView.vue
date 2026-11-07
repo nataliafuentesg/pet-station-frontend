@@ -239,7 +239,9 @@ const verificarPin = async () => {
     pinError.value = '';
     cargarPedidos();
   } catch (e) {
-    pinError.value = 'PIN incorrecto. Intenta de nuevo.';
+    pinError.value = e.response?.status === 429
+      ? 'Demasiados intentos. Espera 15 minutos.'
+      : 'PIN incorrecto. Intenta de nuevo.';
     pin.value = '';
   }
 };

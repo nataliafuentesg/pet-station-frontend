@@ -101,6 +101,8 @@ const handleLogin = async () => {
     const status = e.response?.status;
     if (status === 401 || status === 403 || status === 404) {
       error.value = 'Correo o contraseña incorrectos';
+    } else if (status === 429) {
+      error.value = 'Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo';
     } else {
       error.value = 'Error al iniciar sesión. Intenta de nuevo';
     }

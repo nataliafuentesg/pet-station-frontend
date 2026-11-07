@@ -1096,7 +1096,10 @@ async function login() {
     password.value = ''
     entrar()
   } catch (e) {
-    error.value = e.response?.status === 404 || e.response?.status === 401 ? 'Usuario o contraseña incorrectos' : 'No se pudo entrar, intenta de nuevo'
+    const status = e.response?.status
+    error.value = status === 404 || status === 401 ? 'Usuario o contraseña incorrectos'
+      : status === 429 ? 'Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo'
+      : 'No se pudo entrar, intenta de nuevo'
   } finally {
     cargando.value = false
   }
