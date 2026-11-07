@@ -1,39 +1,47 @@
 <template>
   <div class="space-y-6">
 
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <div>
-        <h2 class="text-lg font-[1000] uppercase italic dark:text-white">Productividad</h2>
-        <p class="text-[10px] text-slate-500 dark:text-white/30 uppercase tracking-widest">Jornadas y tareas del equipo · portal en /equipo</p>
-      </div>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="text-xs text-slate-500 dark:text-white/40">Jornadas y tareas del equipo · los colaboradores marcan en /equipo</p>
       <button v-if="!soloLectura" @click="abrirForm()"
-        class="flex items-center gap-2 bg-[#152C77] hover:bg-[#DE1F27] text-white px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors">
-        ➕ Nuevo colaborador
+        class="flex items-center gap-1.5 bg-ps-blue hover:bg-ps-red text-white px-3.5 h-9 rounded-xl text-xs font-semibold transition-colors">
+        <UserPlus :size="15" /> Nuevo colaborador
       </button>
-      <span v-else class="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">👁 Solo consulta</span>
+      <span v-else class="flex items-center gap-1.5 text-xs font-medium text-slate-400 dark:text-white/40"><Eye :size="14" /> Solo consulta</span>
     </div>
 
-    <div class="flex gap-2 overflow-x-auto">
-      <button v-for="v in vistas" :key="v.id" @click="vista = v.id"
-        class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors"
-        :class="vista === v.id ? 'bg-[#152C77] text-white' : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10'">
-        {{ v.label }}
-      </button>
-    </div>
+    <!-- Vistas: en celular se desliza de lado -->
+    <nav class="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto">
+      <div class="inline-flex gap-1 p-1 rounded-xl bg-white dark:bg-white/5 border border-slate-200/80 dark:border-white/[0.06]">
+        <button v-for="v in vistas" :key="v.id" @click="vista = v.id"
+          class="flex items-center gap-1.5 px-3 h-8 rounded-lg text-[13px] font-medium whitespace-nowrap transition-colors"
+          :class="vista === v.id ? 'bg-ps-blue text-white' : 'text-slate-500 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-ps-blue dark:hover:text-white'">
+          <component :is="v.icon" :size="15" :stroke-width="1.75" />
+          {{ v.label }}
+        </button>
+      </div>
+    </nav>
 
     <!-- AHORA -->
     <div v-if="vista === 'ahora'" class="space-y-3">
-      <div class="flex justify-end">
-        <button @click="cargarEmpleados" class="text-[10px] font-black uppercase text-slate-400 hover:text-[#152C77] dark:text-white/40">🔄 Actualizar</button>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap gap-1.5">
+          <span v-for="c in conteoEstados" :key="c.label" class="text-xs font-medium px-2.5 py-1 rounded-full" :class="c.clase">
+            {{ c.n }} {{ c.label.toLowerCase() }}
+          </span>
+        </div>
+        <button @click="cargarEmpleados" class="flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-ps-blue dark:text-white/40 dark:hover:text-white">
+          <RefreshCw :size="13" /> Actualizar
+        </button>
       </div>
       <div v-if="loadingEmpleados" class="py-16 text-center">
         <div class="w-8 h-8 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
       </div>
-      <div v-else-if="!activos.length && !guarderiaAhora?.adentro?.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">
+      <div v-else-if="!activos.length && !guarderiaAhora?.adentro?.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-sm">
         Sin colaboradores. Crea el primero con "Nuevo colaborador".
       </div>
       <div v-if="guarderiaAhora?.adentro?.length" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-2">
-        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">
+        <p class="text-xs font-semibold text-slate-400 dark:text-white/40">
           🐾 Mascotas adentro · {{ guarderiaAhora.adentro.length }}
           <span class="text-purple-500">({{ guarderiaAhora.adentro.filter(p => p.tipo === 'HOTEL').length }} hotel)</span>
         </p>
@@ -45,15 +53,15 @@
         </div>
         <p v-if="!alertasPerros.length" class="text-[11px] text-slate-400 dark:text-white/30">Sin alertas de comida ni de salidas.</p>
       </div>
-      <div v-if="activos.length" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <div v-for="e in activos" :key="e.tutorId"
+      <div v-if="enJornada.length" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div v-for="e in enJornada" :key="e.tutorId"
           class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-3">
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
-              <p class="font-[1000] uppercase italic text-sm dark:text-white truncate">{{ e.nombre }}</p>
-              <p class="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-widest">{{ e.cargo }}<span v-if="e.esPrueba" class="text-amber-500"> · 🧪 prueba</span></p>
+              <p class="font-semibold text-sm dark:text-white truncate">{{ e.nombre }}</p>
+              <p class="text-[11px] text-slate-400 dark:text-white/40">{{ e.cargo }}<span v-if="e.esPrueba" class="text-amber-500"> · 🧪 prueba</span></p>
             </div>
-            <span class="text-[9px] px-2.5 py-1 rounded-full font-black uppercase shrink-0" :class="estadoVivo(e).clase">
+            <span class="text-[10px] px-2.5 py-1 rounded-full font-semibold shrink-0" :class="estadoVivo(e).clase">
               {{ estadoVivo(e).label }}
             </span>
           </div>
@@ -68,8 +76,17 @@
             <p class="text-[10px] text-slate-400 dark:text-white/40">
               Entró {{ hora(e.sesion.inicio) }} · {{ dur(e.sesion.segundosEnTareas) }} en tareas hoy
             </p>
-            <button v-if="!soloLectura" @click="terminarJornadaDe(e)" class="shrink-0 text-[9px] font-black uppercase text-red-400 hover:text-red-600">Terminar jornada</button>
+            <button v-if="!soloLectura" @click="terminarJornadaDe(e)" class="shrink-0 text-[11px] font-semibold text-red-400 hover:text-red-600">Terminar jornada</button>
           </div>
+        </div>
+      </div>
+      <!-- Quien no ha empezado no ocupa una tarjeta entera -->
+      <div v-if="sinJornada.length" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 px-5 py-4">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40 mb-2">Sin jornada hoy · {{ sinJornada.length }}</p>
+        <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+          <span v-for="e in sinJornada" :key="e.tutorId" class="text-[13px] text-slate-600 dark:text-white/70">
+            {{ e.nombre }} <span class="text-[11px] text-slate-400 dark:text-white/40">· {{ e.cargo }}</span><span v-if="e.esPrueba" class="text-[11px] text-amber-500"> · prueba</span>
+          </span>
         </div>
       </div>
     </div>
@@ -79,7 +96,7 @@
       <div class="flex flex-wrap items-end gap-3">
         <div class="flex gap-1">
           <button v-for="p in presets" :key="p.id" @click="aplicarPreset(p.id)"
-            class="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors"
+            class="px-3 py-2 rounded-xl text-xs font-semibold transition-colors"
             :class="preset === p.id ? 'bg-[#DE1F27] text-white' : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10'">
             {{ p.label }}
           </button>
@@ -103,8 +120,8 @@
         <!-- Totales del equipo -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <div v-for="k in kpis" :key="k.label" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-4">
-            <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">{{ k.label }}</p>
-            <p class="text-2xl font-[1000] mt-1 tabular-nums" :class="k.color || 'dark:text-white'">{{ k.valor }}</p>
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">{{ k.label }}</p>
+            <p class="text-2xl font-extrabold mt-1 tabular-nums" :class="k.color || 'dark:text-white'">{{ k.valor }}</p>
           </div>
         </div>
 
@@ -114,14 +131,14 @@
             <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
               <tr>
                 <th v-for="h in ['Persona','Días','Jornada','En tareas','Tiempo muerto','Ocupación','Tareas','Avisos sin responder','Jornada incompleta','Extras','']" :key="h"
-                  class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
+                  class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">{{ h }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-white/5">
               <tr v-for="p in resumen.personas" :key="p.tutorId" class="hover:bg-slate-50 dark:hover:bg-white/3">
                 <td class="px-4 py-3">
-                  <p class="font-[1000] uppercase italic text-[12px] dark:text-white">{{ p.nombre }}</p>
-                  <p class="text-[9px] text-slate-400 dark:text-white/30 uppercase">{{ p.cargo }}<span v-if="!p.activo"> · inactivo</span></p>
+                  <p class="font-semibold text-[12px] dark:text-white">{{ p.nombre }}</p>
+                  <p class="text-[11px] text-slate-400 dark:text-white/40">{{ p.cargo }}<span v-if="!p.activo"> · inactivo</span></p>
                 </td>
                 <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">{{ p.dias }}</td>
                 <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">{{ dur(p.segJornada) }}</td>
@@ -132,28 +149,28 @@
                     <div class="w-20 h-2 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
                       <div class="h-full rounded-full" :class="barraClase(p.pctOcupado)" :style="{ width: p.pctOcupado + '%' }"></div>
                     </div>
-                    <span class="text-[11px] font-black dark:text-white/70 tabular-nums">{{ p.pctOcupado }}%</span>
+                    <span class="text-[11px] font-semibold dark:text-white/70 tabular-nums">{{ p.pctOcupado }}%</span>
                   </div>
                 </td>
                 <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">
                   {{ p.numTareas }}
-                  <span v-if="p.conImprevistos" class="block text-[9px] text-amber-500 font-black uppercase">{{ p.conImprevistos }} con imprevistos</span>
+                  <span v-if="p.conImprevistos" class="block text-[9px] text-amber-500 font-semibold uppercase">{{ p.conImprevistos }} con imprevistos</span>
                 </td>
                 <td class="px-4 py-3 text-[12px] font-bold tabular-nums" :class="p.checksSinRespuesta ? 'text-amber-500' : 'dark:text-white/70'">
                   {{ p.checksSinRespuesta }}<span class="opacity-40"> / {{ p.checksEnviados }}</span>
-                  <span v-if="p.avisosSinTarea" class="block text-[9px] text-red-500 font-black uppercase">🔔 {{ p.avisosSinTarea }} de "sin tarea"</span>
-                  <span v-if="p.cierresAutomaticos" class="block text-[9px] text-red-400 font-black uppercase">Olvidó cerrar {{ p.cierresAutomaticos }}×</span>
+                  <span v-if="p.avisosSinTarea" class="block text-[9px] text-red-500 font-semibold uppercase">🔔 {{ p.avisosSinTarea }} de "sin tarea"</span>
+                  <span v-if="p.cierresAutomaticos" class="block text-[9px] text-red-400 font-semibold uppercase">Olvidó cerrar {{ p.cierresAutomaticos }}×</span>
                 </td>
                 <td class="px-4 py-3 text-[12px] font-bold tabular-nums whitespace-nowrap" :class="p.diasIncompletos ? 'text-amber-500' : 'dark:text-white/30'">
                   {{ p.diasIncompletos ? `${p.diasIncompletos} día(s)` : '—' }}
-                  <span v-if="p.segFaltante" class="block text-[9px] font-black uppercase opacity-80">Faltaron {{ dur(p.segFaltante) }}</span>
+                  <span v-if="p.segFaltante" class="block text-[11px] font-semibold opacity-80">Faltaron {{ dur(p.segFaltante) }}</span>
                 </td>
                 <td class="px-4 py-3 text-[12px] font-bold tabular-nums whitespace-nowrap" :class="p.segExtra ? 'text-purple-600 dark:text-purple-300' : 'dark:text-white/30'">
                   {{ p.segExtra ? dur(p.segExtra) : '—' }}
-                  <span v-if="p.extras?.length" class="block text-[9px] font-black uppercase opacity-70">{{ p.extras.length }} día(s)</span>
+                  <span v-if="p.extras?.length" class="block text-[11px] font-semibold opacity-70">{{ p.extras.length }} día(s)</span>
                 </td>
                 <td class="px-4 py-3">
-                  <button v-if="p.dias" @click="abrirDetalle(p)" class="text-[9px] font-black uppercase text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27] whitespace-nowrap">Ver día →</button>
+                  <button v-if="p.dias" @click="abrirDetalle(p)" class="text-[11px] font-semibold text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27] whitespace-nowrap">Ver día →</button>
                 </td>
               </tr>
             </tbody>
@@ -165,14 +182,14 @@
 
         <!-- Horas extra con su motivo -->
         <div v-if="extrasPeriodo.length" class="space-y-2">
-          <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">⏰ Horas extra</h3>
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">⏰ Horas extra</h3>
           <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
             <div v-for="x in extrasPeriodo" :key="x.nombre + x.fecha" class="flex items-start justify-between gap-3 px-4 py-3">
               <div class="min-w-0">
-                <p class="text-[12px] font-[1000] uppercase italic dark:text-white">{{ x.nombre }} · <span class="not-italic font-bold normal-case text-slate-500 dark:text-white/50">{{ diaCorto(x.fecha) }}</span></p>
+                <p class="text-[12px] font-semibold dark:text-white">{{ x.nombre }} · <span class="font-bold normal-case text-slate-500 dark:text-white/50">{{ diaCorto(x.fecha) }}</span></p>
                 <p class="text-[11px]" :class="x.motivo ? 'text-slate-600 dark:text-white/70' : 'text-amber-500 font-bold'">{{ x.motivo || 'Sin motivo registrado' }}</p>
               </div>
-              <span class="text-[12px] font-black text-purple-600 dark:text-purple-300 tabular-nums shrink-0">{{ dur(x.segundos) }}</span>
+              <span class="text-[12px] font-semibold text-purple-600 dark:text-purple-300 tabular-nums shrink-0">{{ dur(x.segundos) }}</span>
             </div>
           </div>
         </div>
@@ -180,13 +197,41 @@
         <!-- Por tarea -->
         <div class="space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">Tareas que más tiempo consumen</h3>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">Tareas que más tiempo consumen</h3>
             <button v-if="!soloLectura && resumen.tareas.some(t => !t.nivel || !t.area)" @click="clasificarEsfuerzo" :disabled="clasificando"
-              class="text-[10px] font-black uppercase tracking-widest text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27] disabled:opacity-40">
+              class="text-xs font-semibold text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27] disabled:opacity-40">
               {{ clasificando ? 'Clasificando…' : '🤖 Clasificar esfuerzo con IA' }}
             </button>
           </div>
-          <div v-if="!resumen.tareas.length" class="py-10 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10">
+          <!-- Filtros: por área y por esfuerzo, incluidas las que la IA todavía no clasifica -->
+          <div v-if="resumen.tareas.length" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-4 space-y-3">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="w-16 shrink-0 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">Área</span>
+              <button v-for="o in opcionesArea" :key="o.id" @click="filtroArea = o.id"
+                :class="['chip', filtroArea === o.id ? 'chip-activo' : '', o.id === 'SIN' && o.n ? 'chip-alerta' : '']">
+                {{ o.label }} <span class="opacity-60 tabular-nums">{{ o.n }}</span>
+              </button>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="w-16 shrink-0 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">Esfuerzo</span>
+              <button v-for="o in opcionesNivel" :key="o.id" @click="filtroNivel = o.id"
+                :class="['chip', filtroNivel === o.id ? 'chip-activo' : '', o.id === 'SIN' && o.n ? 'chip-alerta' : '']">
+                {{ o.label }} <span class="opacity-60 tabular-nums">{{ o.n }}</span>
+              </button>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="relative w-full sm:w-64">
+                <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input v-model="buscarTarea" placeholder="Buscar tarea…"
+                  class="w-full h-9 pl-8 pr-3 rounded-lg text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 outline-none focus:border-ps-blue dark:text-white" />
+              </div>
+              <p class="text-xs text-slate-500 dark:text-white/50">
+                {{ tareasFiltradas.length }} {{ tareasFiltradas.length === 1 ? 'tarea' : 'tareas' }} · {{ dur(tareasFiltradas.reduce((a, t) => a + t.segTotal, 0)) }} en total
+                <button v-if="hayFiltroTareas" @click="limpiarFiltrosTareas" class="ml-2 font-semibold text-ps-blue dark:text-blue-300 hover:text-ps-red">Quitar filtros</button>
+              </p>
+            </div>
+          </div>
+          <div v-if="!resumen.tareas.length" class="py-10 text-center text-slate-400 dark:text-white/30 text-sm bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10">
             Aún no hay tareas terminadas en este periodo
           </div>
           <div v-else class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-x-auto">
@@ -194,11 +239,14 @@
               <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
                 <tr>
                   <th v-for="h in ['Tarea','Esfuerzo','Área','Veces','Tiempo total','Promedio','Quién la hace']" :key="h"
-                    class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
+                    class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">{{ h }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-white/5">
-                <tr v-for="t in resumen.tareas.slice(0, 40)" :key="t.descripcion">
+                <tr v-if="!tareasFiltradas.length">
+                  <td colspan="7" class="px-4 py-8 text-center text-sm text-slate-400 dark:text-white/40">Ninguna tarea con estos filtros</td>
+                </tr>
+                <tr v-for="t in tareasFiltradas.slice(0, limiteTareas)" :key="t.descripcion">
                   <td class="px-4 py-3 text-[12px] font-bold dark:text-white">{{ t.descripcion }}</td>
                   <td class="px-4 py-3 whitespace-nowrap">
                     <template v-if="!soloLectura">
@@ -229,7 +277,7 @@
                   </td>
                   <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">
                     {{ t.veces }}
-                    <span v-if="t.conImprevistos" class="block text-[9px] text-amber-500 font-black uppercase">{{ t.conImprevistos }} con imprevistos</span>
+                    <span v-if="t.conImprevistos" class="block text-[9px] text-amber-500 font-semibold uppercase">{{ t.conImprevistos }} con imprevistos</span>
                   </td>
                   <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">{{ dur(t.segTotal) }}</td>
                   <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">{{ dur(t.segPromedio) }}</td>
@@ -238,6 +286,10 @@
               </tbody>
             </table>
           </div>
+          <button v-if="tareasFiltradas.length > limiteTareas" @click="limiteTareas += 40"
+            class="w-full py-2.5 rounded-xl text-xs font-semibold text-ps-blue dark:text-blue-300 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 hover:border-ps-blue">
+            Ver {{ Math.min(40, tareasFiltradas.length - limiteTareas) }} más de {{ tareasFiltradas.length - limiteTareas }}
+          </button>
         </div>
       </template>
     </div>
@@ -247,7 +299,7 @@
       <div class="flex flex-wrap items-end gap-3">
         <div class="flex gap-1">
           <button v-for="p in presets" :key="p.id" @click="aplicarPreset(p.id)"
-            class="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors"
+            class="px-3 py-2 rounded-xl text-xs font-semibold transition-colors"
             :class="preset === p.id ? 'bg-[#DE1F27] text-white' : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10'">
             {{ p.label }}
           </button>
@@ -265,8 +317,8 @@
       <template v-else-if="ocupacion">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <div v-for="k in kpisGuarderia" :key="k.label" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-4">
-            <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">{{ k.label }}</p>
-            <p class="text-2xl font-[1000] mt-1 tabular-nums dark:text-white">{{ k.valor }}</p>
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">{{ k.label }}</p>
+            <p class="text-2xl font-extrabold mt-1 tabular-nums dark:text-white">{{ k.valor }}</p>
             <p v-if="k.nota" class="text-[10px] text-slate-400 dark:text-white/30 mt-0.5">{{ k.nota }}</p>
           </div>
         </div>
@@ -275,7 +327,7 @@
         <div v-if="comparacion" class="grid gap-3 lg:grid-cols-2">
           <div v-for="g in comparacion" :key="g.titulo" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-3">
             <div>
-              <p class="font-[1000] uppercase italic text-sm dark:text-white">{{ g.titulo }}</p>
+              <p class="font-semibold text-sm dark:text-white">{{ g.titulo }}</p>
               <p class="text-[10px] text-slate-400 dark:text-white/40">
                 {{ g.dias }} día(s) · {{ g.perros }} perros en promedio · {{ dur(g.segTareas) }} en tareas y {{ dur(g.segMuerto) }} sin tarea por día
               </p>
@@ -300,12 +352,12 @@
             <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
               <tr>
                 <th v-for="h in ['Día','Mascotas día','Hotel','Máx. a la vez','Personas','En tareas','Sin tarea','Horas por mascota','Recepciones (uñas)','Baños','']" :key="h"
-                  class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
+                  class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">{{ h }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-white/5">
               <tr v-for="d in [...ocupacion].reverse()" :key="d.fecha" class="hover:bg-slate-50 dark:hover:bg-white/3">
-                <td class="px-4 py-3 text-[12px] font-[1000] uppercase italic dark:text-white whitespace-nowrap">{{ diaCorto(d.fecha) }}</td>
+                <td class="px-4 py-3 text-[12px] font-semibold dark:text-white whitespace-nowrap">{{ diaCorto(d.fecha) }}</td>
                 <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">{{ d.perrosDia }}</td>
                 <td class="px-4 py-3 text-[12px] font-bold text-purple-600 dark:text-purple-300 tabular-nums">{{ d.perrosHotel }}</td>
                 <td class="px-4 py-3 text-[12px] font-bold dark:text-white/70 tabular-nums">{{ d.maxSimultaneo }}</td>
@@ -320,7 +372,7 @@
                   {{ d.banos }}<span v-if="d.segBanoPromedio" class="opacity-60 text-[10px]"> · {{ dur(d.segBanoPromedio) }} c/u</span>
                 </td>
                 <td class="px-4 py-3">
-                  <button @click="abrirPerfil(d)" class="text-[9px] font-black uppercase text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27] whitespace-nowrap">Ver día →</button>
+                  <button @click="abrirPerfil(d)" class="text-[11px] font-semibold text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27] whitespace-nowrap">Ver día →</button>
                 </td>
               </tr>
             </tbody>
@@ -339,14 +391,14 @@
     <!-- RESUMEN DEL DÍA CON IA -->
     <div v-if="vista === 'ia'" class="flex gap-2">
       <button v-for="m in [['dia', '📅 Resumen del día'], ['periodo', '🔎 Análisis de un periodo']]" :key="m[0]" @click="modoIA = m[0]"
-        class="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors"
+        class="px-3 py-2 rounded-xl text-xs font-semibold transition-colors"
         :class="modoIA === m[0] ? 'bg-[#DE1F27] text-white' : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10'">
         {{ m[1] }}
       </button>
     </div>
 
     <details v-if="vista === 'ia'" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-2" :open="!reglasGuardadas">
-      <summary class="font-[1000] uppercase italic text-sm dark:text-white cursor-pointer">📌 Reglas fijas del negocio para la IA</summary>
+      <summary class="font-semibold text-sm dark:text-white cursor-pointer">📌 Reglas fijas del negocio para la IA</summary>
       <p class="text-[10px] text-slate-400 dark:text-white/40 pt-2">
         Lo que la IA debe saber siempre, en todos los resúmenes y análisis. Se escribe una vez; lo de un solo día va en el contexto del día.
       </p>
@@ -354,7 +406,7 @@
         placeholder="Ej: Bañar y arreglar perros es de peluquería, no de guardería. Si alguien de guardería pasa a peluquería es porque guardería ya está al día. Peluquería solo si guardería está al día y hay mucha carga en peluquería."></textarea>
       <div v-if="!soloLectura" class="flex items-center gap-3">
         <button @click="guardarReglas" :disabled="guardandoReglas"
-          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-40">
+          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-40">
           {{ guardandoReglas ? 'Guardando...' : 'Guardar reglas' }}
         </button>
         <span v-if="reglasMsg" class="text-[10px] font-bold text-green-600 dark:text-green-400">{{ reglasMsg }}</span>
@@ -365,7 +417,7 @@
       <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-3">
         <div class="flex flex-wrap items-center gap-2">
           <button v-for="d in [7, 14, 30]" :key="d" @click="periodoUltimos(d)"
-            class="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/60">
+            class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/60">
             Últimos {{ d }} días
           </button>
           <input type="date" v-model="periodo.desde" :class="inputClass" class="!w-auto !py-2 !text-xs" />
@@ -375,13 +427,13 @@
         <textarea v-model="periodo.pregunta" rows="2" maxlength="500" :class="inputClass" class="!text-sm resize-none"
           placeholder="Pregunta opcional. Ej: ¿Qué pasaría si contratamos un auxiliar de veterinaria? ¿Están equilibrados los dos turnos de guardería?"></textarea>
         <button v-if="!soloLectura" @click="analizarPeriodo" :disabled="analizando || !periodo.desde || !periodo.hasta"
-          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40">
+          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors disabled:opacity-40">
           {{ analizando ? 'Analizando… (puede tardar un minuto)' : '✨ Analizar periodo' }}
         </button>
         <p v-else class="text-[11px] text-slate-400 dark:text-white/30">Solo el administrador principal puede generar análisis.</p>
       </div>
       <p v-if="errorAnalisis" class="text-[12px] font-bold text-red-500">{{ errorAnalisis }}</p>
-      <button v-if="analisis" @click="pdfAnalisis" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">📄 Descargar PDF</button>
+      <button v-if="analisis" @click="pdfAnalisis" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 px-4 py-2.5 rounded-xl text-xs font-semibold">📄 Descargar PDF</button>
       <div v-if="analisis" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-6 resumen-ia text-[13px] leading-relaxed text-slate-700 dark:text-white/80"
         v-html="markdownSimple(analisis)"></div>
       <p class="text-[10px] text-slate-400 dark:text-white/30">
@@ -392,7 +444,7 @@
 
     <div v-if="vista === 'ia' && modoIA === 'dia'" class="space-y-4">
       <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-2">
-        <p class="font-[1000] uppercase italic text-sm dark:text-white">📝 Contexto del día para la IA</p>
+        <p class="font-semibold text-sm dark:text-white">📝 Contexto del día para la IA</p>
         <p class="text-[10px] text-slate-400 dark:text-white/40">
           Lo que tú sabes y el sistema no: permisos, calamidades, fallas de la app, alguien que cubrió a otro… La IA lo toma como cierto
           y no lo marca como alerta. Escríbelo antes de las 10:45 p. m. o vuelve a generar el resumen después.
@@ -401,7 +453,7 @@
           placeholder="Ej: El Dr. llegó temprano, pero la app no estaba instalada a esa hora. Claudia se fue temprano por una calamidad doméstica y entre todos la cubrieron."></textarea>
         <div v-if="!soloLectura" class="flex items-center gap-3">
           <button @click="guardarContexto" :disabled="guardandoContexto"
-            class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-40">
+            class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-40">
             {{ guardandoContexto ? 'Guardando...' : 'Guardar contexto' }}
           </button>
           <span v-if="contextoMsg" class="text-[10px] font-bold text-green-600 dark:text-green-400">{{ contextoMsg }}</span>
@@ -410,10 +462,10 @@
       <div class="flex flex-wrap items-center gap-3">
         <input type="date" v-model="fechaIA" @change="cargarResumenIA" :class="inputClass" class="!w-auto !py-2 !text-xs" />
         <button v-if="!soloLectura" @click="generarResumenIA" :disabled="generandoIA"
-          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40">
+          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors disabled:opacity-40">
           {{ generandoIA ? 'Generando… (unos segundos)' : resumenIA ? '🔄 Volver a generar' : '✨ Generar resumen' }}
         </button>
-        <button v-if="resumenIA && !cargandoIA" @click="pdfResumen" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">📄 Descargar PDF</button>
+        <button v-if="resumenIA && !cargandoIA" @click="pdfResumen" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 px-4 py-2 rounded-xl text-xs font-semibold">📄 Descargar PDF</button>
         <span v-if="resumenIA" class="text-[10px] text-slate-400 dark:text-white/30">Generado {{ fechaHora(resumenIA.generadoEn) }}</span>
       </div>
       <p v-if="errorIA" class="text-[12px] font-bold text-red-500">{{ errorIA }}</p>
@@ -422,7 +474,7 @@
       </div>
       <div v-else-if="resumenIA" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-6 resumen-ia text-[13px] leading-relaxed text-slate-700 dark:text-white/80"
         v-html="markdownSimple(resumenIA.texto)"></div>
-      <div v-else-if="!errorIA" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 py-14 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">
+      <div v-else-if="!errorIA" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 py-14 text-center text-slate-400 dark:text-white/30 text-sm">
         Aún no hay resumen para este día
       </div>
       <p class="text-[10px] text-slate-400 dark:text-white/30">
@@ -433,26 +485,26 @@
 
     <!-- EQUIPO -->
     <div v-if="vista === 'equipo'" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-x-auto">
-      <div v-if="!empleados.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">Sin colaboradores</div>
+      <div v-if="!empleados.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-sm">Sin colaboradores</div>
       <table v-else class="w-full text-left min-w-[560px]">
         <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
           <tr>
             <th v-for="h in ['Nombre','Usuario','Cargo','Estado','Aviso de datos', ...(soloLectura ? [] : [''])]" :key="h"
-              class="px-5 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ h }}</th>
+              class="px-5 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">{{ h }}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 dark:divide-white/5">
           <tr v-for="e in empleados" :key="e.tutorId">
-            <td class="px-5 py-3 font-[1000] uppercase italic text-[12px] dark:text-white">{{ e.nombre }}</td>
+            <td class="px-5 py-3 font-semibold text-[12px] dark:text-white">{{ e.nombre }}</td>
             <td class="px-5 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">{{ e.usuario }}</td>
             <td class="px-5 py-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">
               {{ e.cargo }}
-              <span v-if="e.minutosAviso === 0" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/50 font-black uppercase">🔕 Sin avisos</span>
-              <span v-if="e.esPrueba" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 font-black uppercase">🧪 Prueba</span>
-              <span v-if="e.accesoClinico" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-[#152C77]/10 text-[#152C77] dark:text-blue-300 font-black uppercase">🩺 Clínica</span>
+              <span v-if="e.minutosAviso === 0" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/50 font-semibold uppercase">🔕 Sin avisos</span>
+              <span v-if="e.esPrueba" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 font-semibold uppercase">🧪 Prueba</span>
+              <span v-if="e.accesoClinico" class="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-[#152C77]/10 text-[#152C77] dark:text-blue-300 font-semibold uppercase">🩺 Clínica</span>
             </td>
             <td class="px-5 py-3">
-              <span class="text-[9px] px-2.5 py-1 rounded-full font-black uppercase"
+              <span class="text-[10px] px-2.5 py-1 rounded-full font-semibold"
                 :class="e.activo ? 'bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400'">
                 {{ e.activo ? 'Activo' : 'Inactivo' }}
               </span>
@@ -461,13 +513,13 @@
               {{ e.consentimientoEn ? '✓ ' + new Date(e.consentimientoEn).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) : 'Pendiente' }}
             </td>
             <td v-if="!soloLectura" class="px-5 py-3 text-right whitespace-nowrap space-x-3">
-              <button @click="abrirForm(e)" class="text-[9px] font-black uppercase text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27]">Editar</button>
-              <button @click="toggleActivo(e)" class="text-[9px] font-black uppercase"
+              <button @click="abrirForm(e)" class="text-[11px] font-semibold text-[#152C77] dark:text-blue-300 hover:text-[#DE1F27]">Editar</button>
+              <button @click="toggleActivo(e)" class="text-[11px] font-semibold"
                 :class="e.activo ? 'text-red-400 hover:text-red-600' : 'text-green-500 hover:text-green-700'">
                 {{ e.activo ? 'Desactivar' : 'Reactivar' }}
               </button>
-              <button v-if="e.accesoClinico" @click="quitarDeProductividad(e)" class="text-[9px] font-black uppercase text-slate-400 hover:text-amber-600">Quitar de Productividad</button>
-              <button @click="eliminarEmpleado(e)" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-600">Eliminar</button>
+              <button v-if="e.accesoClinico" @click="quitarDeProductividad(e)" class="text-[11px] font-semibold text-slate-400 hover:text-amber-600">Quitar de Productividad</button>
+              <button @click="eliminarEmpleado(e)" class="text-[11px] font-semibold text-slate-400 hover:text-red-600">Eliminar</button>
             </td>
           </tr>
         </tbody>
@@ -477,7 +529,7 @@
     <!-- Botones de tarea rápida por cargo -->
     <div v-if="vista === 'equipo' && !soloLectura" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-4">
       <div>
-        <p class="font-[1000] uppercase italic text-sm dark:text-white">⚡ Tareas sugeridas por cargo</p>
+        <p class="font-semibold text-sm dark:text-white">⚡ Tareas sugeridas por cargo</p>
         <p class="text-[10px] text-slate-400 dark:text-white/40">Aparecen como sugerencia mientras escriben la tarea en Mi Jornada. Una por línea. Así todos usan el mismo nombre y el reporte las agrupa mejor.</p>
       </div>
       <p v-if="!Object.keys(rapidas).length" class="text-[11px] text-slate-400 dark:text-white/30">Crea colaboradores para configurar sus cargos.</p>
@@ -486,7 +538,7 @@
         <textarea v-model="rapidasTexto[cargo]" rows="5" :class="inputClass" class="!text-xs !font-semibold"></textarea>
         <div class="flex items-center gap-3">
           <button @click="guardarRapidas(cargo)" :disabled="guardandoRapidas === cargo"
-            class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-40">
+            class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-40">
             {{ guardandoRapidas === cargo ? 'Guardando...' : 'Guardar' }}
           </button>
           <span v-if="rapidasOk === cargo" class="text-[10px] font-bold text-green-600 dark:text-green-400">✓ Guardado</span>
@@ -500,7 +552,7 @@
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="perfil = null"></div>
         <div class="relative w-full max-w-2xl max-h-[88vh] flex flex-col bg-white dark:bg-[#0D1425] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden">
           <div class="flex items-center justify-between gap-3 px-6 py-4 border-b border-slate-100 dark:border-white/5">
-            <h3 class="font-[1000] uppercase italic text-sm dark:text-white">Guardería · {{ diaCorto(perfil.dia.fecha) }}</h3>
+            <h3 class="font-semibold text-sm dark:text-white">Guardería · {{ diaCorto(perfil.dia.fecha) }}</h3>
             <button @click="perfil = null" class="w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-white/5 rounded-lg text-slate-400 dark:text-white/50">✕</button>
           </div>
           <div class="p-6 overflow-y-auto space-y-6">
@@ -509,7 +561,7 @@
             </div>
             <template v-else>
               <div>
-                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 mb-2">Por hora: perros adentro vs. personas con tarea</p>
+                <p class="text-xs font-semibold text-slate-400 dark:text-white/40 mb-2">Por hora: perros adentro vs. personas con tarea</p>
                 <div class="flex gap-3 text-[10px] font-bold text-slate-500 dark:text-white/50 mb-2">
                   <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-blue-400 align-middle"></span> Mascotas día</span>
                   <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-purple-400 align-middle"></span> Hotel</span>
@@ -536,7 +588,7 @@
               </div>
 
               <div v-if="perfil.dia.tareas?.length">
-                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 mb-2">En qué se fue el tiempo del equipo</p>
+                <p class="text-xs font-semibold text-slate-400 dark:text-white/40 mb-2">En qué se fue el tiempo del equipo</p>
                 <div v-for="t in perfil.dia.tareas.slice(0, 12)" :key="t.descripcion" class="flex justify-between gap-3 text-[12px] font-bold py-1 dark:text-white/80">
                   <span class="truncate">{{ t.descripcion }} <span class="opacity-40">×{{ t.veces }}</span></span>
                   <span class="tabular-nums shrink-0">{{ dur(t.segTotal) }}</span>
@@ -544,7 +596,7 @@
               </div>
 
               <div>
-                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 mb-2">Mascotas</p>
+                <p class="text-xs font-semibold text-slate-400 dark:text-white/40 mb-2">Mascotas</p>
                 <p v-if="!perfil.perros.length" class="text-[11px] text-slate-400 dark:text-white/30">No se registraron perros.</p>
                 <div v-for="p in perfil.perros" :key="p.perro + p.entrada" class="flex items-center justify-between gap-3 py-1.5 border-b border-slate-100 dark:border-white/5 last:border-0">
                   <div class="min-w-0">
@@ -574,7 +626,7 @@
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="form = null"></div>
         <div class="relative w-full max-w-md max-h-[90vh] flex flex-col bg-white dark:bg-[#0D1425] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden">
           <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/5 shrink-0">
-            <h3 class="font-[1000] uppercase italic text-sm dark:text-white">{{ form.tutorId ? 'Editar colaborador' : 'Nuevo colaborador' }}</h3>
+            <h3 class="font-semibold text-sm dark:text-white">{{ form.tutorId ? 'Editar colaborador' : 'Nuevo colaborador' }}</h3>
             <button @click="form = null" class="w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-white/5 rounded-lg text-slate-400 dark:text-white/50">✕</button>
           </div>
           <div class="p-6 space-y-4 overflow-y-auto">
@@ -634,9 +686,9 @@
             <div v-if="errorForm" class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl px-4 py-3 text-[11px] text-red-600 dark:text-red-400">{{ errorForm }}</div>
 
             <div class="flex gap-3 pt-2">
-              <button @click="form = null" class="flex-1 bg-slate-100 dark:bg-white/5 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest dark:text-white">Cancelar</button>
+              <button @click="form = null" class="flex-1 bg-slate-100 dark:bg-white/5 py-3 rounded-xl font-semibold uppercase text-[10px] tracking-wider dark:text-white">Cancelar</button>
               <button @click="guardar" :disabled="!formValido || guardando"
-                class="flex-1 bg-[#152C77] hover:bg-[#DE1F27] text-white py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-colors disabled:opacity-30">
+                class="flex-1 bg-[#152C77] hover:bg-[#DE1F27] text-white py-3 rounded-xl font-semibold uppercase text-[10px] tracking-wider transition-colors disabled:opacity-30">
                 {{ guardando ? 'Guardando...' : 'Guardar' }}
               </button>
             </div>
@@ -655,7 +707,7 @@
         <div class="relative w-full max-w-lg max-h-[85vh] flex flex-col bg-white dark:bg-[#0D1425] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden">
           <div class="flex items-center justify-between gap-3 px-6 py-4 border-b border-slate-100 dark:border-white/5">
             <div class="min-w-0">
-              <h3 class="font-[1000] uppercase italic text-sm dark:text-white truncate">{{ detalle.persona.nombre }}</h3>
+              <h3 class="font-semibold text-sm dark:text-white truncate">{{ detalle.persona.nombre }}</h3>
               <input type="date" v-model="detalle.fecha" @change="cargarDetalle" class="mt-1 bg-transparent text-[11px] font-bold text-slate-500 dark:text-white/50 outline-none" />
             </div>
             <button @click="detalle = null" class="w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-white/5 rounded-lg text-slate-400 dark:text-white/50 shrink-0">✕</button>
@@ -664,9 +716,9 @@
             <div v-if="detalle.cargando" class="py-10 text-center">
               <div class="w-6 h-6 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
             </div>
-            <p v-else-if="!detalle.sesiones.length" class="py-10 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">No trabajó este día</p>
+            <p v-else-if="!detalle.sesiones.length" class="py-10 text-center text-slate-400 dark:text-white/30 text-sm">No trabajó este día</p>
             <div v-for="(s, i) in detalle.sesiones" :key="i" class="space-y-2">
-              <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">
+              <p class="text-xs font-semibold text-slate-400 dark:text-white/40">
                 Jornada {{ hora(s.inicio) }} – {{ s.fin ? hora(s.fin) : 'en curso' }}
                 <span v-if="s.cierreAutomatico" class="text-red-400"> · no la cerró</span>
                 <span v-if="s.cerradaPorAdmin" class="text-amber-500"> · terminada por el admin</span>
@@ -677,19 +729,19 @@
                 <span class="text-[10px] font-bold tabular-nums w-24 shrink-0 opacity-70">{{ hora(it.inicio) }} – {{ hora(it.fin) }}</span>
                 <span class="flex-1 min-w-0 text-[12px] font-bold break-words">
                   {{ it.tipo === 'TAREA' ? it.descripcion : it.tipo === 'ALMUERZO' ? '🍽️ Almuerzo' : '⏸ Sin tarea registrada' }}
-                  <span v-if="it.tipo === 'ALMUERZO' && it.automatico" class="block text-[9px] font-black uppercase text-red-500">No marcó el regreso: se terminó solo a la hora</span>
-                  <span v-if="it.tipo === 'SIN_TAREA' && it.avisos" class="block text-[9px] font-black uppercase text-red-500">🔔 Recibió {{ it.avisos }} aviso(s) de "regístralo" en este rato</span>
+                  <span v-if="it.tipo === 'ALMUERZO' && it.automatico" class="block text-[11px] font-semibold text-red-500">No marcó el regreso: se terminó solo a la hora</span>
+                  <span v-if="it.tipo === 'SIN_TAREA' && it.avisos" class="block text-[11px] font-semibold text-red-500">🔔 Recibió {{ it.avisos }} aviso(s) de "regístralo" en este rato</span>
                   <span v-if="it.explicacion" class="block text-[11px] font-semibold text-slate-700 dark:text-white/80 mt-0.5">💬 Explicó: "{{ it.explicacion }}"</span>
                   <span v-if="it.nota" class="block text-[11px] font-semibold text-amber-700 dark:text-amber-300 mt-0.5">⚠️ {{ it.nota }}</span>
-                  <span v-if="it.checksSinRespuesta" class="block text-[9px] font-black uppercase text-amber-500">{{ it.checksSinRespuesta }} aviso(s) sin responder</span>
+                  <span v-if="it.checksSinRespuesta" class="block text-[11px] font-semibold text-amber-500">{{ it.checksSinRespuesta }} aviso(s) sin responder</span>
                 </span>
-                <span class="text-[11px] font-black tabular-nums shrink-0">{{ dur(it.segundos) }}</span>
+                <span class="text-[11px] font-semibold tabular-nums shrink-0">{{ dur(it.segundos) }}</span>
               </div>
             </div>
 
             <!-- Avisos enviados: para responder "no me llegó ningún aviso" -->
             <div v-if="detalle.avisos" class="space-y-2 pt-2 border-t border-slate-100 dark:border-white/5">
-              <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">🔔 Avisos enviados · {{ detalle.avisos.avisos.length }}</p>
+              <p class="text-xs font-semibold text-slate-400 dark:text-white/40">🔔 Avisos enviados · {{ detalle.avisos.avisos.length }}</p>
               <p class="text-[11px] font-bold" :class="detalle.avisos.celulares ? 'text-green-600 dark:text-green-400' : 'text-red-500'">
                 {{ detalle.avisos.celulares ? `📱 ${detalle.avisos.celulares} celular(es) registrado(s) para recibir avisos` : '📱 No tiene ningún celular registrado: nunca activó los avisos o los desactivó' }}
               </p>
@@ -717,6 +769,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { Activity, ChartColumn, Dog, Clock, Scale, MapPin, Sparkles, Users, UserPlus, Eye, RefreshCw, Search } from 'lucide-vue-next'
 import api from '@/api/axios'
 import AdminJornadaDiaEquipo from './AdminJornadaDiaEquipo.vue'
 import AdminJornadaEquilibrio from './AdminJornadaEquilibrio.vue'
@@ -728,14 +782,14 @@ const props = defineProps({
 })
 
 const vistas = [
-  { id: 'ahora', label: '🟢 Ahora' },
-  { id: 'reporte', label: '📊 Reporte' },
-  { id: 'guarderia', label: '🐕 Guardería' },
-  { id: 'dia', label: '🕒 Día del equipo' },
-  { id: 'equilibrio', label: '⚖️ Equilibrio' },
-  { id: 'marcas', label: '📍 Marcas' },
-  { id: 'ia', label: '🤖 Resumen IA' },
-  { id: 'equipo', label: '👥 Equipo' },
+  { id: 'ahora', label: 'Ahora', icon: Activity },
+  { id: 'reporte', label: 'Reporte', icon: ChartColumn },
+  { id: 'guarderia', label: 'Guardería', icon: Dog },
+  { id: 'dia', label: 'Día del equipo', icon: Clock },
+  { id: 'equilibrio', label: 'Equilibrio', icon: Scale },
+  { id: 'marcas', label: 'Marcas', icon: MapPin },
+  { id: 'ia', label: 'Resumen IA', icon: Sparkles },
+  { id: 'equipo', label: 'Equipo', icon: Users },
 ]
 const presets = [
   { id: 'hoy', label: 'Hoy' },
@@ -743,9 +797,13 @@ const presets = [
   { id: 'mes', label: '30 días' },
 ]
 const inputClass = 'w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold dark:text-white outline-none focus:ring-2 focus:ring-[#152C77]'
-const labelClass = 'text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40'
+const labelClass = 'text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40'
 
-const vista = ref('ahora')
+// La vista va en la URL (?vista=reporte) para que al recargar no vuelva a "Ahora"
+const route = useRoute()
+const router = useRouter()
+const vista = ref(vistas.some(v => v.id === route.query.vista) ? route.query.vista : 'ahora')
+watch(vista, v => router.replace({ query: { ...route.query, vista: v === 'ahora' ? undefined : v } }))
 const empleados = ref([])
 const loadingEmpleados = ref(false)
 
@@ -793,6 +851,17 @@ const loadingOcupacion = ref(false)
 const perfil = ref(null)
 
 const activos = computed(() => empleados.value.filter(e => e.activo))
+// Primero quien necesita atención (sin tarea), luego quien trabaja y quien almuerza
+const ORDEN_ESTADO = { 'Sin tarea': 0, 'Trabajando': 1, 'Almuerzo': 2 }
+const enJornada = computed(() => activos.value.filter(e => e.sesion)
+  .sort((a, b) => ORDEN_ESTADO[estadoVivo(a).label] - ORDEN_ESTADO[estadoVivo(b).label]))
+const sinJornada = computed(() => activos.value.filter(e => !e.sesion))
+const conteoEstados = computed(() => {
+  const n = {}
+  activos.value.forEach(e => { const l = estadoVivo(e).label; n[l] = (n[l] || 0) + 1 })
+  return ['Sin tarea', 'Trabajando', 'Almuerzo', 'Sin jornada'].filter(l => n[l])
+    .map(l => ({ label: l, n: n[l], clase: estadoVivo(l === 'Sin jornada' ? {} : l === 'Almuerzo' ? { sesion: { estado: 'ALMUERZO' } } : { sesion: {}, tareaActual: l === 'Trabajando' }).clase }))
+})
 const cargos = computed(() => [...new Set(empleados.value.map(e => e.cargo).filter(Boolean))])
 const cargosSugeridos = computed(() => [...new Set(['Guardería', ...cargos.value])])
 const formValido = computed(() => form.value?.nombre?.trim() && form.value?.cargo?.trim() &&
@@ -898,6 +967,41 @@ watch(() => form.value?.cargo, cargo => {
 })
 
 const AREAS = { GUARDERIA: 'Guardería', PELUQUERIA: 'Peluquería', VETERINARIA: 'Veterinaria', CAJA: 'Caja', DOMICILIOS: 'Domicilios', CONTABILIDAD: 'Contabilidad', GENERAL: 'General' }
+
+// Filtros de "Tareas que más tiempo consumen"
+const filtroArea = ref('')
+const filtroNivel = ref('')
+const buscarTarea = ref('')
+const limiteTareas = ref(40)
+const NIVELES = { LIGERA: 'Ligera', MODERADA: 'Moderada', PESADA: 'Pesada' }
+const textoPlano = x => (x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+const pasaArea = (t, a) => !a || (a === 'SIN' ? !t.area : t.area === a)
+const pasaNivel = (t, n) => !n || (n === 'SIN' ? !t.nivel : n === 'AUXILIAR' ? !!t.delegable : t.nivel === n)
+const pasaTexto = t => !buscarTarea.value.trim() || textoPlano(t.descripcion).includes(textoPlano(buscarTarea.value.trim()))
+const tareasFiltradas = computed(() => (resumen.value?.tareas || [])
+  .filter(t => pasaArea(t, filtroArea.value) && pasaNivel(t, filtroNivel.value) && pasaTexto(t)))
+// Cada conteo respeta el otro filtro, para que los números cuadren con lo que se ve
+const opcionesArea = computed(() => {
+  const base = (resumen.value?.tareas || []).filter(t => pasaNivel(t, filtroNivel.value) && pasaTexto(t))
+  const usadas = Object.keys(AREAS).filter(a => base.some(t => t.area === a))
+  return [
+    { id: '', label: 'Todas', n: base.length },
+    ...usadas.map(a => ({ id: a, label: AREAS[a], n: base.filter(t => t.area === a).length })),
+    { id: 'SIN', label: 'Sin área', n: base.filter(t => !t.area).length },
+  ]
+})
+const opcionesNivel = computed(() => {
+  const base = (resumen.value?.tareas || []).filter(t => pasaArea(t, filtroArea.value) && pasaTexto(t))
+  return [
+    { id: '', label: 'Todos', n: base.length },
+    ...Object.entries(NIVELES).map(([id, label]) => ({ id, label, n: base.filter(t => t.nivel === id).length })),
+    { id: 'AUXILIAR', label: 'La puede hacer un auxiliar', n: base.filter(t => t.delegable).length },
+    { id: 'SIN', label: 'Sin clasificar', n: base.filter(t => !t.nivel).length },
+  ]
+})
+const hayFiltroTareas = computed(() => !!(filtroArea.value || filtroNivel.value || buscarTarea.value.trim()))
+function limpiarFiltrosTareas() { filtroArea.value = ''; filtroNivel.value = ''; buscarTarea.value = '' }
+watch([filtroArea, filtroNivel, buscarTarea], () => { limiteTareas.value = 40 })
 
 function claseNivel(n) {
   return { LIGERA: 'text-green-600 dark:text-green-400', MODERADA: 'text-amber-600 dark:text-amber-300', PESADA: 'text-red-600 dark:text-red-400' }[n] || 'text-slate-400'
@@ -1293,7 +1397,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.resumen-ia :deep(h3) { font-weight: 1000; text-transform: uppercase; font-style: italic; font-size: 12px; letter-spacing: .05em; margin: 1.25rem 0 .5rem; }
+@reference "../../../style.css";
+.chip { @apply inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-xs font-medium border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/60 hover:border-ps-blue hover:text-ps-blue dark:hover:text-white transition-colors; }
+.chip-alerta { @apply border-amber-300 text-amber-700 dark:border-amber-500/40 dark:text-amber-300; }
+.chip-activo { @apply bg-ps-blue border-ps-blue text-white hover:text-white dark:bg-white dark:border-white dark:text-[#050505] dark:hover:text-[#050505]; }
+.resumen-ia :deep(h3) { @apply font-bold text-[13px] text-ps-blue dark:text-white; margin: 1.25rem 0 .5rem; }
 .resumen-ia :deep(h3:first-child) { margin-top: 0; }
 .resumen-ia :deep(ul) { list-style: disc; padding-left: 1.25rem; display: grid; gap: .35rem; }
 .resumen-ia :deep(p) { margin: .35rem 0; }

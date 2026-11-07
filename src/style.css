@@ -31,6 +31,12 @@
     font-size: 16px !important;
   }
 }
+/* En el panel admin los botones conservan su tamaño (solo los campos necesitan 16px para que iOS no haga zoom) */
+@media (max-width: 768px) {
+  .panel-admin button {
+    font-size: revert-layer !important;
+  }
+}
 
 .admin-card {
     @apply bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-8 rounded-[2.5rem] transition-all duration-300;

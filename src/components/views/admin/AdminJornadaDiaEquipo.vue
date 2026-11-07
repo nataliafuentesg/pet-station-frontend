@@ -2,9 +2,9 @@
   <div class="space-y-5">
     <div class="flex flex-wrap items-end gap-3">
       <div class="flex gap-1">
-        <button @click="moverDia(-1)" class="px-3 py-2 rounded-xl text-[12px] font-black bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10">‹</button>
+        <button @click="moverDia(-1)" class="px-3 py-2 rounded-xl text-[12px] font-semibold bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10">‹</button>
         <input type="date" v-model="fecha" @change="cargar" :class="inputClass" />
-        <button @click="moverDia(1)" class="px-3 py-2 rounded-xl text-[12px] font-black bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10">›</button>
+        <button @click="moverDia(1)" class="px-3 py-2 rounded-xl text-[12px] font-semibold bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10">›</button>
       </div>
       <select v-if="cargos.length > 1" v-model="filtroCargo" :class="inputClass" class="!w-auto">
         <option value="">Todo el equipo</option>
@@ -15,7 +15,7 @@
     <div v-if="cargando" class="py-16 text-center">
       <div class="w-8 h-8 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
     </div>
-    <p v-else-if="!visibles.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">Nadie registró jornada este día</p>
+    <p v-else-if="!visibles.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-sm">Nadie registró jornada este día</p>
 
     <template v-else>
       <!-- Línea de tiempo de todos -->
@@ -24,7 +24,7 @@
           <div class="flex">
             <div class="w-32 shrink-0"></div>
             <div class="relative flex-1 h-5">
-              <span v-for="h in horasEje" :key="h" class="absolute -translate-x-1/2 text-[9px] font-black text-slate-400 dark:text-white/30 tabular-nums" :style="{ left: pos(h * 60) + '%' }">
+              <span v-for="h in horasEje" :key="h" class="absolute -translate-x-1/2 text-[9px] font-semibold text-slate-400 dark:text-white/30 tabular-nums" :style="{ left: pos(h * 60) + '%' }">
                 {{ etiquetaHora(h) }}
               </span>
             </div>
@@ -32,8 +32,8 @@
 
           <div v-for="p in visibles" :key="p.tutorId" class="flex items-center py-1.5">
             <div class="w-32 shrink-0 pr-2 min-w-0">
-              <p class="font-[1000] uppercase italic text-[11px] dark:text-white truncate">{{ p.nombre }}</p>
-              <p class="text-[8px] text-slate-400 dark:text-white/30 uppercase tracking-widest truncate">{{ p.cargo }}</p>
+              <p class="font-semibold text-[11px] dark:text-white truncate">{{ p.nombre }}</p>
+              <p class="text-[8px] text-slate-400 dark:text-white/30 uppercase tracking-wider truncate">{{ p.cargo }}</p>
             </div>
             <div class="relative flex-1 h-9 rounded-lg bg-slate-50 dark:bg-white/5">
               <div v-for="h in horasEje" :key="h" class="absolute top-0 bottom-0 border-l border-slate-200/70 dark:border-white/5" :style="{ left: pos(h * 60) + '%' }"></div>
@@ -48,9 +48,9 @@
           </div>
 
           <div v-if="mascotasHora.length" class="flex items-center pt-2 mt-1 border-t border-slate-100 dark:border-white/10">
-            <div class="w-32 shrink-0 text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">🐾 Mascotas</div>
+            <div class="w-32 shrink-0 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">🐾 Mascotas</div>
             <div class="relative flex-1 h-6">
-              <span v-for="m in mascotasHora" :key="m.hora" class="absolute text-center text-[10px] font-black tabular-nums"
+              <span v-for="m in mascotasHora" :key="m.hora" class="absolute text-center text-[10px] font-semibold tabular-nums"
                 :class="m.total ? 'text-[#152C77] dark:text-blue-300' : 'text-slate-300 dark:text-white/20'"
                 :style="{ left: pos(m.hora * 60) + '%', width: (pos((m.hora + 1) * 60) - pos(m.hora * 60)) + '%' }"
                 :title="`${m.perrosDia} de día · ${m.perrosHotel} de hotel`">
@@ -74,10 +74,10 @@
       <!-- Bloque tocado -->
       <div v-if="seleccion" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-4 space-y-1">
         <div class="flex items-start justify-between gap-3">
-          <p class="text-[12px] font-[1000] uppercase italic dark:text-white">{{ seleccion.persona.nombre }} · <span class="not-italic tabular-nums">{{ hora(seleccion.it.inicio) }} – {{ hora(seleccion.it.fin) }}</span></p>
+          <p class="text-[12px] font-semibold dark:text-white">{{ seleccion.persona.nombre }} · <span class="tabular-nums">{{ hora(seleccion.it.inicio) }} – {{ hora(seleccion.it.fin) }}</span></p>
           <button @click="seleccion = null" class="text-slate-400 dark:text-white/40 text-[12px]">✕</button>
         </div>
-        <p class="text-[13px] font-bold dark:text-white">{{ textoItem(seleccion.it) }} <span class="text-slate-400 dark:text-white/40 font-black">· {{ dur(seleccion.it.segundos) }}</span></p>
+        <p class="text-[13px] font-bold dark:text-white">{{ textoItem(seleccion.it) }} <span class="text-slate-400 dark:text-white/40 font-semibold">· {{ dur(seleccion.it.segundos) }}</span></p>
         <p v-if="seleccion.it.tipo === 'TAREA'" class="text-[11px] font-bold" :class="seleccion.it.fueraDeArea ? 'text-[#DE1F27]' : 'text-slate-500 dark:text-white/50'">
           Área: {{ AREAS[seleccion.it.area] || 'sin clasificar' }}<span v-if="seleccion.it.fueraDeArea"> · fuera de su área ({{ AREAS[seleccion.persona.areaPropia] }})</span>
         </p>
@@ -92,13 +92,13 @@
 
       <!-- Momentos en que un compañero de la misma área estaba en otra cosa -->
       <div class="space-y-2">
-        <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">🤝 Mientras uno trabajaba en su área, el compañero estaba en otra cosa</h3>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">🤝 Mientras uno trabajaba en su área, el compañero estaba en otra cosa</h3>
         <p v-if="!momentos.length" class="text-[11px] text-slate-400 dark:text-white/30 bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-4">
           No hubo ratos de 10 minutos o más en que alguien estuviera en su área mientras su compañero del mismo cargo estaba en otra área o sin tarea.
         </p>
         <div v-else class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
           <div v-for="(m, i) in momentos" :key="i" class="px-4 py-3 space-y-0.5">
-            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 tabular-nums">
+            <p class="text-xs font-semibold text-slate-400 dark:text-white/40 tabular-nums">
               {{ horaMin(m.ini) }} – {{ horaMin(m.fin) }} · {{ dur((m.fin - m.ini) * 60) }}
               <span v-if="m.mascotas != null" class="text-[#152C77] dark:text-blue-300"> · 🐾 {{ m.mascotas }} mascota(s) adentro</span>
             </p>
@@ -117,10 +117,10 @@
 
       <!-- Tiempo por área de cada persona -->
       <div class="space-y-2">
-        <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">Tiempo por área</h3>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">Tiempo por área</h3>
         <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
           <div v-for="p in visibles" :key="p.tutorId" class="px-4 py-3 space-y-1.5">
-            <p class="text-[11px] font-[1000] uppercase italic dark:text-white">{{ p.nombre }}</p>
+            <p class="text-[11px] font-semibold dark:text-white">{{ p.nombre }}</p>
             <div class="flex h-2.5 rounded-full overflow-hidden bg-slate-100 dark:bg-white/10">
               <div v-for="t in p.porArea" :key="t.area" :class="t.clase" :style="{ width: t.pct + '%' }"></div>
             </div>

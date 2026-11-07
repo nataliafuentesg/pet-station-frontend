@@ -3,7 +3,7 @@
     <div class="flex flex-wrap items-end gap-3">
       <div class="flex gap-1">
         <button v-for="p in PRESETS" :key="p.dias" @click="aplicarPreset(p.dias)"
-          class="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors"
+          class="px-3 py-2 rounded-xl text-xs font-semibold transition-colors"
           :class="preset === p.dias ? 'bg-[#DE1F27] text-white' : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10'">
           {{ p.label }}
         </button>
@@ -20,10 +20,10 @@
 
     <div v-if="cargando" class="py-16 text-center space-y-3">
       <div class="w-8 h-8 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
-      <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30">Leyendo {{ progreso }} de {{ totalDias }} días</p>
+      <p class="text-xs font-semibold text-slate-400 dark:text-white/30">Leyendo {{ progreso }} de {{ totalDias }} días</p>
     </div>
     <p v-else-if="error" class="py-10 text-center text-red-500 text-[12px] font-bold">{{ error }}</p>
-    <p v-else-if="personas.length < 2" class="py-16 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">
+    <p v-else-if="personas.length < 2" class="py-16 text-center text-slate-400 dark:text-white/30 text-sm">
       Se necesitan al menos 2 personas de {{ AREAS[area] }} con jornadas en este periodo
     </p>
 
@@ -34,7 +34,7 @@
 
       <!-- Hechos principales -->
       <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-2">
-        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">📌 Lo que dicen los registros</p>
+        <p class="text-xs font-semibold text-slate-400 dark:text-white/40">📌 Lo que dicen los registros</p>
         <p v-for="(h, i) in hechos" :key="i" class="text-[13px] font-bold dark:text-white/90 leading-snug">· {{ h }}</p>
       </div>
 
@@ -42,7 +42,7 @@
       <div class="grid gap-3 sm:grid-cols-2">
         <div v-for="p in personas" :key="p.tutorId" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-3">
           <div>
-            <p class="font-[1000] uppercase italic text-sm dark:text-white">{{ p.nombre }}</p>
+            <p class="font-semibold text-sm dark:text-white">{{ p.nombre }}</p>
             <p class="text-[10px] text-slate-400 dark:text-white/40">{{ p.dias }} día(s) · {{ dur(p.jornada) }} de jornada</p>
           </div>
           <div class="flex h-3 rounded-full overflow-hidden bg-slate-100 dark:bg-white/10">
@@ -56,7 +56,7 @@
             </template>
             <span class="text-slate-500 dark:text-white/50">Sin tarea</span><b class="tabular-nums text-right dark:text-white">{{ dur(p.sinTarea) }}</b>
           </div>
-          <p class="text-[11px] font-black text-[#152C77] dark:text-blue-300">
+          <p class="text-[11px] font-semibold text-[#152C77] dark:text-blue-300">
             Hizo el {{ pct(p.propia, totalPropia) }} del trabajo de {{ AREAS[area].toLowerCase() }} y el {{ pct(p.pesadas, totalPesadas) }} de las tareas pesadas
           </p>
         </div>
@@ -64,13 +64,13 @@
 
       <!-- Tareas pesadas hechas sola -->
       <div class="space-y-2">
-        <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">
           🏋️ Tareas pesadas de {{ AREAS[area].toLowerCase() }} que alguien hizo mientras su compañera estaba fuera del área
         </h3>
         <p v-if="!solas.length" class="text-[11px] text-slate-400 dark:text-white/30 bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-4">No hubo en este periodo.</p>
         <div v-else class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
           <div v-for="(s, i) in solas" :key="i" class="px-4 py-3 space-y-0.5">
-            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 tabular-nums">{{ diaCorto(s.fecha) }} · {{ s.desde }} – {{ s.hasta }}</p>
+            <p class="text-xs font-semibold text-slate-400 dark:text-white/40 tabular-nums">{{ diaCorto(s.fecha) }} · {{ s.desde }} – {{ s.hasta }}</p>
             <p class="text-[12px] dark:text-white/80"><b class="dark:text-white">{{ s.quien }}</b>: {{ s.tarea }} <b class="tabular-nums">({{ dur(s.seg) }})</b></p>
             <p class="text-[12px] text-[#DE1F27]">Mientras tanto {{ s.otra }}: {{ s.haciendo }}</p>
           </div>
@@ -79,12 +79,12 @@
 
       <!-- Salidas del área con lo que contaron al empezar -->
       <div v-if="salidasArea.length" class="space-y-2">
-        <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-white/50">
           🤝 Salidas de {{ AREAS[area].toLowerCase() }} con su explicación · {{ salidasArea.length }}
         </h3>
         <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 divide-y divide-slate-100 dark:divide-white/5">
           <div v-for="(x, i) in salidasArea" :key="i" class="px-4 py-3 space-y-0.5">
-            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 tabular-nums">{{ diaCorto(x.fecha) }} · {{ x.desde }} – {{ x.hasta }} · {{ dur(x.seg) }} · {{ AREAS[x.a] || 'otra área' }}</p>
+            <p class="text-xs font-semibold text-slate-400 dark:text-white/40 tabular-nums">{{ diaCorto(x.fecha) }} · {{ x.desde }} – {{ x.hasta }} · {{ dur(x.seg) }} · {{ AREAS[x.a] || 'otra área' }}</p>
             <p class="text-[12px] dark:text-white/80"><b class="dark:text-white">{{ x.quien }}</b>: {{ x.tarea }}</p>
             <p class="text-[12px] text-slate-600 dark:text-white/70">"{{ x.motivo }}"</p>
           </div>
@@ -96,17 +96,17 @@
         <table class="w-full text-left min-w-[560px]">
           <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
             <tr>
-              <th class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">Día</th>
-              <th v-for="p in personas" :key="p.tutorId" class="px-4 py-3 text-[8px] font-black uppercase opacity-40 tracking-widest dark:text-white">{{ p.nombre.split(' ')[0] }}</th>
+              <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">Día</th>
+              <th v-for="p in personas" :key="p.tutorId" class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">{{ p.nombre.split(' ')[0] }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-white/5">
             <tr v-for="d in porDia" :key="d.fecha">
-              <td class="px-4 py-3 text-[12px] font-[1000] uppercase italic dark:text-white whitespace-nowrap">{{ diaCorto(d.fecha) }}</td>
+              <td class="px-4 py-3 text-[12px] font-semibold dark:text-white whitespace-nowrap">{{ diaCorto(d.fecha) }}</td>
               <td v-for="p in personas" :key="p.tutorId" class="px-4 py-3 text-[11px] tabular-nums whitespace-nowrap">
                 <template v-if="d.p[p.tutorId]">
                   <span class="font-bold dark:text-white/80">{{ dur(d.p[p.tutorId].propia) }}</span>
-                  <span v-if="d.p[p.tutorId].fuera >= 60" class="block text-[10px] font-black text-[#DE1F27]">+ {{ dur(d.p[p.tutorId].fuera) }} fuera</span>
+                  <span v-if="d.p[p.tutorId].fuera >= 60" class="block text-[10px] font-semibold text-[#DE1F27]">+ {{ dur(d.p[p.tutorId].fuera) }} fuera</span>
                 </template>
                 <span v-else class="text-slate-300 dark:text-white/20">no vino</span>
               </td>
@@ -120,10 +120,10 @@
 
       <!-- PDF para conversar -->
       <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-3">
-        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">📄 Para conversarlo con el equipo</p>
+        <p class="text-xs font-semibold text-slate-400 dark:text-white/40">📄 Para conversarlo con el equipo</p>
         <textarea v-model="mensaje" rows="3" :class="inputClass" class="!w-full !text-sm !py-3"
           placeholder="Mensaje o regla que quieres que aparezca en el documento. Ej: El trabajo de guardería se reparte entre las dos. Peluquería solo cuando guardería está al día y la administración lo autoriza."></textarea>
-        <button @click="descargar" class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors">
+        <button @click="descargar" class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-5 py-2.5 rounded-2xl text-xs font-semibold transition-colors">
           Descargar PDF
         </button>
         <p class="text-[10px] text-slate-400 dark:text-white/30">El documento solo lleva cifras y hechos de los registros, sin opiniones de la IA.</p>

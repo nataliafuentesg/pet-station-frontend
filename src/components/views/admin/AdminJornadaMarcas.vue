@@ -3,7 +3,7 @@
     <div class="flex flex-wrap items-end gap-3">
       <div class="flex gap-1">
         <button v-for="p in PRESETS" :key="p.dias" @click="aplicarPreset(p.dias)"
-          class="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors"
+          class="px-3 py-2 rounded-xl text-xs font-semibold transition-colors"
           :class="preset === p.dias ? 'bg-[#DE1F27] text-white' : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/50 border border-slate-100 dark:border-white/10'">
           {{ p.label }}
         </button>
@@ -18,7 +18,7 @@
     <!-- Punto de referencia del Pet -->
     <div class="bg-white dark:bg-white/5 rounded-2xl border p-5 space-y-3"
       :class="pet?.configurada ? 'border-slate-100 dark:border-white/10' : 'border-amber-300 dark:border-amber-500/40'">
-      <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">📍 Ubicación del Pet</p>
+      <p class="text-xs font-semibold text-slate-400 dark:text-white/40">📍 Ubicación del Pet</p>
       <p v-if="!pet?.configurada" class="text-[13px] font-bold text-amber-700 dark:text-amber-300">
         Falta guardarla. Hazlo una vez estando dentro del Pet: sin ella no se puede saber a qué distancia marcaron.
       </p>
@@ -28,7 +28,7 @@
       </p>
       <div class="flex flex-wrap items-center gap-3">
         <button @click="guardarPet" :disabled="!!fijando"
-          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50">
+          class="bg-[#152C77] hover:bg-[#DE1F27] text-white px-4 py-2.5 rounded-xl text-xs font-semibold disabled:opacity-50">
           {{ fijando ? `Afinando… ${fijando.precision ?? '—'} m (${fijando.lecturas} lecturas)` : (pet?.configurada ? 'Volver a tomarla aquí' : 'Estoy en el Pet: guardar ubicación') }}
         </button>
         <label v-if="pet?.configurada" class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-white/50">
@@ -43,14 +43,14 @@
       <div class="w-8 h-8 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto"></div>
     </div>
     <p v-else-if="error" class="py-10 text-center text-red-500 text-[12px] font-bold">{{ error }}</p>
-    <p v-else-if="!marcas.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-[11px] uppercase tracking-widest">
+    <p v-else-if="!marcas.length" class="py-16 text-center text-slate-400 dark:text-white/30 text-sm">
       Todavía no hay marcas con ubicación en este periodo
     </p>
 
     <template v-else>
       <!-- Lo que hay que mirar -->
       <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 p-5 space-y-2">
-        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">
+        <p class="text-xs font-semibold text-slate-400 dark:text-white/40">
           🚩 Para revisar · {{ alertas.length }} de {{ marcas.length }} marcas
         </p>
         <p v-if="!pet?.configurada" class="text-[13px] font-bold text-amber-700 dark:text-amber-300">Guarda la ubicación del Pet para saber a qué distancia marcaron. Las marcas que ya hay se calculan solas apenas la guardes.</p>
@@ -68,7 +68,7 @@
 
       <!-- Mapa de marcas -->
       <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-hidden">
-        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 p-5 pb-3">🗺️ Mapa de marcas</p>
+        <p class="text-xs font-semibold text-slate-400 dark:text-white/40 p-5 pb-3">🗺️ Mapa de marcas</p>
         <div ref="mapaEl" style="height:340px" class="w-full z-0"></div>
       </div>
 
@@ -76,7 +76,7 @@
       <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-x-auto">
         <table class="w-full text-[12px] min-w-[620px]">
           <thead>
-            <tr class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40 text-left">
+            <tr class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40 text-left">
               <th class="p-3">Persona · día</th><th class="p-3">Entrada</th><th class="p-3">Regreso del almuerzo</th><th class="p-3">Salida</th>
             </tr>
           </thead>

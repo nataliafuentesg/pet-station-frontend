@@ -141,7 +141,10 @@ const guardar = (clave, valor) => { try { localStorage.setItem(clave, valor); } 
 function recordarTab(id) {
     if (!id) return;
     guardar(CLAVE_TAB, id);
-    if (route.query.tab !== id) router.replace({ query: { ...route.query, tab: id } });
+    if (route.query.tab === id) return;
+    // La sub-vista (?vista=) es de Productividad: no se arrastra a otras pestañas
+    const { vista, ...resto } = route.query;
+    router.replace({ query: { ...resto, ...(id === 'jornada' && vista ? { vista } : {}), tab: id } });
 }
 
 // Barra lateral: en PC se puede dejar solo con íconos; en celular es un menú que se abre y se cierra
@@ -234,7 +237,7 @@ const doLogout = async () => {
 </script>
 
 <template>
-    <div class="flex min-h-screen bg-slate-50 dark:bg-[#080808] text-slate-900 dark:text-white">
+    <div class="panel-admin flex min-h-screen bg-slate-50 dark:bg-[#080808] text-slate-900 dark:text-white">
 
         <!-- Celular: fondo oscuro detrás del menú abierto -->
         <Transition name="velo">
