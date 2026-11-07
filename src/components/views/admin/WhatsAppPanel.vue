@@ -227,6 +227,8 @@
                 <p v-else class="text-sm text-white whitespace-pre-wrap">{{ m.contenido }}</p>
 
                 <div class="wa-meta">
+                  <!-- Quién del equipo lo envió (o aprobó, si lo escribió el agente) -->
+                  <span v-if="m.enviadoPor" class="mr-1 opacity-80">{{ m.contenido?.startsWith('🤖') ? `aprobó ${m.enviadoPor}` : m.enviadoPor }} ·</span>
                   <span>{{ formatHora(m.timestamp) }}</span>
                   <span v-if="m.direccion === 'OUTBOUND'" class="ml-1 text-[#53bdeb]">
                     {{ m.estado === 'read' ? '✓✓' : m.estado === 'delivered' ? '✓✓' : '✓' }}
@@ -449,10 +451,10 @@ async function descartarBorrador() {
 }
 
 async function tomarControl() {
-  const asesor = prompt('Tu nombre:') || 'Asesor';
-  await api.post(`/admin/wa/conversaciones/${conversacionActual.value.telefono}/tomar`, { asesor });
+  // El servidor anota el nombre de quien tiene la sesión abierta
+  const { data } = await api.post(`/admin/wa/conversaciones/${conversacionActual.value.telefono}/tomar`);
   conversacionActual.value.modo = 'HUMAN';
-  conversacionActual.value.asesor = asesor;
+  conversacionActual.value.asesor = data?.asesor || 'Asesor';
 }
 
 async function resolver() {
@@ -553,6 +555,7 @@ function conectarWS() {
           tipo: ev.tipoMensaje, contenido: ev.contenido,
           mediaId: ev.mediaId, estado: ev.estado,
           contextoWamid: ev.contextoWamid, timestamp: ev.timestamp,
+          enviadoPor: ev.enviadoPor,
         });
         await nextTick();
         scrollAbajo();

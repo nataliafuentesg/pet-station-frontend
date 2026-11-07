@@ -84,12 +84,18 @@ const todasLasTabs = [
 // Pestañas que usan el buscador de arriba; en las demás no se muestra
 const TABS_CON_BUSCADOR = ['pedidos', 'citas'];
 
-// WhatsApp e Instagram son páginas aparte que solo abre el admin completo
-const enlacesSociales = [
-    { to: '/admin/whatsapp', label: 'WhatsApp', icon: MessageCircle },
+// WhatsApp e Instagram son páginas aparte. Instagram es solo del admin completo;
+// WhatsApp también lo abre el administrador limitado que tenga esa sección
+const todosLosEnlacesSociales = [
+    { to: '/admin/whatsapp', label: 'WhatsApp', icon: MessageCircle, seccion: 'whatsapp' },
     { to: '/admin/instagram/dms', label: 'Instagram DMs', icon: Send },
     { to: '/admin/instagram', label: 'Instagram Auto-DM', icon: Instagram }
 ];
+const enlacesSociales = computed(() => {
+    if (!accesos.value) return [];
+    if (accesos.value.completo) return todosLosEnlacesSociales;
+    return todosLosEnlacesSociales.filter(s => s.seccion && accesos.value.secciones.includes(s.seccion));
+});
 
 // Un administrador limitado solo ve las pestañas que se le asignaron; "Accesos" y "Sesiones" son solo del admin completo
 const SOLO_ADMIN_COMPLETO = ['accesos', 'sesiones'];
@@ -267,7 +273,7 @@ const doLogout = async () => {
                     </button>
                 </div>
 
-                <div v-if="accesos?.completo">
+                <div v-if="enlacesSociales.length">
                     <p :class="['grupo-titulo', barraColapsada ? 'lg:hidden' : '']">Social</p>
                     <div v-if="barraColapsada" class="hidden lg:block h-px mx-3 mb-2 bg-slate-100 dark:bg-white/5"></div>
                     <router-link v-for="s in enlacesSociales" :key="s.to" :to="s.to"

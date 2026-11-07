@@ -124,7 +124,8 @@ const routes = [
     path: '/admin/whatsapp',
     name: 'WhatsAppPanel',
     component: WhatsAppPanel,
-    meta: { requiresAdmin: true, title: 'WhatsApp Panel | Pet Station' }
+    // Administradores limitados con la sección WhatsApp; el servidor bloquea al resto
+    meta: { requiresAdmin: true, permitirGestor: true, title: 'WhatsApp Panel | Pet Station' }
   },
   {
     path: '/admin/instagram',
