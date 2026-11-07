@@ -71,22 +71,13 @@
       </div>
     </div>
 
-    <!-- Panel Sync Google Merchant -->
+    <!-- Google Merchant: Google descarga los feeds solo, una vez al día -->
     <div class="bg-white dark:bg-white/5 rounded-[2rem] border border-slate-200 dark:border-white/10 p-6">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h3 class="text-[10px] font-[1000] uppercase text-ps-blue italic tracking-widest">Google Merchant Center</h3>
-          <p class="text-[9px] opacity-40 uppercase font-black mt-1">Empuja todos los productos a Google Shopping</p>
-        </div>
-        <button @click="lanzarMerchantSync" :disabled="merchantCargando" class="btn-sync">
-          {{ merchantCargando ? '⏳ ENVIANDO...' : '🛍️ SYNC GOOGLE MERCHANT' }}
-        </button>
-      </div>
-      <div v-if="merchantResultado" class="mt-4 bg-green-500/10 border border-green-500/20 rounded-2xl p-4">
-        <p class="text-[10px] font-[1000] uppercase text-green-500">✅ Sincronización iniciada — Google actualizará el catálogo en minutos</p>
-      </div>
-      <div v-if="merchantError" class="mt-4 bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
-        <p class="text-[10px] font-[1000] uppercase text-red-500">⚠️ {{ merchantError }}</p>
+      <h3 class="text-[10px] font-[1000] uppercase text-ps-blue italic tracking-widest">Google Merchant Center</h3>
+      <p class="text-[9px] opacity-40 uppercase font-black mt-1">Google descarga el catálogo y el inventario solo, una vez al día. Los cambios se ven al día siguiente.</p>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <a href="https://api.petstationvet.com/feed/productos" target="_blank" rel="noopener" class="btn-sync">🛍️ Ver feed de productos</a>
+        <a href="https://api.petstationvet.com/feed/inventario-local" target="_blank" rel="noopener" class="btn-sync">🏪 Ver inventario local</a>
       </div>
     </div>
 
@@ -328,23 +319,6 @@ const parsedSinMatchSkus = computed(() => {
   try { return JSON.parse(detalleSync.value?.sinMatchSkus || '[]'); } catch { return []; }
 });
 
-const merchantCargando = ref(false);
-const merchantResultado = ref(false);
-const merchantError = ref(null);
-
-const lanzarMerchantSync = async () => {
-  merchantCargando.value = true;
-  merchantResultado.value = false;
-  merchantError.value = null;
-  try {
-    await api.post('/admin/merchant/sync-todo');
-    merchantResultado.value = true;
-  } catch (e) {
-    merchantError.value = 'Error al conectar con Google Merchant. Verifica que las credenciales estén configuradas en el servidor.';
-  } finally {
-    merchantCargando.value = false;
-  }
-};
 
 const cargarHistorial = async () => {
   try {
