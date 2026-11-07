@@ -519,6 +519,8 @@ onMounted(async () => {
 
   darkMode.value = localStorage.getItem('ps_theme') === 'dark';
   document.documentElement.classList.toggle('dark', darkMode.value);
+  // El panel admin no tiene la barra de la tienda: cambia el tema con este evento
+  window.addEventListener('ps-theme', toggleTheme);
 
   const params = new URLSearchParams(window.location.search);
   if (params.get('sesion_expirada')) {

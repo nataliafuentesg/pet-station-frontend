@@ -1,5 +1,12 @@
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import {
+    LayoutDashboard, ShoppingBag, CalendarDays, Pill, Package, PawPrint, Contact, Users, BellRing,
+    MessagesSquare, Radar, Megaphone, ChartColumn, Stethoscope, Timer, FilePen, Activity, KeyRound,
+    ShieldCheck, MessageCircle, Send, Instagram, PanelLeftClose, PanelLeftOpen, Menu, X, LogOut,
+    Search, Bell, BellOff, Sun, Moon
+} from 'lucide-vue-next';
 import api from '@/api/axios';
 import AdminStats from './AdminStats.vue';
 import AdminOrders from './AdminOrders.vue';
@@ -33,9 +40,12 @@ const activarNotificaciones = async () => {
   activandoNotif.value = false;
 };
 
-const currentTab = ref('stats');
+const route = useRoute();
+const router = useRouter();
+// Vacía hasta saber qué pestañas tiene este administrador, para no mostrar Resumen de paso
+const currentTab = ref('');
 const searchQuery = ref('');
-const loading = ref(false);
+const loading = ref(true);
 
 const data = reactive({
     stats: { totalCitasHistorico: 0, ventasTotales: 0, totalPedidos: 0, ticketPromedio: 0, agendaFutura: [] },
@@ -48,27 +58,37 @@ const data = reactive({
     leads: null
 });
 
-// Definimos los tabs con íconos para que se vean bien en el celular
+// Pestañas agrupadas para que la barra lateral se lea por temas
 const todasLasTabs = [
-    { id: 'stats', label: 'Resumen', icon: '📊' },
-    { id: 'pedidos', label: 'Ventas', icon: '🛍️' },
-    { id: 'formulas', label: 'Fórmulas', icon: '🧾' },
-    { id: 'mascotas', label: 'Pacientes', icon: '🐾' },
-    { id: 'citas', label: 'Agenda', icon: '📅' },
-    { id: 'usuarios', label: 'Usuarios', icon: '👥' },
-    { id: 'clientes', label: 'Base Clientes', icon: '🗂️' },
-    { id: 'inventario', label: 'Inventario', icon: '📦' },
-    { id: 'recordatorios', label: 'Recordatorios', icon: '🔔' },
-    { id: 'leads', label: 'Leads', icon: '📡' },
-    { id: 'marketing', label: 'Marketing', icon: '📣' },
-    { id: 'veterinarios', label: 'Veterinarios', icon: '👨‍⚕️' },
-    { id: 'jornada', label: 'Productividad', icon: '⏱️' },
-    { id: 'wa-analytics', label: 'WA Analytics', icon: '📲' },
-    { id: 'formularios', label: 'Formularios', icon: '📝' },
-    { id: 'health', label: 'Sistema', icon: '🖥️' },
-    { id: 'chat-web', label: 'Chat Web', icon: '💬' },
-    { id: 'accesos', label: 'Accesos', icon: '🔐' },
-    { id: 'sesiones', label: 'Sesiones', icon: '🛡️' }
+    { id: 'stats', label: 'Resumen', icon: LayoutDashboard, grupo: 'Día a día' },
+    { id: 'pedidos', label: 'Ventas', icon: ShoppingBag, grupo: 'Día a día' },
+    { id: 'citas', label: 'Agenda', icon: CalendarDays, grupo: 'Día a día' },
+    { id: 'formulas', label: 'Fórmulas', icon: Pill, grupo: 'Día a día' },
+    { id: 'inventario', label: 'Inventario', icon: Package, grupo: 'Día a día' },
+    { id: 'mascotas', label: 'Pacientes', icon: PawPrint, grupo: 'Clientes' },
+    { id: 'clientes', label: 'Base Clientes', icon: Contact, grupo: 'Clientes' },
+    { id: 'usuarios', label: 'Usuarios', icon: Users, grupo: 'Clientes' },
+    { id: 'recordatorios', label: 'Recordatorios', icon: BellRing, grupo: 'Clientes' },
+    { id: 'chat-web', label: 'Chat Web', icon: MessagesSquare, grupo: 'Clientes' },
+    { id: 'leads', label: 'Leads', icon: Radar, grupo: 'Crecimiento' },
+    { id: 'marketing', label: 'Marketing', icon: Megaphone, grupo: 'Crecimiento' },
+    { id: 'wa-analytics', label: 'WA Analytics', icon: ChartColumn, grupo: 'Crecimiento' },
+    { id: 'veterinarios', label: 'Veterinarios', icon: Stethoscope, grupo: 'Equipo' },
+    { id: 'jornada', label: 'Productividad', icon: Timer, grupo: 'Equipo' },
+    { id: 'formularios', label: 'Formularios', icon: FilePen, grupo: 'Equipo' },
+    { id: 'health', label: 'Sistema', icon: Activity, grupo: 'Sistema' },
+    { id: 'accesos', label: 'Accesos', icon: KeyRound, grupo: 'Sistema' },
+    { id: 'sesiones', label: 'Sesiones', icon: ShieldCheck, grupo: 'Sistema' }
+];
+
+// Pestañas que usan el buscador de arriba; en las demás no se muestra
+const TABS_CON_BUSCADOR = ['pedidos', 'citas'];
+
+// WhatsApp e Instagram son páginas aparte que solo abre el admin completo
+const enlacesSociales = [
+    { to: '/admin/whatsapp', label: 'WhatsApp', icon: MessageCircle },
+    { to: '/admin/instagram/dms', label: 'Instagram DMs', icon: Send },
+    { to: '/admin/instagram', label: 'Instagram Auto-DM', icon: Instagram }
 ];
 
 // Un administrador limitado solo ve las pestañas que se le asignaron; "Accesos" y "Sesiones" son solo del admin completo
@@ -87,14 +107,61 @@ async function iniciarPanel() {
         // Servidor sin esta función todavía: solo existen admins completos
         accesos.value = { completo: true, secciones: todasLasTabs.map(t => t.id) };
     }
-    if (tabs.value.some(t => t.id === currentTab.value)) fetchData();
-    else currentTab.value = tabs.value[0]?.id || '';
+    // Vuelve a la pestaña de la URL o la última abierta, si este administrador la tiene
+    const guardada = route.query.tab || leerGuardado(CLAVE_TAB);
+    const inicial = tabs.value.some(t => t.id === guardada) ? guardada : (tabs.value[0]?.id || '');
+    currentTab.value = inicial;
+    if (!inicial) loading.value = false;
 }
 
-const tabTitle = computed(() => {
-    const t = tabs.value.find(x => x.id === currentTab.value);
-    return t ? t.label : 'Panel de Control';
+const tabActual = computed(() => tabs.value.find(x => x.id === currentTab.value));
+const tabTitle = computed(() => tabActual.value?.label || 'Panel de Control');
+
+const gruposTabs = computed(() => {
+    const grupos = [];
+    for (const t of tabs.value) {
+        let g = grupos.find(x => x.nombre === t.grupo);
+        if (!g) grupos.push(g = { nombre: t.grupo, tabs: [] });
+        g.tabs.push(t);
+    }
+    return grupos;
 });
+
+const CLAVE_TAB = 'ps_admin_tab';
+const CLAVE_BARRA = 'ps_admin_barra_colapsada';
+const leerGuardado = (clave) => { try { return localStorage.getItem(clave); } catch { return null; } };
+const guardar = (clave, valor) => { try { localStorage.setItem(clave, valor); } catch { /* navegador sin almacenamiento */ } };
+
+function recordarTab(id) {
+    if (!id) return;
+    guardar(CLAVE_TAB, id);
+    if (route.query.tab !== id) router.replace({ query: { ...route.query, tab: id } });
+}
+
+// Barra lateral: en PC se puede dejar solo con íconos; en celular es un menú que se abre y se cierra
+const barraColapsada = ref(leerGuardado(CLAVE_BARRA) === '1');
+const menuMovilAbierto = ref(false);
+const alternarBarra = () => {
+    barraColapsada.value = !barraColapsada.value;
+    guardar(CLAVE_BARRA, barraColapsada.value ? '1' : '0');
+};
+const elegirTab = (id) => {
+    currentTab.value = id;
+    menuMovilAbierto.value = false;
+};
+watch(menuMovilAbierto, (abierto) => { document.body.style.overflow = abierto ? 'hidden' : ''; });
+const cerrarConEscape = (e) => { if (e.key === 'Escape') menuMovilAbierto.value = false; };
+onMounted(() => window.addEventListener('keydown', cerrarConEscape));
+onBeforeUnmount(() => {
+    window.removeEventListener('keydown', cerrarConEscape);
+    document.body.style.overflow = '';
+});
+
+const modoOscuro = ref(document.documentElement.classList.contains('dark'));
+const alternarTema = () => {
+    window.dispatchEvent(new Event('ps-theme'));
+    modoOscuro.value = document.documentElement.classList.contains('dark');
+};
 
 const fetchData = async () => {
     loading.value = true;
@@ -132,7 +199,7 @@ const fetchData = async () => {
     } finally { loading.value = false; }
 };
 
-watch(currentTab, fetchData);
+watch(currentTab, (id) => { recordarTab(id); fetchData(); });
 onMounted(iniciarPanel);
 
 // Con el panel abierto FCM no muestra nada por sí solo: el mensaje llega aquí y hay que mostrarlo
@@ -148,11 +215,6 @@ onMounted(() => {
   } catch { /* navegador sin soporte de push */ }
 });
 
-const tabClass = (active) => [
-    'flex items-center gap-3 px-4 py-4 rounded-2xl text-left text-[10px] font-black uppercase tracking-widest transition-all duration-300 w-full',
-    active ? 'bg-ps-red text-white shadow-xl shadow-ps-red/20 translate-x-2 italic' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-ps-blue'
-];
-
 // LÓGICA DE LOGOUT DIRECTA (Sin depender de App.vue)
 const doLogout = async () => {
     // Ese token deja de servir en el servidor, no solo en este navegador
@@ -166,136 +228,206 @@ const doLogout = async () => {
 </script>
 
 <template>
-    <div class="flex flex-col lg:flex-row min-h-screen bg-slate-50 dark:bg-[#080808] text-slate-900 dark:text-white">
-        
-        <header class="lg:hidden flex flex-col bg-white dark:bg-[#050505] border-b border-slate-200 dark:border-white/10 sticky top-0 z-[100] shadow-sm">
-            <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-white/5">
-                <div class="text-xl font-[1000] uppercase italic tracking-tighter">
-                    <span class="text-ps-red">PS</span> <span class="text-ps-blue dark:text-white">ADMIN</span>
+    <div class="flex min-h-screen bg-slate-50 dark:bg-[#080808] text-slate-900 dark:text-white">
+
+        <!-- Celular: fondo oscuro detrás del menú abierto -->
+        <Transition name="velo">
+            <div v-if="menuMovilAbierto" class="lg:hidden fixed inset-0 z-[110] bg-black/40 backdrop-blur-[2px]" @click="menuMovilAbierto = false"></div>
+        </Transition>
+
+        <aside
+            :class="[
+                'fixed lg:sticky top-0 left-0 z-[120] lg:z-40 h-[100dvh] lg:h-screen shrink-0 flex flex-col',
+                'bg-white dark:bg-[#050505] border-r border-slate-200/80 dark:border-white/[0.06]',
+                'transition-[transform,width] duration-200 ease-out w-64',
+                menuMovilAbierto ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0',
+                barraColapsada ? 'lg:w-[72px]' : 'lg:w-60'
+            ]"
+            aria-label="Menú del panel">
+
+            <div :class="['flex items-center h-16 px-4 shrink-0', barraColapsada ? 'lg:justify-center lg:px-0' : 'justify-between']">
+                <div class="text-lg font-[1000] uppercase italic tracking-tighter whitespace-nowrap">
+                    <span class="text-ps-red">PS</span><span :class="['text-ps-blue dark:text-white', barraColapsada ? 'lg:hidden' : '']"> ADMIN</span>
                 </div>
-                <button @click="doLogout" class="text-[9px] font-black uppercase tracking-widest text-[#DE1F27] bg-[#DE1F27]/10 px-4 py-2 rounded-xl flex items-center gap-1 active:scale-95 transition-all">
-                    <span>🚪</span> Salir
+                <button @click="menuMovilAbierto = false" class="lg:hidden icon-btn" aria-label="Cerrar menú">
+                    <X :size="18" />
                 </button>
             </div>
-            
-            <nav class="flex gap-2 overflow-x-auto custom-scrollbar p-3">
-                <button v-for="t in tabs" :key="t.id" @click="currentTab = t.id"
-                    class="px-4 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest whitespace-nowrap flex items-center gap-2 transition-all"
-                    :class="currentTab === t.id ? 'bg-[#152C77] text-white shadow-lg shadow-[#152C77]/20 italic' : 'bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-[#152C77]'">
-                    <span class="text-sm">{{ t.icon }}</span> {{ t.label }}
-                </button>
-            </nav>
-        </header>
 
-        <aside class="w-64 border-r border-slate-200 dark:border-white/10 p-6 flex flex-col gap-8 hidden lg:flex bg-white dark:bg-[#050505] shrink-0 sticky top-0 h-screen z-40">
-            <div class="text-3xl font-[1000] uppercase italic tracking-tighter pt-4">
-                <span class="text-ps-red">PS</span> <span class="text-ps-blue dark:text-white">ADMIN</span>
-            </div>
-            
-            <nav class="flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-2">
-                <button v-for="t in tabs" :key="t.id" @click="currentTab = t.id" :class="tabClass(currentTab === t.id)">
-                    <span class="text-lg w-6 text-center">{{ t.icon }}</span> 
-                    <span>{{ t.label }}</span>
-                </button>
+            <nav class="flex-1 overflow-y-auto barra-scroll px-3 pb-4 space-y-5">
+                <div v-for="g in gruposTabs" :key="g.nombre">
+                    <p :class="['grupo-titulo', barraColapsada ? 'lg:hidden' : '']">{{ g.nombre }}</p>
+                    <div v-if="barraColapsada" class="hidden lg:block h-px mx-3 mb-2 bg-slate-100 dark:bg-white/5"></div>
+                    <button v-for="t in g.tabs" :key="t.id" @click="elegirTab(t.id)"
+                        :title="barraColapsada ? t.label : undefined"
+                        :aria-current="currentTab === t.id ? 'page' : undefined"
+                        :class="['nav-item', currentTab === t.id ? 'nav-item-activo' : '', barraColapsada ? 'lg:justify-center lg:px-0' : '']">
+                        <component :is="t.icon" :size="18" :stroke-width="1.75" class="shrink-0" />
+                        <span :class="['truncate', barraColapsada ? 'lg:hidden' : '']">{{ t.label }}</span>
+                    </button>
+                </div>
+
+                <div v-if="accesos?.completo">
+                    <p :class="['grupo-titulo', barraColapsada ? 'lg:hidden' : '']">Social</p>
+                    <div v-if="barraColapsada" class="hidden lg:block h-px mx-3 mb-2 bg-slate-100 dark:bg-white/5"></div>
+                    <router-link v-for="s in enlacesSociales" :key="s.to" :to="s.to"
+                        :title="barraColapsada ? s.label : undefined"
+                        :class="['nav-item', barraColapsada ? 'lg:justify-center lg:px-0' : '']">
+                        <component :is="s.icon" :size="18" :stroke-width="1.75" class="shrink-0" />
+                        <span :class="['truncate', barraColapsada ? 'lg:hidden' : '']">{{ s.label }}</span>
+                    </router-link>
+                </div>
             </nav>
 
-            <div class="mt-auto pt-6 border-t border-slate-100 dark:border-white/5 space-y-4">
-                <button @click="doLogout" class="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left text-[10px] font-black uppercase tracking-widest text-[#DE1F27] hover:bg-[#DE1F27]/10 transition-all duration-300">
-                    <span class="text-lg w-6 text-center">🚪</span> Salir de la Torre
+            <div class="shrink-0 border-t border-slate-100 dark:border-white/5 p-3 space-y-0.5">
+                <button @click="alternarTema" :title="barraColapsada ? (modoOscuro ? 'Modo claro' : 'Modo oscuro') : undefined"
+                    :class="['nav-item', barraColapsada ? 'lg:justify-center lg:px-0' : '']">
+                    <component :is="modoOscuro ? Sun : Moon" :size="18" :stroke-width="1.75" class="shrink-0" />
+                    <span :class="barraColapsada ? 'lg:hidden' : ''">{{ modoOscuro ? 'Modo claro' : 'Modo oscuro' }}</span>
                 </button>
-                <p class="text-[8px] font-black opacity-30 uppercase tracking-[0.3em] px-4">PetStation v2.0</p>
+                <button @click="alternarBarra" :title="barraColapsada ? 'Expandir menú' : undefined"
+                    :class="['nav-item hidden lg:flex', barraColapsada ? 'lg:justify-center lg:px-0' : '']">
+                    <component :is="barraColapsada ? PanelLeftOpen : PanelLeftClose" :size="18" :stroke-width="1.75" class="shrink-0" />
+                    <span :class="barraColapsada ? 'lg:hidden' : ''">Contraer menú</span>
+                </button>
+                <button @click="doLogout" :title="barraColapsada ? 'Salir' : undefined"
+                    :class="['nav-item text-ps-red! hover:bg-ps-red/10!', barraColapsada ? 'lg:justify-center lg:px-0' : '']">
+                    <LogOut :size="18" :stroke-width="1.75" class="shrink-0" />
+                    <span :class="barraColapsada ? 'lg:hidden' : ''">Salir</span>
+                </button>
             </div>
         </aside>
 
-        <main class="flex-1 p-4 md:p-12 pb-32 w-full overflow-x-hidden">
-            <header class="mb-10 flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
-                <div>
-                    <h1 class="text-4xl md:text-5xl font-[1000] uppercase italic leading-none text-[#152C77] dark:text-white">{{ tabTitle }}</h1>
-                    <p class="text-xs font-bold opacity-50 uppercase tracking-widest mt-2 text-[#DE1F27]">Torre de control PetStation</p>
-                </div>
-                <div class="flex gap-3 items-center w-full lg:w-auto">
-                    <button @click="activarNotificaciones" :disabled="notifActivas || activandoNotif"
-                        :class="[
-                            'px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all',
-                            notifActivas
-                                ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400 cursor-default'
-                                : 'bg-[#152C77] text-white hover:bg-[#DE1F27] active:scale-95'
-                        ]">
-                        {{ notifActivas ? '🔔 Notificaciones activas' : activandoNotif ? '...' : '🔔 Activar notificaciones' }}
-                    </button>
-                    <div class="relative w-full lg:w-80">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 opacity-50">🔍</span>
-                        <input v-model="searchQuery" placeholder="BUSCAR..." class="admin-input-header" />
-                    </div>
-                </div>
+        <div class="flex-1 min-w-0 flex flex-col">
+            <!-- Celular: barra superior con el botón del menú -->
+            <header class="lg:hidden sticky top-0 z-[100] flex items-center gap-3 h-14 px-3 bg-white/90 dark:bg-[#050505]/90 backdrop-blur border-b border-slate-200/80 dark:border-white/[0.06]">
+                <button @click="menuMovilAbierto = true" class="icon-btn" aria-label="Abrir menú">
+                    <Menu :size="20" />
+                </button>
+                <p class="flex-1 min-w-0 truncate text-sm font-bold text-ps-blue dark:text-white">{{ tabTitle }}</p>
+                <span class="text-sm font-[1000] uppercase italic tracking-tighter"><span class="text-ps-red">PS</span></span>
             </header>
 
-            <div v-if="loading" class="text-center py-32">
-                <div class="w-10 h-10 border-4 border-[#DE1F27] border-t-transparent rounded-full animate-spin mx-auto mb-6 shadow-xl"></div>
-                <p class="font-black uppercase text-[10px] tracking-widest text-[#152C77] dark:text-white animate-pulse italic">Sincronizando Base de Datos...</p>
-            </div>
-
-            <template v-else>
-                <Transition name="fade" mode="out-in">
-                    <div :key="currentTab">
-                        <AdminStats v-if="currentTab === 'stats'" :stats="data.stats" />
-                        <AdminOrders v-if="currentTab === 'pedidos'" :orders="data.pedidos" :productos="data.productos" :searchQuery="searchQuery" @refresh="fetchData" />
-                        <AdminPets v-if="currentTab === 'mascotas'" :mascotas="data.mascotas" :searchQuery="searchQuery" />
-                        <AdminCitas v-if="currentTab === 'citas'" :citas="data.citas" :searchQuery="searchQuery" />
-                        <AdminUsers v-if="currentTab === 'usuarios'" :usuarios="data.usuarios" :searchQuery="searchQuery" />
-                        <AdminInventory v-if="currentTab === 'inventario'" :productos="data.productos" :searchQuery="searchQuery" @refresh="fetchData" />
-                        <AdminFormulas v-if="currentTab === 'formulas'" :formulas="data.formulas" @refresh="fetchData" />
-                        <AdminClientes v-if="currentTab === 'clientes'" />
-                        <AdminRecordatorios v-if="currentTab === 'recordatorios'" />
-                        <AdminLeads v-if="currentTab === 'leads'" :data="data.leads" />
-                        <AdminMarketing v-if="currentTab === 'marketing'" />
-                        <AdminVeterinarios v-if="currentTab === 'veterinarios'" />
-                        <AdminWaAnalytics v-if="currentTab === 'wa-analytics'" />
-                        <AdminJornada v-if="currentTab === 'jornada'" :solo-lectura="!accesos?.completo" />
-                        <AdminFormularios v-if="currentTab === 'formularios'" />
-                        <AdminHealth v-if="currentTab === 'health'" />
-                        <AdminChatWeb v-if="currentTab === 'chat-web'" />
-                        <AdminAccesos v-if="currentTab === 'accesos'" />
-                        <AdminSesiones v-if="currentTab === 'sesiones'" />
+            <main class="flex-1 w-full p-4 md:p-8 pb-24 overflow-x-hidden">
+                <header class="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="hidden lg:block">
+                        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">{{ tabActual?.grupo || 'Panel' }}</p>
+                        <h1 class="text-2xl font-extrabold tracking-tight text-ps-blue dark:text-white">{{ tabTitle }}</h1>
                     </div>
-                </Transition>
-            </template>
-        </main>
+                    <div class="flex gap-2 items-center w-full sm:w-auto sm:ml-auto">
+                        <div v-if="TABS_CON_BUSCADOR.includes(currentTab)" class="relative flex-1 sm:w-72">
+                            <Search :size="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input v-model="searchQuery" placeholder="Buscar…" class="admin-input-header" />
+                        </div>
+                        <button @click="activarNotificaciones" :disabled="notifActivas || activandoNotif"
+                            :title="notifActivas ? 'Notificaciones activas' : 'Activar notificaciones'"
+                            :class="['shrink-0 h-10 flex items-center gap-2 px-3 rounded-xl text-xs font-semibold border transition-colors',
+                                notifActivas
+                                    ? 'border-transparent text-emerald-600 dark:text-emerald-400 cursor-default'
+                                    : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-ps-blue dark:text-white hover:border-ps-blue dark:hover:border-white/30']">
+                            <component :is="notifActivas ? Bell : BellOff" :size="16" />
+                            <span :class="notifActivas ? 'hidden md:inline' : ''">{{ notifActivas ? 'Avisos activos' : activandoNotif ? 'Activando…' : 'Activar avisos' }}</span>
+                        </button>
+                    </div>
+                </header>
+
+                <div v-if="loading" class="text-center py-32">
+                    <div class="w-8 h-8 border-[3px] border-ps-red border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p class="text-xs font-medium text-slate-400 dark:text-white/40">Cargando…</p>
+                </div>
+
+                <template v-else>
+                    <Transition name="fade" mode="out-in">
+                        <div :key="currentTab">
+                            <AdminStats v-if="currentTab === 'stats'" :stats="data.stats" />
+                            <AdminOrders v-if="currentTab === 'pedidos'" :orders="data.pedidos" :productos="data.productos" :searchQuery="searchQuery" @refresh="fetchData" />
+                            <AdminPets v-if="currentTab === 'mascotas'" :mascotas="data.mascotas" :searchQuery="searchQuery" />
+                            <AdminCitas v-if="currentTab === 'citas'" :citas="data.citas" :searchQuery="searchQuery" />
+                            <AdminUsers v-if="currentTab === 'usuarios'" :usuarios="data.usuarios" :searchQuery="searchQuery" />
+                            <AdminInventory v-if="currentTab === 'inventario'" :productos="data.productos" :searchQuery="searchQuery" @refresh="fetchData" />
+                            <AdminFormulas v-if="currentTab === 'formulas'" :formulas="data.formulas" @refresh="fetchData" />
+                            <AdminClientes v-if="currentTab === 'clientes'" />
+                            <AdminRecordatorios v-if="currentTab === 'recordatorios'" />
+                            <AdminLeads v-if="currentTab === 'leads'" :data="data.leads" />
+                            <AdminMarketing v-if="currentTab === 'marketing'" />
+                            <AdminVeterinarios v-if="currentTab === 'veterinarios'" />
+                            <AdminWaAnalytics v-if="currentTab === 'wa-analytics'" />
+                            <AdminJornada v-if="currentTab === 'jornada'" :solo-lectura="!accesos?.completo" />
+                            <AdminFormularios v-if="currentTab === 'formularios'" />
+                            <AdminHealth v-if="currentTab === 'health'" />
+                            <AdminChatWeb v-if="currentTab === 'chat-web'" />
+                            <AdminAccesos v-if="currentTab === 'accesos'" />
+                            <AdminSesiones v-if="currentTab === 'sesiones'" />
+                        </div>
+                    </Transition>
+                </template>
+            </main>
+        </div>
     </div>
 </template>
 
 <style scoped>
 @reference "../../../style.css";
 
-/* Evita que el scroll del main afecte al sidebar en PC */
-aside {
-    z-index: 40;
+/* En una capa para que las utilidades (hidden, lg:hidden…) puedan ganarles */
+@layer components {
+    .grupo-titulo {
+        @apply px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/30;
+    }
+
+    .nav-item {
+        @apply relative w-full flex items-center gap-3 px-3 h-10 lg:h-9 rounded-lg whitespace-nowrap overflow-hidden text-[13px] font-medium text-left
+            text-slate-600 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-ps-blue dark:hover:text-white transition-colors;
+    }
+
+    .nav-item-activo {
+        @apply bg-ps-blue/[0.07] text-ps-blue font-semibold dark:bg-white/10 dark:text-white;
+    }
+
+    .nav-item-activo::before {
+        content: '';
+        @apply absolute -left-3 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-ps-red;
+    }
+
+    .icon-btn {
+        @apply w-9 h-9 flex items-center justify-center rounded-lg text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors;
+    }
+
+    .admin-input-header {
+        @apply w-full h-10 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 pl-9 pr-3 rounded-xl text-sm
+            placeholder:text-slate-400 focus:border-ps-blue dark:focus:border-white/40 outline-none transition-colors;
+    }
 }
 
-.admin-input-header {
-    @apply w-full bg-white dark:bg-[#050505] border-2 border-slate-200 dark:border-white/10 p-4 pl-12 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:border-[#152C77] dark:focus:border-white outline-none transition-all shadow-sm;
-}
-
-/* Scrollbar sutil y elegante */
-.custom-scrollbar::-webkit-scrollbar {
+/* Scrollbar sutil */
+.barra-scroll::-webkit-scrollbar {
     height: 4px;
     width: 4px;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
+.barra-scroll::-webkit-scrollbar-track {
     background: transparent;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-[#DE1F27]/30 rounded-full;
+.barra-scroll::-webkit-scrollbar-thumb {
+    @apply bg-slate-300/60 dark:bg-white/10 rounded-full;
 }
 
 /* Animación sutil al cambiar de pestaña */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(6px);
+}
+
+.velo-enter-active,
+.velo-leave-active {
+  transition: opacity 0.2s ease;
+}
+.velo-enter-from,
+.velo-leave-to {
+  opacity: 0;
 }
 </style>

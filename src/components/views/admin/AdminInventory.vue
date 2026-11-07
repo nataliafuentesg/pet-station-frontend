@@ -10,13 +10,13 @@
                 </div>
             </div>
         </div>
-        <div class="flex gap-3">
+        <div class="flex flex-wrap gap-3 w-full md:w-auto">
           <button @click="exportarCSV" class="btn-export">⬇ DESCARGAR CSV</button>
           <button @click="abrirModal()" class="btn-add">+ REGISTRAR NUEVO SKU</button>
         </div>
     </div>
 
-    <div class="bg-white dark:bg-[#080808] rounded-[2.5rem] border border-slate-200 dark:border-white/10 overflow-hidden shadow-xl">
+    <div class="bg-white dark:bg-[#080808] rounded-[2.5rem] border border-slate-200 dark:border-white/10 overflow-x-auto shadow-xl">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-slate-50 dark:bg-white/5 text-[9px] font-[1000] uppercase tracking-tighter opacity-50">
