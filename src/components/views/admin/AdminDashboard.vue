@@ -309,37 +309,38 @@ const doLogout = async () => {
 
         <!-- La barra es fija (el contenedor de App.vue no deja usar sticky): se le deja su espacio -->
         <div :class="['flex-1 min-w-0 flex flex-col transition-[padding] duration-200 ease-out', barraColapsada ? 'lg:pl-[72px]' : 'lg:pl-60']">
-            <!-- Celular: barra superior con el botón del menú -->
-            <header class="lg:hidden sticky top-0 z-[100] flex items-center gap-3 h-14 px-3 bg-white/90 dark:bg-[#050505]/90 backdrop-blur border-b border-slate-200/80 dark:border-white/[0.06]">
-                <button @click="menuMovilAbierto = true" class="icon-btn" aria-label="Abrir menú">
+            <!-- Barra superior fija (sticky tampoco funciona aquí): título, buscador y avisos -->
+            <header :class="['fixed top-0 right-0 left-0 z-[100] flex items-center gap-3 h-14 lg:h-16 px-3 md:px-8',
+                    'bg-white/90 dark:bg-[#050505]/90 backdrop-blur border-b border-slate-200/80 dark:border-white/[0.06]',
+                    'transition-[left] duration-200 ease-out', barraColapsada ? 'lg:left-[72px]' : 'lg:left-60']">
+                <button @click="menuMovilAbierto = true" class="lg:hidden icon-btn" aria-label="Abrir menú">
                     <Menu :size="20" />
                 </button>
-                <p class="flex-1 min-w-0 truncate text-sm font-bold text-ps-blue dark:text-white">{{ tabTitle }}</p>
-                <span class="text-sm font-[1000] uppercase italic tracking-tighter"><span class="text-ps-red">PS</span></span>
+                <div class="flex-1 min-w-0">
+                    <p class="hidden lg:block text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">{{ tabActual?.grupo || 'Panel' }}</p>
+                    <h1 class="truncate text-sm lg:text-xl font-bold lg:font-extrabold tracking-tight text-ps-blue dark:text-white">{{ tabTitle }}</h1>
+                </div>
+                <div v-if="TABS_CON_BUSCADOR.includes(currentTab)" class="relative hidden sm:block w-72">
+                    <Search :size="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input v-model="searchQuery" placeholder="Buscar…" class="admin-input-header" />
+                </div>
+                <button @click="activarNotificaciones" :disabled="notifActivas || activandoNotif"
+                    :title="notifActivas ? 'Notificaciones activas' : 'Activar notificaciones'"
+                    :class="['shrink-0 h-9 lg:h-10 flex items-center gap-2 px-3 rounded-xl text-xs font-semibold border transition-colors',
+                        notifActivas
+                            ? 'border-transparent text-emerald-600 dark:text-emerald-400 cursor-default'
+                            : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-ps-blue dark:text-white hover:border-ps-blue dark:hover:border-white/30']">
+                    <component :is="notifActivas ? Bell : BellOff" :size="16" />
+                    <span class="hidden md:inline">{{ notifActivas ? 'Avisos activos' : activandoNotif ? 'Activando…' : 'Activar avisos' }}</span>
+                </button>
             </header>
 
-            <main class="flex-1 w-full p-4 md:p-8 pb-24 overflow-x-hidden">
-                <header class="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div class="hidden lg:block">
-                        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">{{ tabActual?.grupo || 'Panel' }}</p>
-                        <h1 class="text-2xl font-extrabold tracking-tight text-ps-blue dark:text-white">{{ tabTitle }}</h1>
-                    </div>
-                    <div class="flex gap-2 items-center w-full sm:w-auto sm:ml-auto">
-                        <div v-if="TABS_CON_BUSCADOR.includes(currentTab)" class="relative flex-1 sm:w-72">
-                            <Search :size="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input v-model="searchQuery" placeholder="Buscar…" class="admin-input-header" />
-                        </div>
-                        <button @click="activarNotificaciones" :disabled="notifActivas || activandoNotif"
-                            :title="notifActivas ? 'Notificaciones activas' : 'Activar notificaciones'"
-                            :class="['shrink-0 h-10 flex items-center gap-2 px-3 rounded-xl text-xs font-semibold border transition-colors',
-                                notifActivas
-                                    ? 'border-transparent text-emerald-600 dark:text-emerald-400 cursor-default'
-                                    : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-ps-blue dark:text-white hover:border-ps-blue dark:hover:border-white/30']">
-                            <component :is="notifActivas ? Bell : BellOff" :size="16" />
-                            <span :class="notifActivas ? 'hidden md:inline' : ''">{{ notifActivas ? 'Avisos activos' : activandoNotif ? 'Activando…' : 'Activar avisos' }}</span>
-                        </button>
-                    </div>
-                </header>
+            <main class="flex-1 w-full p-4 md:p-8 pt-[72px] md:pt-[88px] lg:pt-24 pb-24 overflow-x-hidden">
+                <!-- Celular: el buscador va debajo de la barra -->
+                <div v-if="TABS_CON_BUSCADOR.includes(currentTab)" class="relative sm:hidden mb-4">
+                    <Search :size="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input v-model="searchQuery" placeholder="Buscar…" class="admin-input-header" />
+                </div>
 
                 <div v-if="loading" class="text-center py-32">
                     <div class="w-8 h-8 border-[3px] border-ps-red border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
