@@ -1,0 +1,15 @@
+# Dependabot revisa las librerías una vez al mes y propone las actualizaciones en un solo PR.
+# Los arreglos de seguridad urgentes llegan aparte, apenas salen (se activan en GitHub:
+# Settings → Code security → Dependabot alerts y Dependabot security updates).
+# Ningún PR se publica solo: hay que revisarlo y aceptarlo.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    groups:
+      librerias:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
