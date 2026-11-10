@@ -36,7 +36,7 @@ api.interceptors.response.use(
         localStorage.removeItem('ps_session');
         localStorage.removeItem('ps_active_pet');
         // El portal de empleados se usa como app instalada: debe volver a su propio login.
-        // El panel también: su sesión dura 12 horas y al vencer debe pedir entrar de nuevo
+        // El panel también: su sesión se cierra tras 12 horas sin uso y al vencer debe pedir entrar de nuevo
         const ruta = window.location.pathname;
         window.location.href = ruta.startsWith('/equipo') ? '/equipo' : ruta.startsWith('/admin') ? '/acceso' : '/?sesion_expirada=true';
       }

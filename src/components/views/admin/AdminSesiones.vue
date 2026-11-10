@@ -13,7 +13,7 @@
     </div>
 
     <div class="bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-2xl px-5 py-4 text-[11px] font-bold text-[#152C77] dark:text-blue-200 space-y-1">
-      <p>Las sesiones del panel duran 12 horas. Las de Mi Jornada y la clínica duran 30 días.</p>
+      <p>Las sesiones del panel se cierran tras 12 horas sin usarlo (y como máximo a los 30 días). Las de Mi Jornada y la clínica duran 30 días.</p>
       <p>Las sesiones abiertas antes de esta actualización no salen en la lista. Para sacar a alguien que entró antes, usa «Cerrar todas» en su nombre.</p>
     </div>
 
