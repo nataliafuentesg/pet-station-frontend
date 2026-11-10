@@ -3,7 +3,9 @@ import { ref } from 'vue'
 
 defineProps({
   etiqueta: { type: String, required: true },
-  obligatorio: { type: Boolean, default: false }
+  obligatorio: { type: Boolean, default: false },
+  ayuda: { type: String, default: '' },
+  soloFotos: { type: Boolean, default: false }
 })
 // { dataUrl, nombre, esPdf } o null
 const archivo = defineModel({ default: null })
@@ -42,12 +44,16 @@ function leerPdf(file) {
   })
 }
 
-async function alElegir(e) {
+async function alElegir(e, soloFotos) {
   const file = e.target.files?.[0]
   e.target.value = ''
   if (!file) return
   error.value = ''
   const esPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+  if (esPdf && soloFotos) {
+    error.value = 'Aquí va una foto, no un PDF.'
+    return
+  }
   if (esPdf && file.size > MAX_PDF) {
     error.value = 'El PDF pesa demasiado (máximo 8 MB). Puedes tomarle una foto en su lugar.'
     return
@@ -68,6 +74,7 @@ async function alElegir(e) {
     <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
       {{ etiqueta }} <span v-if="obligatorio" class="text-red-500">*</span>
     </p>
+    <p v-if="ayuda" class="text-xs text-gray-400 mb-1.5">{{ ayuda }}</p>
     <div v-if="archivo" class="flex items-center gap-3 p-2 rounded-xl border border-gray-200 bg-gray-50">
       <img v-if="!archivo.esPdf" :src="archivo.dataUrl" alt="" class="w-14 h-14 object-cover rounded-lg shrink-0" />
       <span v-else class="w-14 h-14 rounded-lg bg-red-50 text-red-600 font-black text-xs flex items-center justify-center shrink-0">PDF</span>
@@ -76,8 +83,9 @@ async function alElegir(e) {
     </div>
     <label v-else :class="['flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed text-sm font-bold cursor-pointer',
       procesando ? 'border-gray-200 text-gray-400' : 'border-[#152C77]/30 text-[#152C77] bg-[#152C77]/5']">
-      <input type="file" accept="image/*,application/pdf" class="sr-only" :disabled="procesando" @change="alElegir" />
-      {{ procesando ? 'Cargando...' : '📷 Tomar foto o subir archivo' }}
+      <input type="file" :accept="soloFotos ? 'image/*' : 'image/*,application/pdf'" class="sr-only" :disabled="procesando"
+        @change="alElegir($event, soloFotos)" />
+      {{ procesando ? 'Cargando...' : soloFotos ? '📷 Tomar o subir foto' : '📷 Tomar foto o subir archivo' }}
     </label>
     <p v-if="error" class="text-xs text-red-500 mt-1">{{ error }}</p>
   </div>

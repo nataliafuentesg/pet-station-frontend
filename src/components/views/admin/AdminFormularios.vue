@@ -381,7 +381,11 @@ async function guardarRevision() {
             <p class="text-slate-600 dark:text-slate-300">{{ f.observaciones }}</p>
           </div>
 
-          <div v-if="f.carnetVacunasPath || f.formulaMedicaPath" class="flex gap-2">
+          <div v-if="f.carnetVacunasPath || f.formulaMedicaPath || f.fotoMascotaPath" class="flex flex-wrap gap-2">
+            <button v-if="f.fotoMascotaPath" @click.stop="verAdjunto(f, 'foto')"
+              class="flex-1 py-2 border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 font-black uppercase text-[9px] tracking-widest rounded-xl">
+              🐾 Foto
+            </button>
             <button v-if="f.carnetVacunasPath" @click.stop="verAdjunto(f, 'carnet')"
               class="flex-1 py-2 border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 font-black uppercase text-[9px] tracking-widest rounded-xl">
               💉 Carnet de vacunas

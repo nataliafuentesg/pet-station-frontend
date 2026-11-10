@@ -51,6 +51,7 @@ const cualesAlergias = ref('')
 // Las fotos no van en el borrador: pesan demasiado para guardarlas en el navegador
 const carnetVacunas = ref(null)
 const formulaMedica = ref(null)
+const fotoMascota = ref(null)
 const respondida = (si, cual) => si === false || (si === true && !!cual.trim())
 const medicamentosCompletos = computed(() =>
   medicamentos.value.every(m => m.nombre.trim() && m.horario.trim())
@@ -153,6 +154,7 @@ async function enviar() {
       firmaBase64: firmaBase64.value,
       carnetVacunas: form.checklist.vacunacion ? carnetVacunas.value?.dataUrl : null,
       formulaMedica: enTratamiento.value ? formulaMedica.value?.dataUrl : null,
+      fotoMascota: fotoMascota.value?.dataUrl || null,
       aceptaTerminos: terminos.value.aceptado,
       versionTerminos: terminos.value.version,
       emailConfirmado: tieneCorreo.value,
@@ -270,6 +272,10 @@ async function enviar() {
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Color</label>
               <input v-model="form.color" type="text"
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </div>
+            <div class="col-span-2">
+              <CampoArchivo v-model="fotoMascota" etiqueta="Foto de tu mascota" solo-fotos
+                ayuda="Para reconocerla cuando llegue. Que se le vea bien la cara." />
             </div>
           </div>
         </div>

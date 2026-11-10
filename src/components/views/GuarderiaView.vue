@@ -25,6 +25,11 @@
                 </div>
                 <h4 class="text-green-800 dark:text-green-400 font-[1000] uppercase italic text-lg mb-2">{{ m.t }}</h4>
                 <p class="text-[9px] md:text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase leading-tight mb-4">{{ m.d }}</p>
+                <p v-if="m.precio" class="mb-4 text-green-800 dark:text-green-300 font-[1000] uppercase italic leading-none">
+                  <span class="text-[9px] tracking-widest">Desde</span>
+                  <span class="text-2xl text-[#DE1F27] mx-1">{{ m.precio }}</span>
+                  <span class="text-[9px] tracking-widest">la noche</span>
+                </p>
                 <div class="flex flex-wrap gap-2">
                   <span v-for="tag in m.tags" :key="tag" class="text-[7px] font-black text-green-600 uppercase border border-green-200 px-2 py-0.5 rounded-md italic">
                     # {{ tag }}
@@ -108,7 +113,8 @@ onMounted(() => {
       name: 'Modalidades de Guardería',
       itemListElement: [
         { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Pasa Día Canino', description: 'Socialización y juego durante la jornada diurna. Ideal para perros que pasan solos el día.' } },
-        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Hotel Canino', description: 'Alojamiento seguro con monitoreo profesional nocturno y áreas de descanso.' } },
+        { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Hotel Canino', description: 'Alojamiento seguro con monitoreo profesional nocturno y áreas de descanso.' },
+          priceSpecification: { '@type': 'UnitPriceSpecification', price: 75000, priceCurrency: 'COP', unitText: 'noche', description: 'Desde $75.000 la noche' } },
       ]
     }
   });
@@ -129,6 +135,7 @@ const modalidades = [
   {
     t: "Hotel",
     d: "Alojamiento seguro con monitoreo nocturno y áreas de descanso.",
+    precio: "$75.000",
     icon: "🏨",
     tags: ["Pernoctación", "Confort", "24/7"]
   },
