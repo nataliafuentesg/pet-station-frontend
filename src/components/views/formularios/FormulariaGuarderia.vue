@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import api from '@/api/axios'
 import FirmaCanvas from './FirmaCanvas.vue'
 import InicioFormulario from './InicioFormulario.vue'
@@ -8,6 +8,7 @@ import PreguntaSiNo from './PreguntaSiNo.vue'
 import { aplicarDatosGuardados } from './datosGuardados'
 import TerminosFormulario from './TerminosFormulario.vue'
 import ConfirmarCorreo from './ConfirmarCorreo.vue'
+import { usarBorrador } from './borrador'
 
 const paso = ref(1) // 1: verificar, 2: datos, 3: firma, 4: éxito
 const enviando = ref(false)
@@ -63,6 +64,18 @@ const terminos = ref({ aceptado: false, version: '' })
 const radicado = ref('')
 const copiaEnviada = ref(false)
 const confirmandoCorreo = ref(false)
+const borrador = usarBorrador('GUARDERIA', paso, {
+  form, enTratamiento, cualTratamiento, tieneAlergias, cualesAlergias, tipoAlimentacion, horarioComida,
+  sesion, cedulaGuardada, correoVerificado, versionAceptada
+})
+const avisoBorrador = borrador.aviso
+// Al salir de la firma (botón Volver o atrás del celular) se firma y se aceptan los términos otra vez
+watch(paso, p => {
+  if (p !== 3) {
+    terminos.value = { aceptado: false, version: '' }
+    firmaBase64.value = ''
+  }
+})
 const tieneCorreo = computed(() => !!form.email?.trim())
 const correoValido = computed(() => !tieneCorreo.value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
 
@@ -88,7 +101,7 @@ function onTerminos(valor) {
 }
 
 function onIdentificado(datos) {
-  aplicarDatosGuardados(form, datos)
+  if (!borrador.retomar(datos.telefono)) aplicarDatosGuardados(form, datos)
   sesion.value = datos.sesion
   correoVerificado.value = datos.correoVerificado
   cedulaGuardada.value = datos.perfil?.cedulaOculta || ''
@@ -124,6 +137,8 @@ async function enviar() {
     copiaEnviada.value = data.copiaEnviada
     paso.value = 4
   } catch (e) {
+    // Venció el código (o se reinició el servidor): se pide otra vez sin perder lo llenado
+    if (e.response?.status === 403) return borrador.reverificar()
     error.value = e.response?.data?.error || 'Error al enviar el formulario'
   } finally {
     enviando.value = false
@@ -154,6 +169,8 @@ async function enviar() {
       </div>
 
       <!-- Paso 1: Verificar -->
+      <p v-if="avisoBorrador && paso <= 2" class="mb-5 p-3 rounded-xl bg-blue-50 text-sm text-[#152C77] text-center">{{ avisoBorrador }}</p>
+
       <InicioFormulario v-if="paso === 1" @listo="onIdentificado" />
 
       <!-- Paso 2: Datos -->
@@ -330,6 +347,11 @@ async function enviar() {
         <button @click="enviar" :disabled="enviando || !firmaBase64 || !terminos.aceptado"
           class="w-full py-4 bg-[#DE1F27] text-white font-black uppercase text-sm tracking-widest rounded-2xl disabled:opacity-40 active:scale-95 transition-transform">
           {{ enviando ? 'Enviando...' : 'Enviar formulario' }}
+        </button>
+
+        <button type="button" @click="borrador.volver()" :disabled="enviando"
+          class="w-full py-3 text-sm font-bold text-[#152C77] disabled:opacity-40">
+          ← Volver a mis datos
         </button>
       </div>
 
