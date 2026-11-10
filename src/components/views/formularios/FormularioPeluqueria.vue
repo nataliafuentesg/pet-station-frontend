@@ -23,7 +23,7 @@ const form = reactive({
   especie: '',
   raza: '',
   color: '',
-  edad: '',
+  fechaNacimiento: '',
   sexo: '',
   servicioSolicitado: '',
   instruccionesCorte: '',
@@ -31,6 +31,7 @@ const form = reactive({
   checklist: {
     vacunacion: null,
     braquicefala: null,
+    esterilizado: null,
     temperamento: '',
   }
 })
@@ -39,10 +40,11 @@ const tieneAlergias = ref(null)
 const cualesAlergias = ref('')
 const preguntasCompletas = computed(() => {
   const c = form.checklist
-  return c.vacunacion !== null && c.braquicefala !== null && !!c.temperamento &&
+  return c.vacunacion !== null && c.braquicefala !== null && c.esterilizado !== null && !!c.temperamento &&
     (tieneAlergias.value === false || (tieneAlergias.value === true && !!cualesAlergias.value.trim()))
 })
 
+const hoy = new Date().toLocaleDateString('en-CA') // yyyy-MM-dd local, para no aceptar fechas futuras
 const servicioOtro = ref('')
 const firmaBase64 = ref('')
 const sesion = ref('')
@@ -219,8 +221,8 @@ async function enviar() {
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
             <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Edad</label>
-              <input v-model="form.edad" type="text" placeholder="Ej: 2 años"
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Fecha de nacimiento</label>
+              <input v-model="form.fechaNacimiento" type="date" :max="hoy"
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
             <div>
@@ -260,7 +262,8 @@ async function enviar() {
               <input v-model="cualesAlergias" type="text" placeholder="¿Cuáles? *"
                 class="mt-2 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </PreguntaSiNo>
-            <PreguntaSiNo v-model="form.checklist.braquicefala" pregunta="¿Es raza braquicéfala (nariz achatada)?" />
+            <PreguntaSiNo v-model="form.checklist.braquicefala" pregunta="¿Es raza braquicéfala? (Ej: Pug, Bulldog francés, Bulldog inglés, Shih Tzu, Bóxer, Pekinés, Boston Terrier, gato Persa)" />
+            <PreguntaSiNo v-model="form.checklist.esterilizado" pregunta="¿Está castrado(a) o esterilizado(a)?" />
             <div>
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Temperamento *</label>
               <select v-model="form.checklist.temperamento" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]">

@@ -8,7 +8,7 @@ export function aplicarDatosGuardados(form, { telefono, correoVerificado, perfil
   }
   if (correoVerificado) form.email = correoVerificado
   if (mascota) {
-    for (const campo of ['nombreMascota', 'especie', 'raza', 'color', 'edad', 'sexo']) {
+    for (const campo of ['nombreMascota', 'especie', 'raza', 'color', 'edad', 'fechaNacimiento', 'sexo']) {
       form[campo] = mascota[campo] || ''
     }
   }
