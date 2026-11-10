@@ -20,17 +20,27 @@ onMounted(() => {
   if (!props.terminos) cargar()
 })
 
+// Sin límite de tiempo, si la respuesta se pierde en una red móvil inestable el celular
+// se queda en "Cargando términos..." para siempre: se corta a los 10 s y se reintenta solo
 async function cargar() {
   cargando.value = true
   fallo.value = false
-  try {
-    const { data } = await api.get(`/formularios/terminos/${props.tipo}`)
-    texto.value = data
-  } catch {
-    fallo.value = true
-  } finally {
-    cargando.value = false
+  for (let intento = 1; intento <= 3; intento++) {
+    const corte = new AbortController()
+    const reloj = setTimeout(() => corte.abort(), 10000)
+    try {
+      const { data } = await api.get(`/formularios/terminos/${props.tipo}`, { signal: corte.signal })
+      texto.value = data
+      cargando.value = false
+      return
+    } catch {
+      if (intento < 3) await new Promise(r => setTimeout(r, 1000))
+    } finally {
+      clearTimeout(reloj)
+    }
   }
+  fallo.value = true
+  cargando.value = false
 }
 
 function alCambiar() {
