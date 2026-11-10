@@ -274,8 +274,7 @@ async function enviar() {
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
             <div class="col-span-2">
-              <CampoArchivo v-model="fotoMascota" etiqueta="Foto de tu mascota" solo-fotos
-                ayuda="Para reconocerla cuando llegue. Que se le vea bien la cara." />
+              <CampoArchivo v-model="fotoMascota" etiqueta="Sube una foto de tu mascota" solo-fotos />
             </div>
           </div>
         </div>
@@ -418,6 +417,14 @@ async function enviar() {
         <p v-if="copiaEnviada" class="text-gray-500 text-sm max-w-xs mx-auto">
           Te enviamos una copia del documento firmado a {{ form.email }}.
         </p>
+        <div class="bg-orange-50 border border-orange-200 rounded-2xl p-4 max-w-xs mx-auto text-left">
+          <p class="text-xs font-black uppercase tracking-wide text-orange-700 mb-2">🐾 Para el día del ingreso</p>
+          <ul class="list-disc pl-5 space-y-1 text-sm text-gray-600">
+            <li>Trae la <b>comida para toda la estadía</b>, ojalá en porciones.</li>
+            <li>Si toma <b>medicamentos</b>, tráelos con su fórmula.</li>
+            <li>No recibimos <b>collares, camas ni cobijas</b>.</li>
+          </ul>
+        </div>
         <a href="https://wa.me/573053462413" target="_blank"
           class="inline-block mt-4 px-6 py-3 bg-green-500 text-white font-bold rounded-2xl text-sm">
           Contactar por WhatsApp
