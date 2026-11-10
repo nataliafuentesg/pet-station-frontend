@@ -307,7 +307,7 @@
     </main>
 
     <!-- Modal imagen -->
-    <div v-if="imagenModal" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center" @click="imagenModal = null">
+    <div v-if="imagenModal" class="fixed inset-0 bg-black/90 z-[9000] flex items-center justify-center" @click="imagenModal = null">
       <img :src="imagenModal" class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg" />
     </div>
 

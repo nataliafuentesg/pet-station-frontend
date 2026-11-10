@@ -438,7 +438,7 @@ async function guardarRevision() {
 
   <!-- Modal revisión de ingreso -->
   <Teleport to="body">
-    <div v-if="modalRevision" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div v-if="modalRevision" class="fixed inset-0 z-[9000] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="absolute inset-0 bg-black/50" @click="modalRevision = null"></div>
       <div class="relative bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
         <div class="p-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
@@ -529,7 +529,7 @@ async function guardarRevision() {
 
   <!-- Modal nuevo formato clínico -->
   <Teleport to="body">
-    <div v-if="modalNuevo" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div v-if="modalNuevo" class="fixed inset-0 z-[9000] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="absolute inset-0 bg-black/50" @click="modalNuevo = false"></div>
       <div class="relative bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
         <div class="p-5 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
@@ -583,7 +583,7 @@ async function guardarRevision() {
 
   <!-- Modal link generado: el link no se puede volver a ver, solo generar uno nuevo -->
   <Teleport to="body">
-    <div v-if="linkGenerado" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div v-if="linkGenerado" class="fixed inset-0 z-[9000] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="absolute inset-0 bg-black/50" @click="linkGenerado = null"></div>
       <div class="relative bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-2xl p-5 space-y-4 text-center">
         <button @click="linkGenerado = null" class="absolute right-5 top-5 text-slate-400 hover:text-slate-600 text-xl">✕</button>
@@ -609,7 +609,7 @@ async function guardarRevision() {
 
   <!-- Modal firma del veterinario -->
   <Teleport to="body">
-    <div v-if="modalVeterinario" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div v-if="modalVeterinario" class="fixed inset-0 z-[9000] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="absolute inset-0 bg-black/50" @click="modalVeterinario = null"></div>
       <div class="relative bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl p-5 space-y-3">
         <div class="flex items-center justify-between">

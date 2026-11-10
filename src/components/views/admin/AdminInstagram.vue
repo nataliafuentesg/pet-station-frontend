@@ -257,7 +257,7 @@ const esVideo = (p) => p.media_type === 'VIDEO' || p.media_type === 'REEL';
     <!-- Modal -->
     <Teleport to="body">
       <div v-if="modalAbierto"
-           class="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4"
+           class="fixed inset-0 z-[9000] flex items-end md:items-center justify-center p-4"
            style="background: rgba(0,0,0,0.75); backdrop-filter: blur(4px)"
            @click.self="cerrarModal">
         <div class="w-full max-w-lg rounded-2xl bg-[#111] border border-white/10 p-6 space-y-4 max-h-[90vh] overflow-y-auto">

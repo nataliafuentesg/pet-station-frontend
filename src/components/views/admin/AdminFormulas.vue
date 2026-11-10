@@ -1,7 +1,7 @@
 <template>
   <!-- Lightbox modal -->
   <div v-if="lightboxUrl" @click="lightboxUrl = null"
-    class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 cursor-zoom-out">
+    class="fixed inset-0 z-[9000] bg-black/90 flex items-center justify-center p-4 cursor-zoom-out">
     <img :src="lightboxUrl" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" @click.stop />
     <button @click="lightboxUrl = null"
       class="absolute top-4 right-4 text-white text-2xl font-black bg-white/10 hover:bg-white/20 rounded-full w-10 h-10 flex items-center justify-center transition-all">
