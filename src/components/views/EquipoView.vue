@@ -213,6 +213,17 @@
 
         <!-- Guardería: entrada y salida de perros -->
         <div v-if="guarderia" class="bg-white/5 rounded-[2rem] p-6 border border-white/10 space-y-4">
+          <template v-if="esperados.length">
+            <p class="text-[10px] font-black uppercase tracking-widest text-white/40">📋 Llegan hoy · {{ esperados.length }}</p>
+            <div v-for="f in esperados" :key="f.formularioId" class="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-3 space-y-3">
+              <FichaFormato :formato="f" />
+              <button @click="recibirConFormato(f)" :disabled="enviando"
+                class="w-full bg-blue-500 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
+                ✅ Llegó
+              </button>
+            </div>
+            <div class="border-t border-white/10"></div>
+          </template>
           <div class="flex items-center justify-between gap-3">
             <p class="text-[10px] font-black uppercase tracking-widest text-white/40">🐾 Mascotas adentro · {{ guarderia.adentro.length }}</p>
             <button @click="abrirRecepcion" :disabled="enviando"
@@ -223,14 +234,16 @@
           <p v-if="!guarderia.adentro.length" class="text-[12px] text-white/30">No hay mascotas registradas adentro.</p>
           <div v-for="p in guarderia.adentro" :key="p.id" class="flex items-center justify-between gap-3 bg-white/5 rounded-xl px-4 py-3 border"
             :class="p.comidaNoAlcanza || p.comidaPorAcabarse || p.salidaVencida ? 'border-red-500/50' : 'border-white/5'">
+            <FichaFormato v-if="p.formato" :formato="p.formato" miniatura />
             <button type="button" @click="abrirFicha(p)" class="min-w-0 text-left flex-1">
               <p class="text-[14px] font-bold truncate">
-                {{ p.especie === 'GATO' ? '🐈' : '🐕' }} {{ p.perro }}
+                <template v-if="!p.formato?.conFoto">{{ p.especie === 'GATO' ? '🐈' : '🐕' }} </template>{{ p.perro }}
                 <span class="ml-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full align-middle"
                   :class="{ HOTEL: 'bg-purple-500/20 text-purple-300', BANO: 'bg-cyan-500/20 text-cyan-300', DIA: 'bg-blue-500/20 text-blue-300' }[p.tipo]">
                   {{ { HOTEL: 'Hotel', BANO: 'Baño', DIA: 'Día' }[p.tipo] }}
                 </span>
               </p>
+              <p v-if="p.formato?.medicamentos || p.formato?.tratamiento" class="text-[10px] font-bold text-amber-300">💊 Toma medicamentos</p>
               <p class="text-[10px] text-white/30">Entró {{ desde(p.entrada) }}<span v-if="p.recibidoPor"> · {{ p.recibidoPor }}</span></p>
               <p v-if="p.salidaEsperada" class="text-[10px] font-bold" :class="p.salidaVencida ? 'text-red-300' : 'text-purple-300/80'">
                 {{ p.salidaVencida ? '⚠️ Debía salir el' : 'Sale el' }} {{ fechaCorta(p.salidaEsperada) }}
@@ -407,9 +420,10 @@
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="recepcion = null"></div>
         <div class="relative w-full max-w-sm max-h-[92vh] overflow-y-auto bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
           <p class="text-lg font-[1000] leading-tight">🐾 ¿Quién llegó?</p>
+          <FichaFormato v-if="recepcion.formato" :formato="recepcion.formato" completa />
           <input v-model="recepcion.perro" maxlength="100" placeholder="Nombre de la mascota" autocapitalize="words"
             class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-blue-500 placeholder:text-white/20" />
-          <div v-if="perrosSugeridos.length" class="flex flex-wrap gap-2">
+          <div v-if="perrosSugeridos.length && !recepcion.formato" class="flex flex-wrap gap-2">
             <button v-for="n in perrosSugeridos" :key="n" @click="recepcion.perro = n"
               class="text-[11px] font-bold bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-white/70 active:bg-white/20">
               {{ n }}
@@ -438,6 +452,7 @@
             <p class="text-lg font-[1000] leading-tight">✏️ Corregir datos</p>
             <button @click="ficha = null" class="w-8 h-8 flex items-center justify-center bg-white/10 rounded-lg text-white/50">✕</button>
           </div>
+          <FichaFormato v-if="ficha.formato" :formato="ficha.formato" completa />
           <input v-model="ficha.datos.perro" maxlength="100" placeholder="Nombre de la mascota"
             class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-base font-bold outline-none focus:border-blue-500" />
           <PerroDatosForm :model-value="ficha.datos" con-comida :dias-transcurridos="ficha.diasTranscurridos" :entrada="ficha.entrada" />
@@ -541,6 +556,7 @@ import { messaging, onMessage } from '@/firebase'
 import { obtenerTokenPush } from '@/composables/usePushNotifications'
 import { obtenerUbicacion, estadoPermisoUbicacion } from '@/composables/useUbicacion'
 import PerroDatosForm from './equipo/PerroDatosForm.vue'
+import FichaFormato from './equipo/FichaFormato.vue'
 import AvisoJornada from './equipo/AvisoJornada.vue'
 
 const ROLES_PERMITIDOS = ['ROLE_EMPLEADO', 'ROLE_VET', 'ROLE_ADMIN', 'ADMIN']
@@ -613,6 +629,7 @@ const diaCierre = computed(() => {
 })
 const yaTerminoHoy = computed(() => !!estado.value && !estado.value.sesion && 'jornadaTerminadaHoy' in estado.value)
 const guarderia = computed(() => estado.value?.guarderia || null)
+const esperados = computed(() => guarderia.value?.esperados || [])
 const necesitaConsentimiento = computed(() => estado.value?.consentimiento?.aceptado === false)
 const mostrarAviso = computed(() => necesitaConsentimiento.value || verAviso.value)
 const tareasRapidas = computed(() => estado.value?.tareasRapidas || [])
@@ -856,10 +873,24 @@ function abrirRecepcion() {
   recepcion.value = { perro: '', especie: 'PERRO', tipo: 'DIA', salidaEsperada: '' }
 }
 
+// El formato ya trae nombre, especie y fechas: solo se revisa y se confirma
+function recibirConFormato(f) {
+  error.value = ''
+  recepcion.value = {
+    perro: f.perro,
+    especie: f.especie,
+    tipo: f.tipo,
+    salidaEsperada: f.tipo === 'HOTEL' ? f.fechaSalida : '',
+    formularioId: f.formularioId,
+    formato: f,
+  }
+}
+
 function abrirFicha(p) {
   error.value = ''
   ficha.value = {
     id: p.id,
+    formato: p.formato || null,
     nombre: p.perro,
     entrada: p.entrada,
     diasTranscurridos: Math.max(0, (Date.now() - new Date(p.entrada)) / 86400000),
@@ -906,7 +937,8 @@ async function confirmarRecepcion() {
   if (!confirmaRegreso()) return
   if (pedirExplicacion(confirmarRecepcion)) return
   const anterior = tareaActual.value
-  if (await accion('/jornada/guarderia/recibir', { ...recepcion.value, explicacionHueco: explicacionHueco.value || undefined })) {
+  const { formato, ...datos } = recepcion.value
+  if (await accion('/jornada/guarderia/recibir', { ...datos, explicacionHueco: explicacionHueco.value || undefined })) {
     recepcion.value = null
     avisarCambio(anterior ? `⏸ "${anterior.descripcion}" quedó en pausa` : null)
   }
