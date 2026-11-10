@@ -78,6 +78,7 @@ const textoMedicamentos = () => medicamentos.value
 
 const tipoAlimentacion = ref('')
 const horarioComida = ref('')
+const esGato = computed(() => form.especie === 'Gato')
 const hoy = new Date().toLocaleDateString('en-CA') // yyyy-MM-dd local, para no aceptar fechas futuras
 const firmaBase64 = ref('')
 const sesion = ref('')
@@ -247,8 +248,8 @@ async function enviar() {
                 <option value="">Selecciona</option>
                 <option>Perro</option>
                 <option>Gato</option>
-                <option>Otro</option>
               </select>
+              <p class="text-[11px] text-gray-400 mt-1">Solo recibimos perros y gatos.</p>
             </div>
             <div>
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Sexo</label>
@@ -340,7 +341,12 @@ async function enviar() {
               <input v-model="cualesAlergias" type="text" placeholder="¿Cuáles? *"
                 class="mt-2 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </PreguntaSiNo>
-            <PreguntaSiNo v-model="form.checklist.acostumbradoGuarderia" pregunta="¿Está acostumbrado(a) a guardería?" />
+            <div>
+              <PreguntaSiNo v-model="form.checklist.acostumbradoGuarderia" pregunta="¿Está acostumbrado(a) a guardería?" />
+              <p v-if="form.checklist.acostumbradoGuarderia === false" class="mt-2 p-3 rounded-xl bg-blue-50 text-sm text-[#152C77]">
+                Te contactaremos al {{ form.telefono }} para explicarte el proceso de adaptación.
+              </p>
+            </div>
             <PreguntaSiNo v-model="form.checklist.atendidoAntes" pregunta="¿Ha sido atendido anteriormente en Pet Station?" />
             <div>
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Temperamento *</label>
@@ -352,7 +358,7 @@ async function enviar() {
               </select>
             </div>
             <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">¿Es sociable con otros perros? *</label>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">¿Es sociable con otros {{ esGato ? 'gatos' : 'perros' }}? *</label>
               <select v-model="form.checklist.sociable" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]">
                 <option value="">Selecciona</option>
                 <option>Muy sociable</option>
@@ -421,6 +427,7 @@ async function enviar() {
           <p class="text-xs font-black uppercase tracking-wide text-orange-700 mb-2">🐾 Para el día del ingreso</p>
           <ul class="list-disc pl-5 space-y-1 text-sm text-gray-600">
             <li>Trae la <b>comida para toda la estadía</b>, ojalá en porciones.</li>
+            <li v-if="esGato">Trae su <b>arena</b> para toda la estadía.</li>
             <li>Si toma <b>medicamentos</b>, tráelos con su fórmula.</li>
             <li>No recibimos <b>collares, camas ni cobijas</b>.</li>
           </ul>

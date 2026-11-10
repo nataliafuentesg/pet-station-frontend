@@ -34,6 +34,7 @@ const avisos = computed(() => {
   if (f.medicamentos || f.tratamiento) a.push({ t: '💊 Medicamentos', c: 'bg-amber-500/20 text-amber-300' })
   if (f.braquicefala) a.push({ t: '😮‍💨 Braquicéfalo', c: 'bg-red-500/20 text-red-300' })
   if (f.alergias) a.push({ t: '⚠️ Alergias', c: 'bg-red-500/20 text-red-300' })
+  if (f.adaptacion) a.push({ t: '🆕 Necesita adaptación', c: 'bg-blue-500/20 text-blue-300' })
   if (f.agresividad) a.push({ t: '⚠️ Agresividad', c: 'bg-red-500/20 text-red-300' })
   if (f.temperamento && f.temperamento !== 'Dócil') a.push({ t: f.temperamento, c: 'bg-white/10 text-white/60' })
   return a
@@ -76,7 +77,7 @@ function fechaCorta(f) {
       </div>
       <p v-if="formato.alergias" class="text-red-300"><b>Alergias:</b> {{ formato.alergias }}</p>
       <p v-if="comida" class="text-white/60"><b class="text-white/80">Comida:</b> {{ comida }}</p>
-      <p v-if="formato.sociable" class="text-white/60"><b class="text-white/80">Con otros perros:</b> {{ formato.sociable }}</p>
+      <p v-if="formato.sociable" class="text-white/60"><b class="text-white/80">Con otros {{ formato.especie === 'GATO' ? 'gatos' : 'perros' }}:</b> {{ formato.sociable }}</p>
       <p v-if="formato.observaciones" class="text-white/60"><b class="text-white/80">Notas del dueño:</b> {{ formato.observaciones }}</p>
       <p class="text-[10px] text-white/30">Formato {{ formato.radicado }}</p>
     </div>
