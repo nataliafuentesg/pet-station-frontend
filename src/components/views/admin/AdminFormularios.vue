@@ -99,6 +99,10 @@ async function descargarPdf(f, original = false) {
 // La pestaña se abre antes de pedir el archivo: después de esperar, Safari la bloquearía
 async function verAdjunto(f, cual) {
   const ventana = window.open('', '_blank')
+  if (ventana) {
+    ventana.document.title = 'Cargando…'
+    ventana.document.body.innerHTML = '<p style="font-family:sans-serif;color:#64748b;text-align:center;margin-top:40vh">Cargando…</p>'
+  }
   try {
     const resp = await api.get(`/admin/formularios/${f.id}/adjunto/${cual}`, { responseType: 'blob' })
     const url = URL.createObjectURL(resp.data)
