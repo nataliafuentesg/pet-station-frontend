@@ -96,6 +96,20 @@ async function descargarPdf(f, original = false) {
   }
 }
 
+// La pestaña se abre antes de pedir el archivo: después de esperar, Safari la bloquearía
+async function verAdjunto(f, cual) {
+  const ventana = window.open('', '_blank')
+  try {
+    const resp = await api.get(`/admin/formularios/${f.id}/adjunto/${cual}`, { responseType: 'blob' })
+    const url = URL.createObjectURL(resp.data)
+    if (ventana) ventana.location = url
+    else window.location = url
+  } catch {
+    ventana?.close()
+    alert('No se pudo abrir el archivo')
+  }
+}
+
 const evidencias = ref({})
 
 const NOMBRE_EVENTO = {
@@ -365,6 +379,17 @@ async function guardarRevision() {
           <div v-if="f.observaciones" class="text-xs">
             <span class="text-slate-400 font-bold uppercase text-[9px]">Observaciones</span>
             <p class="text-slate-600 dark:text-slate-300">{{ f.observaciones }}</p>
+          </div>
+
+          <div v-if="f.carnetVacunasPath || f.formulaMedicaPath" class="flex gap-2">
+            <button v-if="f.carnetVacunasPath" @click.stop="verAdjunto(f, 'carnet')"
+              class="flex-1 py-2 border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 font-black uppercase text-[9px] tracking-widest rounded-xl">
+              💉 Carnet de vacunas
+            </button>
+            <button v-if="f.formulaMedicaPath" @click.stop="verAdjunto(f, 'formula')"
+              class="flex-1 py-2 border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 font-black uppercase text-[9px] tracking-widest rounded-xl">
+              💊 Fórmula médica
+            </button>
           </div>
 
           <!-- Firma preview -->

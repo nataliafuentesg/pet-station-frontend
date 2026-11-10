@@ -8,6 +8,7 @@ import PreguntaSiNo from './PreguntaSiNo.vue'
 import { aplicarDatosGuardados } from './datosGuardados'
 import TerminosFormulario from './TerminosFormulario.vue'
 import ConfirmarCorreo from './ConfirmarCorreo.vue'
+import CampoArchivo from './CampoArchivo.vue'
 import { usarBorrador } from './borrador'
 
 const paso = ref(1) // 1: verificar, 2: datos, 3: firma, 4: éxito
@@ -24,7 +25,7 @@ const form = reactive({
   especie: '',
   raza: '',
   color: '',
-  edad: '',
+  fechaNacimiento: '',
   sexo: '',
   fechaIngreso: '',
   fechaSalida: '',
@@ -44,17 +45,39 @@ const form = reactive({
 
 const enTratamiento = ref(null)
 const cualTratamiento = ref('')
+const medicamentos = ref([{ nombre: '', dosis: '', horario: '' }])
 const tieneAlergias = ref(null)
 const cualesAlergias = ref('')
+// Las fotos no van en el borrador: pesan demasiado para guardarlas en el navegador
+const carnetVacunas = ref(null)
+const formulaMedica = ref(null)
 const respondida = (si, cual) => si === false || (si === true && !!cual.trim())
+const medicamentosCompletos = computed(() =>
+  medicamentos.value.every(m => m.nombre.trim() && m.horario.trim())
+)
 const preguntasCompletas = computed(() =>
   Object.values(form.checklist).every(v => v !== null && v !== '') &&
+  (form.checklist.vacunacion !== true || !!carnetVacunas.value) &&
   respondida(enTratamiento.value, cualTratamiento.value) &&
+  (enTratamiento.value !== true || medicamentosCompletos.value) &&
   respondida(tieneAlergias.value, cualesAlergias.value)
 )
 
+function agregarMedicamento() {
+  medicamentos.value.push({ nombre: '', dosis: '', horario: '' })
+}
+
+function quitarMedicamento(i) {
+  medicamentos.value.splice(i, 1)
+}
+
+const textoMedicamentos = () => medicamentos.value
+  .map(m => [m.nombre, m.dosis, m.horario].map(v => v.trim()).filter(Boolean).join(' · '))
+  .join('\n')
+
 const tipoAlimentacion = ref('')
 const horarioComida = ref('')
+const hoy = new Date().toLocaleDateString('en-CA') // yyyy-MM-dd local, para no aceptar fechas futuras
 const firmaBase64 = ref('')
 const sesion = ref('')
 const cedulaGuardada = ref('')
@@ -65,7 +88,7 @@ const radicado = ref('')
 const copiaEnviada = ref(false)
 const confirmandoCorreo = ref(false)
 const borrador = usarBorrador('GUARDERIA', paso, {
-  form, enTratamiento, cualTratamiento, tieneAlergias, cualesAlergias, tipoAlimentacion, horarioComida,
+  form, enTratamiento, cualTratamiento, medicamentos, tieneAlergias, cualesAlergias, tipoAlimentacion, horarioComida,
   sesion, cedulaGuardada, correoVerificado, versionAceptada
 })
 const avisoBorrador = borrador.aviso
@@ -124,9 +147,12 @@ async function enviar() {
       checklistJson: JSON.stringify({
         ...form.checklist,
         tratamientoActual: enTratamiento.value ? `Sí: ${cualTratamiento.value.trim()}` : 'No',
+        ...(enTratamiento.value ? { medicamentos: textoMedicamentos() } : {}),
         alergias: tieneAlergias.value ? `Sí: ${cualesAlergias.value.trim()}` : 'No'
       }),
       firmaBase64: firmaBase64.value,
+      carnetVacunas: form.checklist.vacunacion ? carnetVacunas.value?.dataUrl : null,
+      formulaMedica: enTratamiento.value ? formulaMedica.value?.dataUrl : null,
       aceptaTerminos: terminos.value.aceptado,
       versionTerminos: terminos.value.version,
       emailConfirmado: tieneCorreo.value,
@@ -236,8 +262,8 @@ async function enviar() {
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
             <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Edad</label>
-              <input v-model="form.edad" type="text" placeholder="Ej: 3 años"
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Fecha de nacimiento</label>
+              <input v-model="form.fechaNacimiento" type="date" :max="hoy"
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
             <div>
@@ -279,14 +305,31 @@ async function enviar() {
         <div class="bg-white rounded-2xl p-5 shadow-sm">
           <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">Condiciones especiales de la mascota</h2>
           <div class="space-y-3">
-            <PreguntaSiNo v-model="form.checklist.braquicefala" pregunta="¿Es raza braquicéfala (nariz achatada)?" />
-            <PreguntaSiNo v-model="form.checklist.vacunacion" pregunta="¿Tiene el esquema de vacunación completo?" />
+            <PreguntaSiNo v-model="form.checklist.braquicefala" pregunta="¿Es raza braquicéfala? (Ej: Pug, Bulldog francés, Bulldog inglés, Shih Tzu, Bóxer, Pekinés, Boston Terrier, gato Persa)" />
+            <PreguntaSiNo v-model="form.checklist.vacunacion" pregunta="¿Tiene el esquema de vacunación completo?">
+              <CampoArchivo v-model="carnetVacunas" etiqueta="Foto del carnet de vacunación" obligatorio />
+            </PreguntaSiNo>
             <PreguntaSiNo v-model="form.checklist.desparasitado" pregunta="¿Está desparasitado?" />
             <PreguntaSiNo v-model="form.checklist.antecedentesAgresividad" pregunta="¿Tiene antecedentes de agresividad?" />
-            <PreguntaSiNo v-model="form.checklist.esterilizado" pregunta="¿Está esterilizado/castrado?" />
+            <PreguntaSiNo v-model="form.checklist.esterilizado" pregunta="¿Está entero(a) o esterilizado(a)?"
+              :opciones="[['Entero(a)', 'Entero(a)'], ['Esterilizado(a)', 'Esterilizado(a)']]" />
             <PreguntaSiNo v-model="enTratamiento" pregunta="¿Está bajo tratamiento médico actualmente?">
-              <input v-model="cualTratamiento" type="text" placeholder="¿Cuál? *"
+              <input v-model="cualTratamiento" type="text" placeholder="¿Para qué es el tratamiento? *"
                 class="mt-2 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+              <div v-for="(m, i) in medicamentos" :key="i" class="mt-3 p-3 rounded-xl border border-gray-200 space-y-2">
+                <div class="flex items-center justify-between">
+                  <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Medicamento {{ medicamentos.length > 1 ? i + 1 : '' }}</p>
+                  <button v-if="medicamentos.length > 1" type="button" @click="quitarMedicamento(i)" class="text-xs font-bold text-red-500">Quitar</button>
+                </div>
+                <input v-model="m.nombre" type="text" placeholder="Nombre del medicamento *"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+                <input v-model="m.dosis" type="text" placeholder="Dosis (Ej: 1 tableta, 5 gotas)"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+                <input v-model="m.horario" type="text" placeholder="¿A qué horas? (Ej: 8 a.m. y 8 p.m.) *"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+              </div>
+              <button type="button" @click="agregarMedicamento" class="mt-2 text-sm font-bold text-[#152C77]">+ Agregar otro medicamento</button>
+              <CampoArchivo v-model="formulaMedica" etiqueta="Fórmula médica (si la tienes)" />
             </PreguntaSiNo>
             <PreguntaSiNo v-model="tieneAlergias" pregunta="¿Tiene alergias o condiciones médicas importantes?">
               <input v-model="cualesAlergias" type="text" placeholder="¿Cuáles? *"
