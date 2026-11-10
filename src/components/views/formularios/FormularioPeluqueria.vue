@@ -263,7 +263,8 @@ async function enviar() {
                 class="mt-2 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </PreguntaSiNo>
             <PreguntaSiNo v-model="form.checklist.braquicefala" pregunta="¿Es raza braquicéfala? (Ej: Pug, Bulldog francés, Bulldog inglés, Shih Tzu, Bóxer, Pekinés, Boston Terrier, gato Persa)" />
-            <PreguntaSiNo v-model="form.checklist.esterilizado" pregunta="¿Está castrado(a) o esterilizado(a)?" />
+            <PreguntaSiNo v-model="form.checklist.esterilizado" pregunta="¿Está entero(a) o esterilizado(a)?"
+              :opciones="[['Entero(a)', 'Entero(a)'], ['Esterilizado(a)', 'Esterilizado(a)']]" />
             <div>
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Temperamento *</label>
               <select v-model="form.checklist.temperamento" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]">
