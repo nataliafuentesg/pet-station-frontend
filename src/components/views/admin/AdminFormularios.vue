@@ -7,12 +7,17 @@ import FirmaCanvas from '@/components/views/formularios/FirmaCanvas.vue'
 const TIPOS = {
   PELUQUERIA: { etiqueta: '✂️ Pelu', clase: 'bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300' },
   GUARDERIA: { etiqueta: '🏡 Guard', clase: 'bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300' },
-  CONSENTIMIENTO: { etiqueta: '🩺 Consent', clase: 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300' },
+  VACUNACION: { etiqueta: '💉 Vacuna', clase: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' },
+  HOSPITALIZACION: { etiqueta: '🏥 Hosp', clase: 'bg-sky-100 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300' },
+  MEDICACION: { etiqueta: '💊 Medic', clase: 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300' },
+  CONSENTIMIENTO: { etiqueta: '🩺 Cirugía', clase: 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300' },
   EUTANASIA: { etiqueta: '🕊️ Eutan', clase: 'bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-slate-200' },
   DECLINACION: { etiqueta: '🚫 Declin', clase: 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-300' },
 }
 const CLINICOS = [
-  { valor: 'CONSENTIMIENTO', nombre: 'Consentimiento (hospitalización, cirugía, vacunas, medicamentos, exámenes)' },
+  { valor: 'HOSPITALIZACION', nombre: 'Hospitalización' },
+  { valor: 'MEDICACION', nombre: 'Medicación' },
+  { valor: 'CONSENTIMIENTO', nombre: 'Cirugía y procedimientos (incluye anestesia y exámenes)' },
   { valor: 'EUTANASIA', nombre: 'Eutanasia' },
   { valor: 'DECLINACION', nombre: 'Declinación de tratamiento / alta voluntaria' },
 ]
@@ -36,9 +41,27 @@ const revisionCompleta = computed(() =>
   !!empleadoRevision.value.trim()
 )
 
+// Lo que indica el veterinario en cada formato; el tutor lo ve antes de firmar
+const DETALLE = {
+  HOSPITALIZACION: [
+    { clave: 'motivo', label: 'Motivo de la hospitalización *', obligatorio: true },
+    { clave: 'costoDia', label: 'Costo estimado por día *', obligatorio: true, ejemplo: 'Ej: $180.000' },
+    { clave: 'abono', label: 'Abono', ejemplo: 'Ej: $300.000' },
+  ],
+  MEDICACION: [
+    { clave: 'medicamento', label: 'Medicamento *', obligatorio: true },
+    { clave: 'dosis', label: 'Dosis *', obligatorio: true, ejemplo: 'Ej: 250 mg' },
+    { clave: 'via', label: 'Vía de administración', ejemplo: 'Ej: oral, inyectada' },
+    { clave: 'frecuencia', label: 'Frecuencia *', obligatorio: true, ejemplo: 'Ej: cada 12 horas' },
+    { clave: 'duracion', label: 'Duración del tratamiento', ejemplo: 'Ej: 7 días' },
+    { clave: 'indicadoPor', label: 'Indicado por (veterinario) *', obligatorio: true },
+  ],
+}
+
+// El tutor llena su cédula y los datos de la mascota al abrir el link; aquí solo lo necesario para mandárselo
 const nuevoVacio = () => ({
-  tipo: 'CONSENTIMIENTO', nombreCliente: '', cedula: '', telefono: '', email: '', nombreMascota: '',
-  especie: '', raza: '', edad: '', sexo: '', historiaClinica: '', ciudad: 'Chía', tratamientoRechazado: ''
+  tipo: 'HOSPITALIZACION', nombreCliente: '', telefono: '', email: '', nombreMascota: '',
+  historiaClinica: '', tratamientoRechazado: '', detalle: {}
 })
 const modalNuevo = ref(false)
 const nuevo = reactive(nuevoVacio())
@@ -46,8 +69,9 @@ const creando = ref(false)
 const errorNuevo = ref('')
 const linkGenerado = ref(null)
 const nuevoValido = computed(() =>
-  nuevo.nombreCliente.trim() && nuevo.cedula.toString().trim() && nuevo.telefono.trim() && nuevo.nombreMascota.trim() &&
-  (nuevo.tipo !== 'DECLINACION' || nuevo.tratamientoRechazado.trim())
+  nuevo.telefono.replace(/\D/g, '').length >= 10 &&
+  (nuevo.tipo !== 'DECLINACION' || nuevo.tratamientoRechazado.trim()) &&
+  (DETALLE[nuevo.tipo] || []).every(d => !d.obligatorio || nuevo.detalle[d.clave]?.trim())
 )
 
 const modalVeterinario = ref(null)
@@ -164,7 +188,8 @@ async function crearFormato() {
   creando.value = true
   errorNuevo.value = ''
   try {
-    const { data } = await api.post('/admin/formularios/clinicos', { ...nuevo, cedula: nuevo.cedula.toString() })
+    const detalle = Object.fromEntries((DETALLE[nuevo.tipo] || []).map(d => [d.clave, nuevo.detalle[d.clave] || '']))
+    const { data } = await api.post('/admin/formularios/clinicos', { ...nuevo, detalle })
     modalNuevo.value = false
     await mostrarLink(data, nuevo)
     await cargar()
@@ -194,7 +219,7 @@ function copiarLinkGenerado() {
 // El mensaje no dice qué documento es: WhatsApp lo muestra en notificaciones y en pantalla bloqueada
 function whatsappLink(l) {
   const numero = l.telefono.replace(/\D/g, '').replace(/^(?!57)/, '57')
-  const texto = `Hola ${l.nombre}, te escribimos de Pet Station. Te enviamos un documento para leer y firmar: ${l.url}\nPara abrirlo te llegará un código a este WhatsApp.`
+  const texto = `Hola${l.nombre ? ` ${l.nombre}` : ''}, te escribimos de Pet Station. Te enviamos un documento para leer y firmar: ${l.url}\nPara abrirlo te llegará un código a este WhatsApp.`
   return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`
 }
 
@@ -224,7 +249,7 @@ async function firmarVeterinario() {
 
 function copiarLink(tipo) {
   const base = window.location.origin
-  const path = tipo === 'PELUQUERIA' ? '/formularios/peluqueria' : '/formularios/guarderia'
+  const path = `/formularios/${tipo.toLowerCase()}`
   navigator.clipboard?.writeText(base + path)
     .then(() => alert('Link copiado al portapapeles'))
     .catch(() => alert(base + path))
@@ -281,6 +306,10 @@ async function guardarRevision() {
           class="px-4 py-2 text-[9px] font-black uppercase tracking-widest bg-[#152C77]/10 text-[#152C77] dark:text-blue-300 rounded-xl hover:bg-[#152C77]/20 transition-colors">
           📋 Link Guardería
         </button>
+        <button @click="copiarLink('VACUNACION')"
+          class="px-4 py-2 text-[9px] font-black uppercase tracking-widest bg-[#152C77]/10 text-[#152C77] dark:text-blue-300 rounded-xl hover:bg-[#152C77]/20 transition-colors">
+          📋 Link Vacunación
+        </button>
       </div>
     </div>
 
@@ -293,7 +322,10 @@ async function guardarRevision() {
         <option value="">Todos los tipos</option>
         <option value="PELUQUERIA">Peluquería</option>
         <option value="GUARDERIA">Guardería</option>
-        <option value="CONSENTIMIENTO">Consentimiento</option>
+        <option value="VACUNACION">Vacunación</option>
+        <option value="HOSPITALIZACION">Hospitalización</option>
+        <option value="MEDICACION">Medicación</option>
+        <option value="CONSENTIMIENTO">Cirugía y procedimientos</option>
         <option value="EUTANASIA">Eutanasia</option>
         <option value="DECLINACION">Declinación</option>
       </select>
@@ -337,8 +369,10 @@ async function guardarRevision() {
             </span>
             <div class="min-w-0">
               <p v-if="f.radicado" class="text-[10px] font-black text-[#152C77] dark:text-blue-300">{{ f.radicado }}</p>
-              <p class="font-black text-sm text-slate-800 dark:text-white truncate">{{ f.nombreCliente }}</p>
-              <p class="text-[10px] text-slate-400">CC {{ f.cedula }} · 🐾 {{ f.nombreMascota }}</p>
+              <p class="font-black text-sm text-slate-800 dark:text-white truncate">{{ f.nombreCliente || `Tutor del ${f.telefono}` }}</p>
+              <p class="text-[10px] text-slate-400">
+                <template v-if="f.cedula">CC {{ f.cedula }} · </template>🐾 {{ f.nombreMascota || 'El tutor la escribe al firmar' }}
+              </p>
             </div>
           </div>
           <div class="text-right shrink-0">
@@ -378,6 +412,11 @@ async function guardarRevision() {
               <span class="text-slate-400 font-bold uppercase text-[9px]">Salida</span>
               <p>{{ f.fechaSalida }}</p>
             </div>
+          </div>
+
+          <div v-if="f.detalleClinico" class="text-xs">
+            <span class="text-slate-400 font-bold uppercase text-[9px]">Indicación del veterinario</span>
+            <p v-for="linea in f.detalleClinico.split('\n')" :key="linea" class="text-slate-600 dark:text-slate-300">{{ linea }}</p>
           </div>
 
           <div v-if="f.observaciones" class="text-xs">
@@ -577,11 +616,9 @@ async function guardarRevision() {
             </select>
           </div>
           <div v-for="c in [
-            { campo: 'nombreCliente', label: 'Nombre del tutor *' },
-            { campo: 'cedula', label: 'Cédula *', tipo: 'number' },
             { campo: 'telefono', label: 'Celular con WhatsApp *', tipo: 'tel', ayuda: 'El código para abrir el documento llega a este número.' },
+            { campo: 'nombreCliente', label: 'Nombre del tutor', ayuda: 'Solo para saludarlo en el WhatsApp. Su cédula y los datos de la mascota los llena él al abrir el link.' },
             { campo: 'email', label: 'Correo (respaldo si el WhatsApp no llega)', tipo: 'email' },
-            { campo: 'nombreMascota', label: 'Nombre de la mascota *' },
           ]" :key="c.campo">
             <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">{{ c.label }}</label>
             <input v-model="nuevo[c.campo]" :type="c.tipo || 'text'"
@@ -589,13 +626,17 @@ async function guardarRevision() {
             <p v-if="c.ayuda" class="text-[10px] text-slate-400 mt-1">{{ c.ayuda }}</p>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div v-for="c in [
-              { campo: 'especie', label: 'Especie' }, { campo: 'raza', label: 'Raza' },
-              { campo: 'edad', label: 'Edad' }, { campo: 'sexo', label: 'Sexo' },
-              { campo: 'historiaClinica', label: 'Historia clínica No.' }, { campo: 'ciudad', label: 'Ciudad' },
-            ]" :key="c.campo">
+            <div v-for="c in [{ campo: 'nombreMascota', label: 'Mascota' }, { campo: 'historiaClinica', label: 'Historia clínica No.' }]" :key="c.campo">
               <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">{{ c.label }}</label>
               <input v-model="nuevo[c.campo]" type="text"
+                class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]" />
+            </div>
+          </div>
+          <div v-if="DETALLE[nuevo.tipo]" class="space-y-3 pt-2 border-t border-slate-100 dark:border-white/10">
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#152C77] dark:text-blue-300">Indicación del veterinario</p>
+            <div v-for="d in DETALLE[nuevo.tipo]" :key="nuevo.tipo + d.clave">
+              <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">{{ d.label }}</label>
+              <input v-model="nuevo.detalle[d.clave]" type="text" :placeholder="d.ejemplo"
                 class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]" />
             </div>
           </div>
@@ -620,7 +661,7 @@ async function guardarRevision() {
       <div class="absolute inset-0 bg-black/50" @click="linkGenerado = null"></div>
       <div class="relative bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-2xl p-5 space-y-4 text-center">
         <button @click="linkGenerado = null" class="absolute right-5 top-5 text-slate-400 hover:text-slate-600 text-xl">✕</button>
-        <h3 class="font-black text-slate-800 dark:text-white">Link listo para {{ linkGenerado.nombre }}</h3>
+        <h3 class="font-black text-slate-800 dark:text-white">Link listo para {{ linkGenerado.nombre || linkGenerado.telefono }}</h3>
         <img :src="linkGenerado.qr" alt="Código QR del documento" class="mx-auto w-56 h-56 rounded-xl bg-white p-2" />
         <p class="text-xs text-slate-500 dark:text-slate-400">
           Vence: {{ formatFecha(linkGenerado.expira) }}. Solo se puede usar una vez y pedirá un código al WhatsApp del tutor.

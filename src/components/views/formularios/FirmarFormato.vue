@@ -1,17 +1,18 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '@/api/axios'
 import FirmaCanvas from './FirmaCanvas.vue'
 import OtpVerificacion from './OtpVerificacion.vue'
 import TerminosFormulario from './TerminosFormulario.vue'
 import ConfirmarCorreo from './ConfirmarCorreo.vue'
+import CampoCedula from './CampoCedula.vue'
 
 const route = useRoute()
 // El token viaja después del # para que no llegue a logs ni a herramientas de analítica
 const token = route.hash.slice(1)
 
-const paso = ref('cargando') // cargando | invalido | otp | documento | correo | firma | listo
+const paso = ref('cargando') // cargando | invalido | otp | datos | documento | correo | firma | listo
 const telefono = ref('')
 const correoRegistrado = ref('')
 const documento = ref(null)
@@ -25,15 +26,35 @@ const error = ref('')
 const radicado = ref('')
 const copiaPendiente = ref(false)
 
+// El tutor escribe sus datos y los de la mascota; vienen llenos con lo que puso el equipo o con formatos anteriores
+const tutor = reactive({
+  cedula: '', nombreCliente: '', direccion: '',
+  nombreMascota: '', especie: '', raza: '', color: '', fechaNacimiento: '', sexo: ''
+})
+const cedulaGuardada = ref('')
+const mascotasGuardadas = ref([])
+const hoy = new Date().toLocaleDateString('en-CA')
+const datosValidos = computed(() =>
+  (tutor.cedula.toString().trim() || cedulaGuardada.value) && tutor.nombreCliente.trim() && tutor.nombreMascota.trim()
+)
+
+function elegirMascota(m) {
+  for (const campo of ['nombreMascota', 'especie', 'raza', 'color', 'fechaNacimiento', 'sexo']) tutor[campo] = m[campo] || ''
+}
+
 const esDeclinacion = computed(() => documento.value?.terminos.tipo === 'DECLINACION')
 const correoValido = computed(() => !email.value.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()))
 const puedeContinuar = computed(() =>
   terminos.value.aceptado && correoValido.value && (!esDeclinacion.value || motivo.value.trim())
 )
+const preambulo = computed(() => {
+  const cedula = tutor.cedula.toString().trim() || `terminada en ${cedulaGuardada.value}`
+  return `Yo, ${tutor.nombreCliente.trim()}, mayor de edad, identificado con C.C. No. ${cedula}, en calidad de propietario(a) y/o responsable de la mascota: ${tutor.nombreMascota.trim()}.`
+})
 const datosMascota = computed(() => {
   const d = documento.value
-  return [['Mascota', d.nombreMascota], ['Especie', d.especie], ['Raza', d.raza], ['Edad', d.edad],
-    ['Sexo', d.sexo], ['Historia clínica No.', d.historiaClinica], ['Ciudad', d.ciudad]].filter(([, v]) => v)
+  return [['Mascota', tutor.nombreMascota], ['Especie', tutor.especie], ['Raza', tutor.raza],
+    ['Sexo', tutor.sexo], ['Historia clínica No.', d.historiaClinica]].filter(([, v]) => v)
 })
 
 onMounted(async () => {
@@ -52,8 +73,18 @@ async function onVerificado() {
   try {
     const { data } = await api.post('/formularios/firmar/documento', { token })
     documento.value = data
-    email.value = data.email || ''
-    paso.value = 'documento'
+    const perfil = data.perfil?.encontrado ? data.perfil : {}
+    email.value = data.email || perfil.email || ''
+    tutor.nombreCliente = data.nombreCliente || perfil.nombreCliente || ''
+    tutor.direccion = data.direccion || perfil.direccion || ''
+    cedulaGuardada.value = data.cedulaOculta || ''
+    mascotasGuardadas.value = perfil.mascotas || []
+    const guardada = mascotasGuardadas.value.find(m => m.nombreMascota?.trim().toLowerCase() === data.nombreMascota?.trim().toLowerCase())
+    if (guardada) elegirMascota(guardada)
+    for (const campo of ['nombreMascota', 'especie', 'raza', 'color', 'fechaNacimiento', 'sexo']) {
+      if (data[campo]) tutor[campo] = data[campo]
+    }
+    paso.value = 'datos'
   } catch (e) {
     mensaje.value = e.response?.data?.error || 'No pudimos abrir el documento.'
     paso.value = 'invalido'
@@ -79,13 +110,18 @@ async function enviar() {
       versionTerminos: terminos.value.version,
       email: email.value.trim(),
       emailConfirmado: !!email.value.trim(),
-      motivoDeclinacion: motivo.value.trim() || null
+      motivoDeclinacion: motivo.value.trim() || null,
+      tutor: {
+        ...tutor,
+        cedula: tutor.cedula.toString().trim() || null,
+        usarCedulaGuardada: !!cedulaGuardada.value
+      }
     })
     radicado.value = data.radicado
     copiaPendiente.value = data.copiaPendiente
     paso.value = 'listo'
   } catch (e) {
-    error.value = e.response?.data?.error || 'No se pudo enviar el documento'
+    error.value = e.response?.data?.message || e.response?.data?.error || 'No se pudo enviar el documento'
   } finally {
     enviando.value = false
   }
@@ -114,19 +150,108 @@ async function enviar() {
 
       <OtpVerificacion v-else-if="paso === 'otp'" :telefono="`terminado en ${telefono}`" :token="token" :correo-registrado="correoRegistrado" @verificado="onVerificado" />
 
+      <div v-if="documento" v-show="paso === 'datos'" class="space-y-5">
+        <div class="bg-white rounded-2xl p-5 shadow-sm">
+          <h2 class="font-black uppercase text-sm text-[#152C77] tracking-wide">{{ documento.terminos.subtitulo || documento.terminos.titulo }}</h2>
+          <p class="text-sm text-gray-500 mt-1">Revisa o completa tus datos antes de leer el documento.</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 shadow-sm">
+          <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">Datos del propietario</h2>
+          <div class="space-y-3">
+            <CampoCedula v-model="tutor.cedula" v-model:guardada="cedulaGuardada" />
+            <div>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Nombre completo *</label>
+              <input v-model="tutor.nombreCliente" type="text" placeholder="Tu nombre"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Dirección</label>
+              <input v-model="tutor.direccion" type="text" placeholder="opcional"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 shadow-sm">
+          <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">Datos de la mascota</h2>
+          <div v-if="mascotasGuardadas.length > 1 || (mascotasGuardadas.length && !tutor.nombreMascota)" class="flex flex-wrap gap-2 mb-3">
+            <button v-for="m in mascotasGuardadas" :key="m.nombreMascota" type="button" @click="elegirMascota(m)"
+              :class="['px-3 py-1.5 rounded-full border-2 text-xs font-bold',
+                tutor.nombreMascota === m.nombreMascota ? 'border-[#152C77] bg-[#152C77] text-white' : 'border-gray-200 text-gray-500']">
+              {{ m.nombreMascota }}
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="col-span-2">
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Nombre *</label>
+              <input v-model="tutor.nombreMascota" type="text" placeholder="Nombre de tu mascota"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Especie</label>
+              <select v-model="tutor.especie" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]">
+                <option value="">Selecciona</option>
+                <option>Perro</option>
+                <option>Gato</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Sexo</label>
+              <select v-model="tutor.sexo" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]">
+                <option value="">Selecciona</option>
+                <option>Macho</option>
+                <option>Hembra</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Raza</label>
+              <input v-model="tutor.raza" type="text" placeholder="Ej: Criollo"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Fecha de nacimiento</label>
+              <input v-model="tutor.fechaNacimiento" type="date" :max="hoy"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </div>
+            <div class="col-span-2">
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Color</label>
+              <input v-model="tutor.color" type="text" placeholder="Ej: Blanco"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
+            </div>
+          </div>
+        </div>
+
+        <button @click="paso = 'documento'" :disabled="!datosValidos"
+          class="w-full py-4 bg-[#152C77] text-white font-black uppercase text-sm tracking-widest rounded-2xl disabled:opacity-40 active:scale-95 transition-transform">
+          Continuar → Leer documento
+        </button>
+      </div>
+
       <!-- v-show: al corregir el correo no se pierde la casilla marcada ni el motivo -->
       <div v-if="documento" v-show="paso === 'documento'" class="space-y-5">
         <div class="bg-white rounded-2xl p-5 shadow-sm">
           <h2 class="font-black uppercase text-sm text-[#152C77] tracking-wide">{{ documento.terminos.titulo }}</h2>
           <p v-if="documento.terminos.subtitulo" class="text-xs font-bold text-[#DE1F27] mt-1">{{ documento.terminos.subtitulo }}</p>
-          <p class="text-sm text-gray-700 leading-relaxed mt-4">{{ documento.preambulo }}</p>
+          <p class="text-sm text-gray-700 leading-relaxed mt-4">{{ preambulo }}</p>
           <dl class="grid grid-cols-2 gap-3 mt-4 text-sm">
             <div v-for="[label, valor] in datosMascota" :key="label">
               <dt class="text-xs font-bold text-gray-500 uppercase tracking-wide">{{ label }}</dt>
               <dd class="text-gray-800">{{ valor }}</dd>
             </div>
           </dl>
-          <p class="text-xs text-gray-400 mt-4">Si algún dato está mal, no firmes y avísale al equipo de Pet Station.</p>
+          <button type="button" @click="paso = 'datos'" class="text-xs font-bold text-[#152C77] underline mt-4">Corregir mis datos</button>
+        </div>
+
+        <div v-if="documento.detalle?.length" class="bg-white rounded-2xl p-5 shadow-sm">
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Indicación del médico veterinario</p>
+          <div class="space-y-1.5 text-sm">
+            <p v-for="linea in documento.detalle" :key="linea" class="text-gray-800 font-medium">
+              <span class="text-gray-500 font-normal">{{ linea.split(': ')[0] }}:&nbsp;</span>{{ linea.split(': ').slice(1).join(': ') }}
+            </p>
+          </div>
+          <p class="text-xs text-gray-400 mt-3">Si algo de esto no es lo que hablaste con el veterinario, no firmes y avísale al equipo.</p>
         </div>
 
         <div v-if="esDeclinacion" class="bg-white rounded-2xl p-5 shadow-sm space-y-3">

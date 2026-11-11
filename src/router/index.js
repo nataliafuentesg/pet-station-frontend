@@ -246,6 +246,12 @@ const routes = [
     meta: { title: 'Formato Guardería | Pet Station' }
   },
   {
+    path: '/formularios/vacunacion',
+    name: 'FormularioVacunacion',
+    component: () => import('@/components/views/formularios/FormularioVacunacion.vue'),
+    meta: { title: 'Formato Vacunación | Pet Station' }
+  },
+  {
     path: '/formularios/firmar',
     name: 'FirmarFormato',
     component: () => import('@/components/views/formularios/FirmarFormato.vue'),
