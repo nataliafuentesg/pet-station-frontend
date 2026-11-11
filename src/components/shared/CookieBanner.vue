@@ -18,7 +18,7 @@ const accept = () => {
 <template>
   <Transition name="slide-up-cookie">
     <div v-if="visible"
-      class="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-sm z-[9999] bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-5">
+      class="fixed bottom-20 md:bottom-6 left-4 right-4 md:right-auto md:left-6 md:max-w-sm z-[9999] bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-5">
       <p class="text-[10px] font-black uppercase tracking-widest text-[#DE1F27] mb-2">Aviso de cookies</p>
       <p class="text-[13px] text-slate-600 dark:text-slate-300 font-medium leading-relaxed mb-4">
         Usamos cookies técnicas necesarias para el funcionamiento del sitio (sesión, carrito).
