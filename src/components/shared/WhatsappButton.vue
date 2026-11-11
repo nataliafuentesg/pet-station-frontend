@@ -3,7 +3,7 @@
 
     <Transition name="slide-up">
       <!-- En celular ocupa toda la pantalla; en computador es la ventanita de la esquina -->
-      <div v-if="isOpen" class="max-lg:fixed max-lg:inset-0 lg:w-[380px] lg:max-h-[min(80vh,600px)] bg-white dark:bg-[#0A0A0A] lg:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.3)] lg:border border-slate-200 dark:border-white/10 overflow-hidden pointer-events-auto flex flex-col lg:mb-2 origin-bottom-right">
+      <div v-if="isOpen" :style="esMovil ? estiloMovil : null" class="max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:h-[100dvh] lg:w-[380px] lg:max-h-[min(80vh,600px)] bg-white dark:bg-[#0A0A0A] lg:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.3)] lg:border border-slate-200 dark:border-white/10 overflow-hidden pointer-events-auto flex flex-col lg:mb-2 origin-bottom-right">
 
         <!-- Header -->
         <div class="bg-gradient-to-r from-[#152C77] to-[#1e3b9e] p-5 max-lg:pt-[max(1.25rem,env(safe-area-inset-top))] flex justify-between items-center text-white relative overflow-hidden shrink-0">
@@ -54,23 +54,6 @@
               </div>
             </div>
 
-            <!-- Datos de contacto: opcionales, después de la primera respuesta -->
-            <div v-if="mostrarTarjetaContacto" class="ml-9 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-3 flex flex-col gap-2">
-              <p class="text-[10px] font-bold text-slate-600 dark:text-white/80 leading-snug">📲 ¿Quieres que el equipo te escriba por WhatsApp? Déjanos tu número (opcional).</p>
-              <input v-model="lead.nombre" type="text" placeholder="Tu nombre" maxlength="60"
-                class="w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[16px] lg:text-[11px] font-bold outline-none focus:border-[#152C77] text-slate-700 dark:text-white placeholder-slate-400" />
-              <input v-model="lead.whatsapp" type="tel" placeholder="Tu WhatsApp (10 dígitos)" maxlength="15"
-                class="w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[16px] lg:text-[11px] font-bold outline-none focus:border-[#152C77] text-slate-700 dark:text-white placeholder-slate-400"
-                @keyup.enter="guardarContacto" />
-              <p v-if="errorForm" class="text-[10px] font-bold text-[#DE1F27]">{{ errorForm }}</p>
-              <div class="flex gap-2">
-                <button @click="guardarContacto" :disabled="!lead.whatsapp.trim()"
-                  class="flex-1 px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-[#152C77] text-white disabled:opacity-50">Enviar</button>
-                <button @click="contacto = 'omitido'"
-                  class="px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-white/50">Ahora no</button>
-              </div>
-            </div>
-
             <!-- Typing indicator -->
             <div v-if="cargando" class="flex gap-2 items-end">
               <div class="w-7 h-7 bg-[#152C77] rounded-full flex items-center justify-center text-white text-xs shrink-0 shadow-md">🤖</div>
@@ -108,6 +91,14 @@
                 class="w-10 h-10 bg-[#152C77] text-white rounded-xl flex items-center justify-center text-base font-black disabled:opacity-40 hover:bg-[#DE1F27] transition-colors shrink-0"
               >→</button>
             </div>
+            <!-- Para hablar con una persona: WhatsApp de la tienda -->
+            <a :href="WA_TIENDA" target="_blank" rel="noopener" @click="trackWaClick('chat-web')"
+              class="mt-2 flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-green-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-2.5 rounded-xl transition-all active:scale-95">
+              <svg viewBox="0 0 24 24" class="w-4 h-4 fill-current shrink-0" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              Hablar con el equipo por WhatsApp
+            </a>
             <p class="text-[8px] font-bold text-slate-400 text-center mt-2 leading-snug">Asistente automático: puede equivocarse. Los precios y condiciones válidos son los de la tienda y tu factura.</p>
           </div>
 
@@ -152,9 +143,13 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue';
+import { ref, nextTick, onUnmounted } from 'vue';
 import api from '@/api/axios';
 import CfTurnstile from '@/components/shared/CfTurnstile.vue';
+import { useWaTracking } from '@/composables/useWaTracking';
+
+const { trackWaClick } = useWaTracking();
+const WA_TIENDA = 'https://wa.me/573053462413?text=' + encodeURIComponent('Hola Pet Station, vengo del chat de la página web.');
 
 const generarUUID = () =>
   'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -165,10 +160,6 @@ const generarUUID = () =>
 const isOpen = ref(false);
 const hasOpened = ref(false);
 
-// Los datos de contacto son opcionales: se piden en una tarjeta después de la primera respuesta
-const lead = ref({ nombre: '', whatsapp: '' });
-const contacto = ref('pendiente'); // 'pendiente' | 'guardado' | 'omitido'
-const errorForm = ref('');
 const errorChat = ref('');
 
 const CF_SITE_KEY = import.meta.env.VITE_CF_TURNSTILE_KEY || 'PENDING';
@@ -183,9 +174,6 @@ const inputMensaje = ref('');
 const cargando = ref(false);
 const mensajesRef = ref(null);
 const inputRef = ref(null);
-
-const mostrarTarjetaContacto = computed(() =>
-  contacto.value === 'pendiente' && !cargando.value && mensajes.value.some(m => m.rol === 'USER'));
 
 const WA_REGEX = /https?:\/\/wa\.me\/[^\s)\]>]*/i;
 
@@ -234,9 +222,34 @@ const autoResize = (e) => {
 const abrir = () => { if (!isOpen.value) toggleChat(); };
 defineExpose({ abrir });
 
+// En celular el teclado tapa parte de la pantalla: el chat se ajusta al pedazo que queda visible
+// y la página de atrás no se mueve. Sin esto queda la pantalla en blanco al abrir el teclado.
+const esMovil = ref(false);
+const estiloMovil = ref({});
+const ajustarAlTeclado = () => {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  estiloMovil.value = { top: vv.offsetTop + 'px', height: vv.height + 'px' };
+  scrollAbajo();
+};
+const bloquearPagina = (bloquear) => {
+  const vv = window.visualViewport;
+  document.documentElement.style.overflow = bloquear ? 'hidden' : '';
+  document.body.style.overflow = bloquear ? 'hidden' : '';
+  const metodo = bloquear ? 'addEventListener' : 'removeEventListener';
+  window[metodo]('resize', ajustarAlTeclado);
+  vv?.[metodo]('resize', ajustarAlTeclado);
+  vv?.[metodo]('scroll', ajustarAlTeclado);
+  if (bloquear) ajustarAlTeclado();
+};
+onUnmounted(() => { if (esMovil.value) bloquearPagina(false); });
+
 const toggleChat = () => {
   isOpen.value = !isOpen.value;
+  if (esMovil.value && !isOpen.value) { bloquearPagina(false); esMovil.value = false; }
   if (!isOpen.value) return;
+  esMovil.value = window.innerWidth < 1024;
+  if (esMovil.value) bloquearPagina(true);
   hasOpened.value = true;
   if (!mensajes.value.length) {
     mensajes.value.push({
@@ -246,7 +259,7 @@ const toggleChat = () => {
   }
   if (!turnstileKey.value) turnstileKey.value = 1;
   scrollAbajo();
-  nextTick(() => inputRef.value?.focus());
+  if (!esMovil.value) nextTick(() => inputRef.value?.focus());
 };
 
 const tokenListo = (token) => {
@@ -282,11 +295,8 @@ const enviarMensaje = async () => {
 
   try {
     await esperarToken();
-    const conDatos = contacto.value === 'guardado';
     const { data } = await api.post('/chat/mensaje', {
       sessionId: sessionId.value,
-      nombre: conDatos ? lead.value.nombre.trim() || undefined : undefined,
-      whatsapp: conDatos ? lead.value.whatsapp.replace(/\D/g, '') : undefined,
       mensaje: texto,
       turnstileToken: turnstileToken.value || undefined,
     });
@@ -314,27 +324,6 @@ const enviarMensaje = async () => {
   }
 };
 
-const guardarContacto = async () => {
-  const whatsapp = lead.value.whatsapp.replace(/\D/g, '');
-  errorForm.value = '';
-  if (whatsapp.length < 7) { errorForm.value = 'Ingresa un número de WhatsApp válido.'; return; }
-  try {
-    await api.post('/chat/contacto', {
-      sessionId: sessionId.value,
-      nombre: lead.value.nombre.trim() || undefined,
-      whatsapp,
-    });
-    contacto.value = 'guardado';
-    const nombre = lead.value.nombre.trim();
-    mensajes.value.push({
-      rol: 'BOT',
-      contenido: `¡Gracias${nombre ? ' ' + nombre : ''}! 🙌 Ya tenemos tu número. Si necesitas algo más, sigue escribiendo por aquí.`
-    });
-    scrollAbajo();
-  } catch {
-    errorForm.value = 'No pudimos guardar tu número. Inténtalo de nuevo.';
-  }
-};
 </script>
 
 <style scoped>
