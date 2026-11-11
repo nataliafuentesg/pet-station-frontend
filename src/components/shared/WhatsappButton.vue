@@ -1,11 +1,12 @@
 <template>
-  <div class="fixed z-[4500] right-4 top-44 md:top-auto md:right-10 md:bottom-10 flex flex-col items-end gap-3 pointer-events-none">
+  <div class="fixed right-10 bottom-10 flex flex-col items-end gap-3 pointer-events-none" :class="isOpen ? 'z-[10001] lg:z-[4500]' : 'z-[4500]'">
 
     <Transition name="slide-up">
-      <div v-if="isOpen" class="w-[calc(100vw-2rem)] md:w-[380px] bg-white dark:bg-[#0A0A0A] rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.3)] border border-slate-200 dark:border-white/10 overflow-hidden pointer-events-auto flex flex-col mb-2 origin-bottom-right" style="max-height: min(80vh, 600px)">
+      <!-- En celular ocupa toda la pantalla; en computador es la ventanita de la esquina -->
+      <div v-if="isOpen" class="max-lg:fixed max-lg:inset-0 lg:w-[380px] lg:max-h-[min(80vh,600px)] bg-white dark:bg-[#0A0A0A] lg:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.3)] lg:border border-slate-200 dark:border-white/10 overflow-hidden pointer-events-auto flex flex-col lg:mb-2 origin-bottom-right">
 
         <!-- Header -->
-        <div class="bg-gradient-to-r from-[#152C77] to-[#1e3b9e] p-5 flex justify-between items-center text-white relative overflow-hidden shrink-0">
+        <div class="bg-gradient-to-r from-[#152C77] to-[#1e3b9e] p-5 max-lg:pt-[max(1.25rem,env(safe-area-inset-top))] flex justify-between items-center text-white relative overflow-hidden shrink-0">
           <div class="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
           <div class="flex items-center gap-3 relative z-10">
             <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl shadow-inner border border-white/30">🐾</div>
@@ -49,9 +50,9 @@
             <div v-if="mostrarTarjetaContacto" class="ml-9 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-3 flex flex-col gap-2">
               <p class="text-[10px] font-bold text-slate-600 dark:text-white/80 leading-snug">📲 ¿Quieres que el equipo te escriba por WhatsApp? Déjanos tu número (opcional).</p>
               <input v-model="lead.nombre" type="text" placeholder="Tu nombre" maxlength="60"
-                class="w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#152C77] text-slate-700 dark:text-white placeholder-slate-400" />
+                class="w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[16px] lg:text-[11px] font-bold outline-none focus:border-[#152C77] text-slate-700 dark:text-white placeholder-slate-400" />
               <input v-model="lead.whatsapp" type="tel" placeholder="Tu WhatsApp (10 dígitos)" maxlength="15"
-                class="w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#152C77] text-slate-700 dark:text-white placeholder-slate-400"
+                class="w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[16px] lg:text-[11px] font-bold outline-none focus:border-[#152C77] text-slate-700 dark:text-white placeholder-slate-400"
                 @keyup.enter="guardarContacto" />
               <p v-if="errorForm" class="text-[10px] font-bold text-[#DE1F27]">{{ errorForm }}</p>
               <div class="flex gap-2">
@@ -74,7 +75,7 @@
           </div>
 
           <!-- Input -->
-          <div class="p-3 border-t border-slate-200 dark:border-white/10 shrink-0">
+          <div class="p-3 max-lg:pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-slate-200 dark:border-white/10 shrink-0">
             <!-- Anti-bots: invisible, solo aparece si Cloudflare necesita un clic -->
             <div class="flex justify-center empty:hidden">
               <CfTurnstile v-if="CF_SITE_KEY !== 'PENDING' && turnstileKey" :key="turnstileKey" :site-key="CF_SITE_KEY" size="compact" appearance="interaction-only"
@@ -88,7 +89,7 @@
                 rows="1"
                 placeholder="Escribe tu mensaje..."
                 maxlength="500"
-                class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#152C77] transition-colors text-slate-700 dark:text-white placeholder-slate-400 resize-none overflow-hidden"
+                class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[16px] lg:text-[11px] font-bold outline-none focus:border-[#152C77] transition-colors text-slate-700 dark:text-white placeholder-slate-400 resize-none overflow-hidden"
                 style="max-height: 100px"
                 @keydown.enter.prevent="enviarMensaje"
                 @input="autoResize"
@@ -107,7 +108,7 @@
 
     <!-- Burbuja de bienvenida -->
     <Transition name="fade">
-      <div v-if="!isOpen && !hasOpened" class="bg-white dark:bg-[#152C77] text-[#152C77] dark:text-white px-5 py-3 rounded-2xl rounded-br-none shadow-2xl border border-slate-200 dark:border-white/10 animate-bounce pointer-events-auto origin-bottom-right">
+      <div v-if="!isOpen && !hasOpened" class="hidden lg:block bg-white dark:bg-[#152C77] text-[#152C77] dark:text-white px-5 py-3 rounded-2xl rounded-br-none shadow-2xl border border-slate-200 dark:border-white/10 animate-bounce pointer-events-auto origin-bottom-right">
         <p class="text-[10px] md:text-xs font-black uppercase tracking-widest italic flex items-center gap-2">
           <span class="text-lg">🐾</span> ¡Hola! ¿Necesitas ayuda?
         </p>
@@ -117,7 +118,7 @@
     <!-- Botón flotante -->
     <button
       @click="toggleChat"
-      class="relative flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-xl w-12 h-12 md:w-16 md:h-16 rounded-[1.2rem] md:rounded-[2rem] text-white pointer-events-auto"
+      class="relative hidden lg:flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-xl w-12 h-12 md:w-16 md:h-16 rounded-[1.2rem] md:rounded-[2rem] text-white pointer-events-auto"
       :class="isOpen ? 'bg-[#152C77] border-transparent' : 'bg-[#DE1F27] border-b-4 border-[#a8151b]'"
       :aria-label="isOpen ? 'Cerrar chat' : 'Abrir chat de Pet Station'"
     >
@@ -220,6 +221,10 @@ const autoResize = (e) => {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 100) + 'px';
 };
+
+// En celular el chat se abre desde la barra de abajo (App.vue)
+const abrir = () => { if (!isOpen.value) toggleChat(); };
+defineExpose({ abrir });
 
 const toggleChat = () => {
   isOpen.value = !isOpen.value;

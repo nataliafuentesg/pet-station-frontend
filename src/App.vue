@@ -114,12 +114,16 @@
         <span class="text-[8px] font-black uppercase tracking-widest text-[#152C77] dark:text-white mt-1">Citas</span>
       </div>
 
-      <button @click="isSupportSheetOpen = true" class="flex-1 flex flex-col items-center gap-1 text-[#25D366]">
-        <svg viewBox="0 0 24 24" class="h-6 w-6 fill-current" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+      <button @click="chatRef?.abrir()" class="flex-1 flex flex-col items-center gap-1 text-[#DE1F27]" aria-label="Abrir chat de Pet Station">
+        <svg viewBox="0 0 24 24" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="currentColor" d="M12 2.5c5.25 0 9.5 3.7 9.5 8.25S17.25 19 12 19c-.9 0-1.77-.1-2.6-.3L4.6 21.3a.6.6 0 0 1-.86-.66l.9-3.6C3.3 15.55 2.5 13.75 2.5 10.75 2.5 6.2 6.75 2.5 12 2.5z"/>
+          <g class="fill-white dark:fill-[#050505]">
+            <ellipse cx="12" cy="12.6" rx="2.6" ry="2.1"/>
+            <circle cx="8.9" cy="9.9" r="1.05"/><circle cx="10.9" cy="8.2" r="1.05"/>
+            <circle cx="13.1" cy="8.2" r="1.05"/><circle cx="15.1" cy="9.9" r="1.05"/>
+          </g>
         </svg>
-        <span class="text-[8px] font-black uppercase tracking-widest">Soporte</span>
+        <span class="text-[8px] font-black uppercase tracking-widest">Chat</span>
       </button>
 
       <div v-if="!tutorData" @click="isLoginOpen = true"
@@ -146,152 +150,6 @@
 
     </div>
 
-    <Transition name="slide-up">
-      <div v-if="isSupportSheetOpen" class="fixed inset-0 z-[6000] lg:hidden flex flex-col justify-end">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isSupportSheetOpen = false"></div>
-        <div
-          class="bg-slate-50 dark:bg-[#0A0A0A] rounded-t-[2.5rem] w-full relative pb-8 max-h-[85vh] overflow-hidden flex flex-col">
-          <div class="w-full flex justify-center pt-4 pb-2 bg-white dark:bg-[#152C77] rounded-t-[2.5rem]"
-            @click="isSupportSheetOpen = false">
-            <div class="w-12 h-1.5 bg-slate-300 dark:bg-white/30 rounded-full"></div>
-          </div>
-
-          <div
-            class="px-6 pb-6 pt-4 bg-white dark:bg-[#152C77] border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div
-                class="w-10 h-10 bg-[#152C77] dark:bg-white/10 text-white rounded-full flex items-center justify-center shadow-lg">
-                🤖</div>
-              <div>
-                <h3 class="font-[1000] text-[#152C77] dark:text-white uppercase italic text-sm">Asistente Virtual</h3>
-                <p class="text-[9px] text-[#25D366] font-black uppercase">En línea</p>
-              </div>
-            </div>
-            <button @click="isSupportSheetOpen = false" class="text-3xl text-slate-400">×</button>
-          </div>
-
-          <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-
-            <div v-if="mobileChatStep === 'menu'" class="space-y-4">
-              <p class="text-[11px] font-bold text-slate-600 dark:text-slate-300">¡Guau! Hola 👋 ¿Para qué necesitas
-                contactarnos hoy?</p>
-
-              <button @click="handleMobileOption('agendar')"
-                class="w-full text-left px-5 py-4 border rounded-2xl text-[11px] font-black uppercase tracking-widest italic border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 active:scale-95 transition-all">
-                📅 Agendar o Cambiar Cita
-              </button>
-              <button @click="mobileChatStep = 'info'"
-                class="w-full text-left px-5 py-4 border rounded-2xl text-[11px] font-black uppercase tracking-widest italic border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 active:scale-95 transition-all">
-                📍 Ver Horarios y Sede
-              </button>
-              <button @click="mobileChatStep = 'viajes'"
-                class="w-full text-left px-5 py-4 border rounded-2xl text-[11px] font-black uppercase tracking-widest italic border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 active:scale-95 transition-all">
-                ✈️ Viajar con mi mascota
-              </button>
-              <button @click="mobileChatStep = 'tienda'"
-                class="w-full text-left px-5 py-4 border rounded-2xl text-[11px] font-black uppercase tracking-widest italic border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 active:scale-95 transition-all">
-                🛍️ Consultar Producto
-              </button>
-              <button @click="isSupportSheetOpen = false; router.push('/rastrear')"
-                class="w-full text-left px-5 py-4 border rounded-2xl text-[11px] font-black uppercase tracking-widest italic border-[#152C77] text-[#152C77] dark:border-white/20 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 active:scale-95 transition-all">
-                📦 Rastrear mi Pedido
-              </button>
-              <button @click="handleMobileOption('urgencia')"
-                class="w-full text-left px-5 py-4 border rounded-2xl text-[11px] font-black uppercase tracking-widest italic border-[#DE1F27] text-white bg-[#DE1F27] active:scale-95 transition-all mt-4 animate-pulse shadow-lg shadow-red-500/30">
-                🚨 Tengo una Urgencia
-              </button>
-            </div>
-
-            <div v-else-if="mobileChatStep === 'info'" class="space-y-6">
-              <p
-                class="text-[11px] font-bold text-slate-600 dark:text-slate-300 leading-relaxed bg-white dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
-                Estamos en <strong class="text-[#DE1F27]">Chía, Cundinamarca</strong>.<br>
-                Via Guaymaral 2km antes, Variante Chía - Cota.<br><br>
-                <strong>⏰ Horarios:</strong><br>
-                Lun - Sáb: 09:00 AM - 07:00 PM<br>
-                Dom - Fest: 10:00 AM - 03:00 PM
-              </p>
-              <div class="space-y-3">
-                <a href="https://maps.google.com/?q=Pet+Station+Chia" target="_blank"
-                  class="w-full text-center px-4 py-4 border rounded-2xl text-[11px] font-black uppercase tracking-widest italic border-[#25D366] text-[#25D366] hover:bg-[#25D366]/10 active:scale-95 transition-all block">
-                  🗺️ Abrir en Google Maps
-                </a>
-                <button @click="mobileChatStep = 'menu'"
-                  class="w-full text-center px-4 py-4 border rounded-2xl text-[10px] font-black uppercase tracking-widest italic border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 active:scale-95 transition-all">
-                  ← Volver atrás
-                </button>
-              </div>
-            </div>
-
-            <div v-else-if="mobileChatStep === 'viajes'" class="space-y-4">
-              <p class="text-[11px] font-bold text-slate-600 dark:text-slate-300">✈️ Cuéntanos sobre el pasajero para
-                darte
-                la info correcta:</p>
-
-              <select v-model="formViaje.destino"
-                class="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#DE1F27] text-slate-600 dark:text-white">
-                <option value="" disabled selected>🌍 Destino del Viaje</option>
-                <option value="Estados Unidos">🇺🇸 Estados Unidos</option>
-                <option value="Unión Europea">🇪🇺 Unión Europea</option>
-                <option value="Latinoamérica">🌎 Latinoamérica</option>
-                <option value="Nacional">🇨🇴 Nacional</option>
-              </select>
-
-              <div class="flex gap-3">
-                <select v-model="formViaje.especie"
-                  class="w-1/2 px-5 py-4 rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#DE1F27] text-slate-600 dark:text-white">
-                  <option value="" disabled selected>🐾 Especie</option>
-                  <option value="Perro">🐶 Perro</option>
-                  <option value="Gato">🐱 Gato</option>
-                </select>
-                <input v-model="formViaje.edad" type="text" placeholder="Edad"
-                  class="w-1/2 px-5 py-4 rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#DE1F27] text-slate-600 dark:text-white">
-              </div>
-
-              <input v-model="formViaje.fecha" type="text" placeholder="Fecha del viaje (Ej: Diciembre)"
-                class="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#DE1F27] text-slate-600 dark:text-white">
-
-              <div class="pt-4 space-y-3">
-                <button @click="sendMobileViajeWA" :disabled="!isViajeFormValid"
-                  class="w-full px-4 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest italic bg-[#25D366] text-white disabled:opacity-50 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
-                  <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path
-                      d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347" />
-                  </svg>
-                  Enviar a Asesor
-                </button>
-                <button @click="mobileChatStep = 'menu'"
-                  class="w-full text-center px-4 py-3 border rounded-2xl text-[10px] font-black uppercase tracking-widest italic border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 active:scale-95 transition-all">←
-                  Volver atrás</button>
-              </div>
-            </div>
-
-            <div v-else-if="mobileChatStep === 'tienda'" class="space-y-4">
-              <p class="text-[11px] font-bold text-slate-600 dark:text-slate-300">🛍️ Escribe el medicamento o marca que
-                buscas:</p>
-
-              <input v-model="productoBuscado" type="text" placeholder="Ej: Nexgard, Royal Canin..."
-                class="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[11px] font-bold outline-none focus:border-[#DE1F27] text-slate-600 dark:text-white">
-
-              <div class="pt-4 space-y-3">
-                <button @click="sendMobileProductoWA" :disabled="!productoBuscado.trim()"
-                  class="w-full px-4 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest italic bg-[#25D366] text-white disabled:opacity-50 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
-                  <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path
-                      d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347" />
-                  </svg>
-                  Consultar
-                </button>
-                <button @click="mobileChatStep = 'menu'"
-                  class="w-full text-center px-4 py-3 border rounded-2xl text-[10px] font-black uppercase tracking-widest italic border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 active:scale-95 transition-all">←
-                  Volver atrás</button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </Transition>
 
     <main :class="['w-full relative min-h-[60vh]', isAdminRoute ? '' : 'pt-24 md:pt-0 pb-24 md:pb-0']">
 
@@ -311,7 +169,7 @@
 
     <TheFooter v-if="!isAdminRoute" :tutor="tutorData" />
 
-    <WhatsappButton v-if="!isAdminRoute" class="hidden lg:flex" />
+    <WhatsappButton v-if="!isAdminRoute" ref="chatRef" />
 
     <CookieBanner v-if="!isAdminRoute" />
 
@@ -331,7 +189,7 @@
 
 <script setup>
 import Swal from 'sweetalert2';
-import { ref, onMounted, nextTick, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, nextTick, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from './stores/cartStore';
 import api from '@/api/axios';
@@ -343,11 +201,9 @@ import WhatsappButton from './components/shared/WhatsappButton.vue';
 import CookieBanner from './components/shared/CookieBanner.vue';
 import { useRoute } from 'vue-router';
 import { useTracking } from '@/composables/useTracking';
-import { useWaTracking } from '@/composables/useWaTracking';
 
 
 const { trackLogin, trackRegistro } = useTracking();
-const { trackWaClick } = useWaTracking();
 const route = useRoute();
 // Rutas "fullscreen" sin nav/footer (paneles internos)
 const isAdminRoute = computed(() =>
@@ -369,57 +225,8 @@ const isLoginOpen = ref(false);
 const isOnboardingOpen = ref(false);
 const notifications = ref([]);
 
-// --- ESTADOS DEL CHATBOT MÓVIL ---
-const isSupportSheetOpen = ref(false);
-const mobileChatStep = ref('menu');
-const productoBuscado = ref('');
-const formViaje = ref({ destino: '', especie: '', edad: '', fecha: '' });
-
-const isViajeFormValid = computed(() => {
-  return formViaje.value.destino && formViaje.value.especie && formViaje.value.edad.trim() !== '' && formViaje.value.fecha.trim() !== '';
-});
-
-watch(isSupportSheetOpen, (newVal) => {
-  if (!newVal) {
-    setTimeout(() => {
-      mobileChatStep.value = 'menu';
-      productoBuscado.value = '';
-      formViaje.value = { destino: '', especie: '', edad: '', fecha: '' };
-    }, 300);
-  }
-});
-
-const handleMobileOption = (opcion) => {
-  if (opcion === 'agendar') {
-    isSupportSheetOpen.value = false;
-    router.push('/agendar');
-    return;
-  }
-
-  let textoWA = "Hola Pet Station, me gustaría hablar con un asesor.";
-  if (opcion === 'urgencia') textoWA = "🚨 URGENCIA VETERINARIA: Necesito atención inmediata por favor.";
-
-  isSupportSheetOpen.value = false;
-  trackWaClick(opcion === 'urgencia' ? 'sheet-urgencia' : 'sheet-asesor');
-  window.open(`https://wa.me/573053462413?text=${encodeURIComponent(textoWA)}`, '_blank');
-};
-
-const sendMobileViajeWA = () => {
-  if (!isViajeFormValid.value) return;
-  const textoWA = `Hola Pet Station! ✈️ Necesito asesoría de viaje:\n\n🌍 *Destino:* ${formViaje.value.destino}\n🐾 *Especie:* ${formViaje.value.especie}\n🎂 *Edad:* ${formViaje.value.edad}\n📅 *Fecha:* ${formViaje.value.fecha}`;
-  isSupportSheetOpen.value = false;
-  trackWaClick('sheet-viajes');
-  window.open(`https://wa.me/573053462413?text=${encodeURIComponent(textoWA)}`, '_blank');
-};
-
-const sendMobileProductoWA = () => {
-  if (!productoBuscado.value.trim()) return;
-  const textoWA = `Hola Pet Station! 🛍️ Busco disponibilidad/precio de: *${productoBuscado.value}*`;
-  isSupportSheetOpen.value = false;
-  trackWaClick('sheet-producto');
-  window.open(`https://wa.me/573053462413?text=${encodeURIComponent(textoWA)}`, '_blank');
-};
-// ---------------------------------
+// Chat del asistente: en móvil se abre desde el botón "Chat" de la barra de abajo
+const chatRef = ref(null);
 
 const toggleTheme = () => {
   darkMode.value = !darkMode.value;
