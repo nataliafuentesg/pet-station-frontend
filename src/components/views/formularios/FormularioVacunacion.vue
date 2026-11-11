@@ -30,41 +30,13 @@ const form = reactive({
   observaciones: '',
 })
 
-const VACUNAS = [
-  { nombre: 'Rabia' },
-  { nombre: 'Múltiple', especie: 'Perro' },
-  { nombre: 'Triple felina', especie: 'Gato' },
-  { nombre: 'Leucemia felina', especie: 'Gato' },
-  { nombre: 'Otra' },
-  { nombre: 'No sé, que me oriente el veterinario' },
-]
-const vacunas = ref([])
-const otraVacuna = ref('')
+// Qué vacuna aplicar lo decide el veterinario en la consulta
 const reaccionesPrevias = ref(null)
 const cualesReacciones = ref('')
 // El carnet no va en el borrador: pesa demasiado para sessionStorage
 const carnet = ref(null)
 
-const vacunasDeLaEspecie = computed(() => VACUNAS.filter(v => !v.especie || !form.especie || form.especie === 'Otro' || v.especie === form.especie))
-// Si cambian la especie, se quitan las vacunas que ya no aplican
-watch(() => form.especie, () => {
-  const validas = vacunasDeLaEspecie.value.map(v => v.nombre)
-  vacunas.value = vacunas.value.filter(v => validas.includes(v))
-})
-
-function alternarVacuna(nombre) {
-  const sinOrientacion = 'No sé, que me oriente el veterinario'
-  if (vacunas.value.includes(nombre)) vacunas.value = vacunas.value.filter(v => v !== nombre)
-  else if (nombre === sinOrientacion) vacunas.value = [nombre]
-  else vacunas.value = [...vacunas.value.filter(v => v !== sinOrientacion), nombre]
-}
-
-const vacunaTexto = computed(() => vacunas.value
-  .map(v => v === 'Otra' ? `Otra: ${otraVacuna.value.trim()}` : v)
-  .join(', '))
-
 const preguntasCompletas = computed(() =>
-  vacunas.value.length > 0 && (!vacunas.value.includes('Otra') || !!otraVacuna.value.trim()) &&
   (reaccionesPrevias.value === false || (reaccionesPrevias.value === true && !!cualesReacciones.value.trim()))
 )
 
@@ -79,7 +51,7 @@ const radicado = ref('')
 const copiaEnviada = ref(false)
 const confirmandoCorreo = ref(false)
 const borrador = usarBorrador('VACUNACION', paso, {
-  form, vacunas, otraVacuna, reaccionesPrevias, cualesReacciones,
+  form, reaccionesPrevias, cualesReacciones,
   sesion, cedulaGuardada, correoVerificado, versionAceptada
 })
 const avisoBorrador = borrador.aviso
@@ -133,7 +105,6 @@ async function enviar() {
     const { data } = await api.post('/formularios/guardar', {
       tipo: 'VACUNACION',
       ...form,
-      servicioSolicitado: vacunaTexto.value,
       checklistJson: JSON.stringify({
         reaccionesPrevias: reaccionesPrevias.value ? `Sí: ${cualesReacciones.value.trim()}` : 'No'
       }),
@@ -258,24 +229,6 @@ async function enviar() {
               <input v-model="form.color" type="text" placeholder="Ej: Blanco"
                 class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
             </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl p-5 shadow-sm">
-          <h2 class="font-black uppercase text-sm text-[#152C77] mb-4 tracking-wide">¿Qué vacuna viene a aplicar? *</h2>
-          <div class="grid grid-cols-2 gap-2">
-            <button v-for="v in vacunasDeLaEspecie" :key="v.nombre" type="button" @click="alternarVacuna(v.nombre)"
-              :aria-pressed="vacunas.includes(v.nombre)"
-              :class="['p-3 rounded-xl border-2 text-sm font-medium text-left transition-colors',
-                vacunas.includes(v.nombre) ? 'border-[#152C77] bg-[#152C77]/5 text-[#152C77]' : 'border-gray-200 text-gray-600',
-                v.nombre.startsWith('No sé') ? 'col-span-2' : '']">
-              {{ v.nombre }}
-            </button>
-          </div>
-          <p class="text-xs text-gray-400 mt-2">Puedes marcar varias.</p>
-          <div v-if="vacunas.includes('Otra')" class="mt-3">
-            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">¿Cuál vacuna? *</label>
-            <input v-model="otraVacuna" type="text" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]" />
           </div>
         </div>
 
