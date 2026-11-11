@@ -57,6 +57,25 @@
   </div>
 </template>
 
+<script>
+const TIPO = { DIA: 'Día', HOTEL: 'Hotel', BANO: 'Baño' }
+const fecha = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) : 'sin fecha'
+const comida = d => d.comidaCantidad === '' || d.comidaCantidad == null ? 'sin anotar'
+  : `${d.comidaCantidad} ${d.comidaUnidad === 'GRAMOS' ? 'g' : 'porciones'}, ${d.comidaPorDia || '?'} al día`
+
+/** Pregunta antes de guardar la ficha, mostrando qué cambia, para no guardar algo por error. */
+export function confirmarCambios(antes, despues) {
+  const c = []
+  if (antes.perro !== despues.perro.trim()) c.push(`Nombre: ${antes.perro} → ${despues.perro.trim()}`)
+  if (antes.especie !== despues.especie) c.push(`Especie: ${despues.especie === 'GATO' ? 'Gato' : 'Perro'}`)
+  if (antes.tipo !== despues.tipo) c.push(`Tipo: ${TIPO[antes.tipo] || antes.tipo} → ${TIPO[despues.tipo] || despues.tipo}`)
+  if ((antes.salidaEsperada || '') !== (despues.salidaEsperada || '')) c.push(`Sale: ${fecha(antes.salidaEsperada)} → ${fecha(despues.salidaEsperada)}`)
+  if (comida(antes) !== comida(despues)) c.push(`Comida: ${comida(antes)} → ${comida(despues)}`)
+  if (!c.length) return confirm('No cambiaste nada. ¿Guardar de todas formas?')
+  return confirm(`¿Seguro que quieres guardar estos cambios de ${antes.perro}?\n\n${c.join('\n')}`)
+}
+</script>
+
 <script setup>
 import { computed } from 'vue'
 

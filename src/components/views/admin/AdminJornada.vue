@@ -803,7 +803,7 @@
               class="bg-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] disabled:opacity-40">
               Entregado
             </button>
-            <button @click="accionMascota('editar', mascota.datos)" :disabled="guardandoMascota"
+            <button @click="guardarMascota" :disabled="guardandoMascota"
               class="bg-blue-500 py-4 rounded-2xl font-[1000] uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
               Guardar cambios
             </button>
@@ -821,7 +821,7 @@ import { Activity, ChartColumn, Dog, Clock, Scale, MapPin, Sparkles, Users, User
 import api from '@/api/axios'
 import AdminJornadaDiaEquipo from './AdminJornadaDiaEquipo.vue'
 import FichaFormato from '../equipo/FichaFormato.vue'
-import PerroDatosForm from '../equipo/PerroDatosForm.vue'
+import PerroDatosForm, { confirmarCambios } from '../equipo/PerroDatosForm.vue'
 import AdminJornadaEquilibrio from './AdminJornadaEquilibrio.vue'
 import AdminJornadaMarcas from './AdminJornadaMarcas.vue'
 
@@ -901,18 +901,20 @@ const errorMascota = ref('')
 
 function abrirMascota(p) {
   errorMascota.value = ''
-  mascota.value = {
-    p,
-    datos: {
-      perro: p.perro,
-      especie: p.especie || 'PERRO',
-      tipo: p.tipo,
-      salidaEsperada: p.salidaEsperada || '',
-      comidaCantidad: p.comidaCantidad ?? '',
-      comidaUnidad: p.comidaUnidad || 'PORCIONES',
-      comidaPorDia: p.comidaPorDia ?? '',
-    },
+  const datos = {
+    perro: p.perro,
+    especie: p.especie || 'PERRO',
+    tipo: p.tipo,
+    salidaEsperada: p.salidaEsperada || '',
+    comidaCantidad: p.comidaCantidad ?? '',
+    comidaUnidad: p.comidaUnidad || 'PORCIONES',
+    comidaPorDia: p.comidaPorDia ?? '',
   }
+  mascota.value = { p, antes: datos, datos: { ...datos } }
+}
+
+function guardarMascota() {
+  if (confirmarCambios(mascota.value.antes, mascota.value.datos)) accionMascota('editar', mascota.value.datos)
 }
 
 async function accionMascota(ruta, body) {

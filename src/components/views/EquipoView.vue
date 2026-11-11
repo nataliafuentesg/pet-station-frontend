@@ -561,7 +561,7 @@ import api from '@/api/axios'
 import { messaging, onMessage } from '@/firebase'
 import { obtenerTokenPush } from '@/composables/usePushNotifications'
 import { obtenerUbicacion, estadoPermisoUbicacion } from '@/composables/useUbicacion'
-import PerroDatosForm from './equipo/PerroDatosForm.vue'
+import PerroDatosForm, { confirmarCambios } from './equipo/PerroDatosForm.vue'
 import FichaFormato from './equipo/FichaFormato.vue'
 import RevisionIngreso, { revisionVacia, revisionCompleta } from './equipo/RevisionIngreso.vue'
 import AvisoJornada from './equipo/AvisoJornada.vue'
@@ -899,6 +899,15 @@ function recibirConFormato(f) {
 
 function abrirFicha(p) {
   error.value = ''
+  const datos = {
+    perro: p.perro,
+    especie: p.especie || 'PERRO',
+    tipo: p.tipo,
+    salidaEsperada: p.salidaEsperada || '',
+    comidaCantidad: p.comidaCantidad ?? '',
+    comidaUnidad: p.comidaUnidad || 'PORCIONES',
+    comidaPorDia: p.comidaPorDia ?? '',
+  }
   ficha.value = {
     id: p.id,
     formato: p.formato || null,
@@ -906,19 +915,13 @@ function abrirFicha(p) {
     entrada: p.entrada,
     diasTranscurridos: Math.max(0, (Date.now() - new Date(p.entrada)) / 86400000),
     masComida: '',
-    datos: {
-      perro: p.perro,
-      especie: p.especie || 'PERRO',
-      tipo: p.tipo,
-      salidaEsperada: p.salidaEsperada || '',
-      comidaCantidad: p.comidaCantidad ?? '',
-      comidaUnidad: p.comidaUnidad || 'PORCIONES',
-      comidaPorDia: p.comidaPorDia ?? '',
-    },
+    antes: datos,
+    datos: { ...datos },
   }
 }
 
 async function guardarFicha() {
+  if (!confirmarCambios(ficha.value.antes, ficha.value.datos)) return
   if (await accion(`/jornada/guarderia/${ficha.value.id}/editar`, ficha.value.datos)) ficha.value = null
 }
 
