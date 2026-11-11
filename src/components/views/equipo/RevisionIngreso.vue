@@ -9,7 +9,7 @@ const HALLAZGOS = { desenrede: 'Desenrede', ectoparasitos: 'Ectoparásitos' }
 <script>
 export const revisionVacia = () => ({
   pesoKg: '', ojos: '', orejas: '', boca: '', piel: '', pulpejos: '', zonaPerianal: '',
-  desenrede: '', ectoparasitos: '', observacionesIngreso: ''
+  desenrede: '', ectoparasitos: '', valorServicio: '', observacionesIngreso: ''
 })
 
 export const revisionCompleta = r =>
@@ -37,6 +37,8 @@ export const revisionCompleta = r =>
         {{ op }}
       </button>
     </div>
+    <input v-model="revision.valorServicio" type="text" placeholder="Valor del servicio desde (ej: $60.000)"
+      class="w-full bg-white/10 border border-white/10 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-500 placeholder:text-white/30" />
     <textarea v-model="revision.observacionesIngreso" rows="2" placeholder="Observaciones del ingreso (opcional)"
       class="w-full bg-white/10 border border-white/10 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-500 placeholder:text-white/30"></textarea>
   </div>
