@@ -49,13 +49,9 @@ const DETALLE = {
     { clave: 'costoDia', label: 'Costo estimado por día *', obligatorio: true, ejemplo: 'Ej: $180.000' },
     { clave: 'abono', label: 'Abono', ejemplo: 'Ej: $300.000' },
   ],
+  // General: autoriza los medicamentos que el veterinario considere, sin listarlos uno por uno
   MEDICACION: [
-    { clave: 'medicamento', label: 'Medicamento *', obligatorio: true },
-    { clave: 'dosis', label: 'Dosis *', obligatorio: true, ejemplo: 'Ej: 250 mg' },
-    { clave: 'via', label: 'Vía de administración', ejemplo: 'Ej: oral, inyectada' },
-    { clave: 'frecuencia', label: 'Frecuencia *', obligatorio: true, ejemplo: 'Ej: cada 12 horas' },
-    { clave: 'duracion', label: 'Duración del tratamiento', ejemplo: 'Ej: 7 días' },
-    { clave: 'indicadoPor', label: 'Indicado por (veterinario) *', obligatorio: true },
+    { clave: 'motivo', label: 'Motivo del tratamiento', ejemplo: 'Opcional. Ej: otitis, posoperatorio' },
   ],
 }
 
