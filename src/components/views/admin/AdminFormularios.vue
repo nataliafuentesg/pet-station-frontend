@@ -105,7 +105,7 @@ const AREAS = [
 
 // Peluquería, guardería y vacunación entran cuando se hace la revisión, no cuando se firma el formato.
 // Los clínicos (con estado) están pendientes mientras falte alguna firma.
-const pendiente = f => f.estado ? f.estado !== 'COMPLETO' : !f.revisionCompletada
+const pendiente = f => f.estado ? f.estado !== 'COMPLETO' : !f.revisionCompletada && !f.noVinoEn
 const porRevisar = computed(() => formularios.value.filter(pendiente))
 
 // Día en Colombia: el de la revisión si ya entró; si no, el de la firma o el de creación del link
@@ -300,6 +300,19 @@ function abrirRevision(f) {
   empleadoRevision.value = ''
 }
 
+// Quien llenó el formato pero nunca llegó: sale de "Por revisar" y el formato se conserva
+async function marcarNoVino(f) {
+  if (!confirm(`¿Seguro que ${f.nombreMascota || 'esta mascota'} no vino? Sale de lo pendiente; si llega después, igual se puede revisar.`)) return
+  let quien = null
+  try { quien = JSON.parse(localStorage.getItem('ps_session'))?.tutor?.nombre || null } catch { /* sin sesión guardada */ }
+  try {
+    await api.post(`/admin/formularios/${f.id}/no-vino`, { quien })
+    await cargar()
+  } catch (e) {
+    alert(e.response?.data?.message || 'No se pudo marcar')
+  }
+}
+
 async function guardarRevision() {
   if (!modalRevision.value) return
   enviandoRevision.value = true
@@ -410,6 +423,7 @@ async function guardarRevision() {
               {{ linkVencido(f) ? 'Link vencido' : 'Falta firma del tutor' }}
             </span>
             <span v-else-if="f.estado === 'PENDIENTE_VETERINARIO'" class="text-[8px] text-amber-600 font-bold block">Falta firma del veterinario</span>
+            <span v-else-if="!f.estado && f.noVinoEn && !f.revisionCompletada" class="text-[8px] text-slate-500 font-bold block">🚫 No vino</span>
             <span v-else-if="!f.estado && !f.revisionCompletada" class="text-[8px] text-amber-600 font-bold block">⏳ Sin revisar</span>
             <span v-else-if="!f.estado && f.revisionTimestamp" class="text-[8px] text-green-600 font-bold block">✓ Ingresó {{ formatFecha(f.revisionTimestamp) }}</span>
             <span v-else-if="f.otpVerificado" class="text-[8px] text-green-600 font-bold">✓ Verificado</span>
@@ -496,7 +510,11 @@ async function guardarRevision() {
               class="flex-1 py-2 bg-amber-500 text-white font-black uppercase text-[9px] tracking-widest rounded-xl hover:bg-amber-600 transition-colors">
               🔍 Completar revisión
             </button>
-            <span v-else class="flex-1 py-2 text-center text-[9px] font-black uppercase text-green-600 bg-green-50 rounded-xl">
+            <button v-if="!f.revisionCompletada && !f.noVinoEn" @click.stop="marcarNoVino(f)"
+              class="py-2 px-3 border border-slate-200 dark:border-white/10 text-slate-500 font-black uppercase text-[9px] tracking-widest rounded-xl hover:border-slate-400 transition-colors">
+              🚫 No vino
+            </button>
+            <span v-if="f.revisionCompletada" class="flex-1 py-2 text-center text-[9px] font-black uppercase text-green-600 bg-green-50 rounded-xl">
               ✓ Revisión completada
             </span>
             <button @click.stop="descargarPdf(f)"

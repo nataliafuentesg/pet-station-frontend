@@ -219,10 +219,16 @@
               <FichaFormato :formato="f" />
               <p v-if="f.fechaIngreso && f.fechaIngreso > hoyLocal" class="text-[10px] font-bold text-blue-300">📅 Viene el {{ fechaCorta(f.fechaIngreso) }}</p>
               <p v-else-if="f.fechaIngreso && f.fechaIngreso < hoyLocal" class="text-[10px] font-bold text-amber-300">⏳ Debía llegar el {{ fechaCorta(f.fechaIngreso) }}</p>
-              <button @click="recibirConFormato(f)" :disabled="enviando"
-                class="w-full bg-blue-500 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
-                ✅ Llegó
-              </button>
+              <div class="flex gap-2">
+                <button @click="recibirConFormato(f)" :disabled="enviando"
+                  class="flex-1 bg-blue-500 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
+                  ✅ Llegó
+                </button>
+                <button @click="formatoNoVino(f)" :disabled="enviando"
+                  class="px-4 border border-white/15 text-white/60 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
+                  🚫 No vino
+                </button>
+              </div>
             </div>
             <div class="border-t border-white/10"></div>
           </template>
@@ -883,6 +889,11 @@ function abrirRecepcion() {
 }
 
 // El formato ya trae nombre, especie y fechas: solo se revisa y se confirma
+function formatoNoVino(f) {
+  if (confirm(`¿Seguro que ${f.perro} no vino? Sale de "Por llegar".`))
+    accion(`/jornada/guarderia/formato/${f.formularioId}/no-vino`)
+}
+
 function recibirConFormato(f) {
   error.value = ''
   recepcion.value = {
