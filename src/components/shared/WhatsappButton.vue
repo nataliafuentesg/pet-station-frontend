@@ -20,6 +20,14 @@
           <button @click="toggleChat" class="relative z-10 text-white/60 hover:text-white text-3xl p-1 transition-colors leading-none">×</button>
         </div>
 
+        <!-- Línea de la clínica: sin decir "urgencias" porque no somos 24 horas -->
+        <a href="https://wa.me/573187076798?text=Hola%2C%20quiero%20hablar%20con%20la%20cl%C3%ADnica%20de%20Pet%20Station."
+          target="_blank" rel="noopener"
+          class="shrink-0 flex items-center justify-between gap-2 px-4 py-2.5 bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
+          <span>🩺 ¿Tema médico de tu mascota? Escribe a la clínica</span>
+          <span class="text-[#152C77] dark:text-blue-300 font-black whitespace-nowrap">318 707 6798 →</span>
+        </a>
+
         <!-- Chat: se escribe de una, sin pedir datos antes -->
           <!-- Mensajes -->
           <div ref="mensajesRef" class="p-4 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-3">
