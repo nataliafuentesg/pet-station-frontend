@@ -245,7 +245,7 @@ async function enviar() {
 
         <div class="bg-white rounded-2xl p-5 shadow-sm">
           <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Observaciones adicionales</label>
-          <textarea v-model="form.observaciones" rows="2" placeholder="Si está enferma, toma algún medicamento o está preñada, cuéntanos aquí"
+          <textarea v-model="form.observaciones" rows="2" placeholder="Si está enferma o toma algún medicamento, cuéntanos aquí"
             class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#152C77]"></textarea>
         </div>
 
