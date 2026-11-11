@@ -25,7 +25,7 @@ const CLINICOS = [
 const formularios = ref([])
 const cargando = ref(true)
 const filtroTipo = ref('')
-const periodo = ref('HOY') // HOY | TODOS
+const periodo = ref('HOY') // PENDIENTES | HOY | TODOS
 const busqueda = ref('')
 const seleccionado = ref(null)
 const modalRevision = ref(null)
@@ -103,12 +103,18 @@ const AREAS = [
   { valor: 'DECLINACION', nombre: '🚫 Declinación' },
 ]
 
-// Día en Colombia; un formato clínico cuenta el día que lo firmó el tutor, o el día que se creó el link si aún no firma
+// Peluquería, guardería y vacunación entran cuando se hace la revisión, no cuando se firma el formato.
+// Los clínicos (con estado) están pendientes mientras falte alguna firma.
+const pendiente = f => f.estado ? f.estado !== 'COMPLETO' : !f.revisionCompletada
+const porRevisar = computed(() => formularios.value.filter(pendiente))
+
+// Día en Colombia: el de la revisión si ya entró; si no, el de la firma o el de creación del link
 const diaBogota = ts => new Date(ts).toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
 const delPeriodo = computed(() => {
   if (periodo.value === 'TODOS') return formularios.value
+  if (periodo.value === 'PENDIENTES') return porRevisar.value
   const hoy = diaBogota(Date.now())
-  return formularios.value.filter(f => diaBogota(f.firmadoEn || f.timestamp) === hoy)
+  return formularios.value.filter(f => diaBogota(f.revisionTimestamp || f.firmadoEn || f.timestamp) === hoy)
 })
 const cuantos = computed(() => {
   const c = {}
@@ -342,7 +348,7 @@ async function guardarRevision() {
     <div class="space-y-3">
       <div class="flex flex-col sm:flex-row gap-3">
         <div class="flex p-1 bg-slate-100 dark:bg-white/5 rounded-xl shrink-0">
-          <button v-for="p in [{ valor: 'HOY', nombre: 'Hoy' }, { valor: 'TODOS', nombre: 'Historial completo' }]" :key="p.valor"
+          <button v-for="p in [{ valor: 'PENDIENTES', nombre: `⏳ Por revisar · ${porRevisar.length}` }, { valor: 'HOY', nombre: 'Hoy' }, { valor: 'TODOS', nombre: 'Historial' }]" :key="p.valor"
             @click="periodo = p.valor"
             :class="['flex-1 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors',
               periodo === p.valor ? 'bg-white dark:bg-white/15 text-[#152C77] dark:text-white shadow-sm' : 'text-slate-400']">
@@ -374,7 +380,7 @@ async function guardarRevision() {
 
     <div v-else-if="lista.length === 0" class="text-center py-12 text-slate-400">
       <p class="text-4xl mb-3">📋</p>
-      <p class="font-bold text-sm uppercase tracking-widest">{{ periodo === 'HOY' ? 'Hoy no hay formularios' : 'Sin formularios' }}</p>
+      <p class="font-bold text-sm uppercase tracking-widest">{{ { HOY: 'Hoy no hay formularios', PENDIENTES: 'Nada pendiente' }[periodo] || 'Sin formularios' }}</p>
       <button v-if="periodo === 'HOY'" @click="periodo = 'TODOS'" class="mt-3 text-xs font-bold text-[#152C77] dark:text-blue-300 underline">
         Ver historial completo
       </button>
@@ -404,6 +410,8 @@ async function guardarRevision() {
               {{ linkVencido(f) ? 'Link vencido' : 'Falta firma del tutor' }}
             </span>
             <span v-else-if="f.estado === 'PENDIENTE_VETERINARIO'" class="text-[8px] text-amber-600 font-bold block">Falta firma del veterinario</span>
+            <span v-else-if="!f.estado && !f.revisionCompletada" class="text-[8px] text-amber-600 font-bold block">⏳ Sin revisar</span>
+            <span v-else-if="!f.estado && f.revisionTimestamp" class="text-[8px] text-green-600 font-bold block">✓ Ingresó {{ formatFecha(f.revisionTimestamp) }}</span>
             <span v-else-if="f.otpVerificado" class="text-[8px] text-green-600 font-bold">✓ Verificado</span>
           </div>
         </div>

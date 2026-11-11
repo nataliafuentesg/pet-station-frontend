@@ -52,6 +52,22 @@
           <span v-else-if="p.comidaPorAcabarse">le queda comida para menos de un día. </span>
         </div>
         <p v-if="!alertasPerros.length" class="text-[11px] text-slate-400 dark:text-white/30">Sin alertas de comida ni de salidas.</p>
+        <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3 pt-2">
+          <button v-for="p in guarderiaAhora.adentro" :key="p.id" type="button" @click="abrirMascota(p)"
+            class="flex items-center gap-3 text-left bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl px-3 py-2.5">
+            <span class="text-xl shrink-0">{{ p.especie === 'GATO' ? '🐈' : '🐕' }}</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-[13px] font-bold dark:text-white truncate">{{ p.perro }}
+                <span class="text-[9px] font-black uppercase text-purple-500">{{ { HOTEL: 'Hotel', BANO: 'Baño', DIA: 'Día' }[p.tipo] }}</span>
+              </span>
+              <span class="block text-[10px] text-slate-400 dark:text-white/40 truncate">
+                <template v-if="p.salidaEsperada">Sale el {{ diaCorto(p.salidaEsperada) }}</template>
+                <template v-else>Entró {{ diaCorto(p.entrada?.slice(0, 10)) }}</template>
+                <template v-if="p.formato?.medicamentos || p.formato?.tratamiento"> · 💊 medicamentos</template>
+              </span>
+            </span>
+          </button>
+        </div>
       </div>
       <div v-if="enJornada.length" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <div v-for="e in enJornada" :key="e.tutorId"
@@ -764,6 +780,37 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Ficha de una mascota adentro (oscura, como en Mi Jornada) -->
+    <Teleport to="body">
+      <div v-if="mascota" class="fixed inset-0 z-[9001] flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="mascota = null"></div>
+        <div class="relative w-full max-w-sm max-h-[92vh] overflow-y-auto bg-[#111] border border-white/10 rounded-[2rem] p-6 space-y-4 text-white">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-lg font-[1000] leading-tight">{{ mascota.p.perro }}</p>
+              <p class="text-[11px] text-white/40">Entró {{ fechaHora(mascota.p.entrada) }}<span v-if="mascota.p.recibidoPor"> · {{ mascota.p.recibidoPor }}</span></p>
+            </div>
+            <button @click="mascota = null" class="text-white/40 text-xl">✕</button>
+          </div>
+          <FichaFormato v-if="mascota.p.formato" :formato="mascota.p.formato" completa admin />
+          <p v-else class="text-[11px] text-white/40">Llegó sin formato de guardería: no hay datos del dueño.</p>
+          <PerroDatosForm :model-value="mascota.datos" con-comida :entrada="mascota.p.entrada"
+            :dias-transcurridos="Math.max(0, (Date.now() - new Date(mascota.p.entrada)) / 86400000)" />
+          <p v-if="errorMascota" class="text-[11px] text-red-300 font-bold">{{ errorMascota }}</p>
+          <div class="grid grid-cols-2 gap-3">
+            <button @click="entregarMascota" :disabled="guardandoMascota"
+              class="bg-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] disabled:opacity-40">
+              Entregado
+            </button>
+            <button @click="accionMascota('editar', mascota.datos)" :disabled="guardandoMascota"
+              class="bg-blue-500 py-4 rounded-2xl font-[1000] uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
+              Guardar cambios
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -773,6 +820,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { Activity, ChartColumn, Dog, Clock, Scale, MapPin, Sparkles, Users, UserPlus, Eye, RefreshCw, Search } from 'lucide-vue-next'
 import api from '@/api/axios'
 import AdminJornadaDiaEquipo from './AdminJornadaDiaEquipo.vue'
+import FichaFormato from '../equipo/FichaFormato.vue'
+import PerroDatosForm from '../equipo/PerroDatosForm.vue'
 import AdminJornadaEquilibrio from './AdminJornadaEquilibrio.vue'
 import AdminJornadaMarcas from './AdminJornadaMarcas.vue'
 
@@ -845,6 +894,46 @@ const rapidasTexto = ref({})
 const guardandoRapidas = ref(null)
 const rapidasOk = ref(null)
 const guarderiaAhora = ref(null)
+// Ficha de una mascota adentro: lo que dijo el dueño, extender la estadía y entregarla
+const mascota = ref(null)
+const guardandoMascota = ref(false)
+const errorMascota = ref('')
+
+function abrirMascota(p) {
+  errorMascota.value = ''
+  mascota.value = {
+    p,
+    datos: {
+      perro: p.perro,
+      especie: p.especie || 'PERRO',
+      tipo: p.tipo,
+      salidaEsperada: p.salidaEsperada || '',
+      comidaCantidad: p.comidaCantidad ?? '',
+      comidaUnidad: p.comidaUnidad || 'PORCIONES',
+      comidaPorDia: p.comidaPorDia ?? '',
+    },
+  }
+}
+
+async function accionMascota(ruta, body) {
+  guardandoMascota.value = true
+  errorMascota.value = ''
+  try {
+    await api.post(`/admin/jornada/guarderia/${mascota.value.p.id}/${ruta}`, body)
+    mascota.value = null
+    const { data } = await api.get('/admin/jornada/guarderia')
+    guarderiaAhora.value = data
+  } catch (e) {
+    errorMascota.value = e.response?.data?.message || 'No se pudo guardar'
+  } finally {
+    guardandoMascota.value = false
+  }
+}
+
+function entregarMascota() {
+  if (confirm(`¿Entregaron a ${mascota.value.p.perro}?`)) accionMascota('entregar')
+}
+
 const alertasPerros = computed(() => (guarderiaAhora.value?.adentro || [])
   .filter(p => p.salidaVencida || p.comidaNoAlcanza || p.comidaPorAcabarse))
 const loadingOcupacion = ref(false)

@@ -13,6 +13,8 @@ const props = defineProps({
   completa: { type: Boolean, default: false },
   // Solo la foto, para la lista de las que están adentro
   miniatura: { type: Boolean, default: false },
+  // Desde el panel del administrador la foto sale por la ruta de admin
+  admin: { type: Boolean, default: false },
 })
 
 const foto = ref(null)
@@ -21,7 +23,7 @@ watch(() => props.formato.formularioId, async id => {
   foto.value = null
   if (!props.formato.conFoto) return
   if (!fotos.has(id)) {
-    fotos.set(id, api.get(`/jornada/guarderia/formato/${id}/foto`, { responseType: 'blob' })
+    fotos.set(id, api.get(`${props.admin ? '/admin' : ''}/jornada/guarderia/formato/${id}/foto`, { responseType: 'blob' })
       .then(r => URL.createObjectURL(r.data))
       .catch(() => { fotos.delete(id); return null }))
   }

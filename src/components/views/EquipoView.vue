@@ -214,9 +214,11 @@
         <!-- Guardería: entrada y salida de perros -->
         <div v-if="guarderia" class="bg-white/5 rounded-[2rem] p-6 border border-white/10 space-y-4">
           <template v-if="esperados.length">
-            <p class="text-[10px] font-black uppercase tracking-widest text-white/40">📋 Llegan hoy · {{ esperados.length }}</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-white/40">📋 Por llegar · {{ esperados.length }}</p>
             <div v-for="f in esperados" :key="f.formularioId" class="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-3 space-y-3">
               <FichaFormato :formato="f" />
+              <p v-if="f.fechaIngreso && f.fechaIngreso > hoyLocal" class="text-[10px] font-bold text-blue-300">📅 Viene el {{ fechaCorta(f.fechaIngreso) }}</p>
+              <p v-else-if="f.fechaIngreso && f.fechaIngreso < hoyLocal" class="text-[10px] font-bold text-amber-300">⏳ Debía llegar el {{ fechaCorta(f.fechaIngreso) }}</p>
               <button @click="recibirConFormato(f)" :disabled="enviando"
                 class="w-full bg-blue-500 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
                 ✅ Llegó
@@ -430,11 +432,15 @@
             </button>
           </div>
           <PerroDatosForm :model-value="recepcion" />
+          <RevisionIngreso v-if="recepcion.revision" v-model="recepcion.revision" />
+          <p v-if="recepcion.revision && !revisionCompleta(recepcion.revision)" class="text-[11px] text-white/40">
+            Marca cada punto de la revisión para recibirla.
+          </p>
           <p v-if="error" class="text-[11px] text-red-300 font-bold">{{ error }}</p>
           <p v-if="tareaActual" class="text-[11px] text-white/40">"{{ tareaActual.descripcion }}" queda en espera y se retoma sola cuando termines la recepción.</p>
           <div class="grid grid-cols-2 gap-3">
             <button @click="recepcion = null" class="bg-white/10 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Cancelar</button>
-            <button @click="confirmarRecepcion" :disabled="!recepcion.perro.trim() || enviando"
+            <button @click="confirmarRecepcion" :disabled="!recepcion.perro.trim() || enviando || (recepcion.revision && !revisionCompleta(recepcion.revision))"
               class="bg-blue-500 py-4 rounded-2xl font-[1000] uppercase tracking-widest text-[10px] active:scale-95 disabled:opacity-40">
               Empezar recepción
             </button>
@@ -557,6 +563,7 @@ import { obtenerTokenPush } from '@/composables/usePushNotifications'
 import { obtenerUbicacion, estadoPermisoUbicacion } from '@/composables/useUbicacion'
 import PerroDatosForm from './equipo/PerroDatosForm.vue'
 import FichaFormato from './equipo/FichaFormato.vue'
+import RevisionIngreso, { revisionVacia, revisionCompleta } from './equipo/RevisionIngreso.vue'
 import AvisoJornada from './equipo/AvisoJornada.vue'
 
 const ROLES_PERMITIDOS = ['ROLE_EMPLEADO', 'ROLE_VET', 'ROLE_ADMIN', 'ADMIN']
@@ -630,6 +637,8 @@ const diaCierre = computed(() => {
 const yaTerminoHoy = computed(() => !!estado.value && !estado.value.sesion && 'jornadaTerminadaHoy' in estado.value)
 const guarderia = computed(() => estado.value?.guarderia || null)
 const esperados = computed(() => guarderia.value?.esperados || [])
+// yyyy-MM-dd local, para comparar con la fecha de ingreso del formato
+const hoyLocal = new Date().toLocaleDateString('en-CA')
 const necesitaConsentimiento = computed(() => estado.value?.consentimiento?.aceptado === false)
 const mostrarAviso = computed(() => necesitaConsentimiento.value || verAviso.value)
 const tareasRapidas = computed(() => estado.value?.tareasRapidas || [])
@@ -883,6 +892,8 @@ function recibirConFormato(f) {
     salidaEsperada: f.tipo === 'HOTEL' ? f.fechaSalida : '',
     formularioId: f.formularioId,
     formato: f,
+    // Recibirla es la revisión de ingreso, salvo que ya la hayan hecho en el panel
+    revision: f.revisado ? null : revisionVacia(),
   }
 }
 
@@ -937,8 +948,8 @@ async function confirmarRecepcion() {
   if (!confirmaRegreso()) return
   if (pedirExplicacion(confirmarRecepcion)) return
   const anterior = tareaActual.value
-  const { formato, ...datos } = recepcion.value
-  if (await accion('/jornada/guarderia/recibir', { ...datos, explicacionHueco: explicacionHueco.value || undefined })) {
+  const { formato, revision, ...datos } = recepcion.value
+  if (await accion('/jornada/guarderia/recibir', { ...datos, revision: revision || undefined, explicacionHueco: explicacionHueco.value || undefined })) {
     recepcion.value = null
     avisarCambio(anterior ? `⏸ "${anterior.descripcion}" quedó en pausa` : null)
   }
