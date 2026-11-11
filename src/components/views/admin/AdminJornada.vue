@@ -58,7 +58,7 @@
             <span class="text-xl shrink-0">{{ p.especie === 'GATO' ? '🐈' : '🐕' }}</span>
             <span class="min-w-0 flex-1">
               <span class="block text-[13px] font-bold dark:text-white truncate">{{ p.perro }}
-                <span class="text-[9px] font-black uppercase text-purple-500">{{ { HOTEL: 'Hotel', BANO: 'Baño', DIA: 'Día' }[p.tipo] }}</span>
+                <span class="text-[9px] font-black uppercase text-purple-500">{{ { HOTEL: 'Hotel', BANO: 'Baño', DIA: 'Pasa día' }[p.tipo] }}</span>
               </span>
               <span class="block text-[10px] text-slate-400 dark:text-white/40 truncate">
                 <template v-if="p.salidaEsperada">Sale el {{ diaCorto(p.salidaEsperada) }}</template>
@@ -367,7 +367,7 @@
           <table class="w-full text-left min-w-[820px]">
             <thead class="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
               <tr>
-                <th v-for="h in ['Día','Mascotas día','Hotel','Máx. a la vez','Personas','En tareas','Sin tarea','Horas por mascota','Recepciones (uñas)','Baños','']" :key="h"
+                <th v-for="h in ['Día','Mascotas pasa día','Hotel','Máx. a la vez','Personas','En tareas','Sin tarea','Horas por mascota','Recepciones (uñas)','Baños','']" :key="h"
                   class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-white/40">{{ h }}</th>
               </tr>
             </thead>
@@ -579,7 +579,7 @@
               <div>
                 <p class="text-xs font-semibold text-slate-400 dark:text-white/40 mb-2">Por hora: perros adentro vs. personas con tarea</p>
                 <div class="flex gap-3 text-[10px] font-bold text-slate-500 dark:text-white/50 mb-2">
-                  <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-blue-400 align-middle"></span> Mascotas día</span>
+                  <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-blue-400 align-middle"></span> Mascotas pasa día</span>
                   <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-purple-400 align-middle"></span> Hotel</span>
                   <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-green-500 align-middle"></span> Personas con tarea</span>
                   <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-slate-300 dark:bg-white/20 align-middle"></span> En jornada</span>
@@ -616,7 +616,7 @@
                 <p v-if="!perfil.perros.length" class="text-[11px] text-slate-400 dark:text-white/30">No se registraron perros.</p>
                 <div v-for="p in perfil.perros" :key="p.perro + p.entrada" class="flex items-center justify-between gap-3 py-1.5 border-b border-slate-100 dark:border-white/5 last:border-0">
                   <div class="min-w-0">
-                    <p class="text-[12px] font-bold dark:text-white truncate">{{ p.especie === 'GATO' ? '🐈' : '🐕' }} {{ p.perro }} <span class="text-[9px] uppercase" :class="{ HOTEL: 'text-purple-500', BANO: 'text-cyan-500', DIA: 'text-blue-500' }[p.tipo]">{{ { HOTEL: 'Hotel', BANO: 'Baño', DIA: 'Día' }[p.tipo] }}</span></p>
+                    <p class="text-[12px] font-bold dark:text-white truncate">{{ p.especie === 'GATO' ? '🐈' : '🐕' }} {{ p.perro }} <span class="text-[9px] uppercase" :class="{ HOTEL: 'text-purple-500', BANO: 'text-cyan-500', DIA: 'text-blue-500' }[p.tipo]">{{ { HOTEL: 'Hotel', BANO: 'Baño', DIA: 'Pasa día' }[p.tipo] }}</span></p>
                     <p class="text-[10px] text-slate-400 dark:text-white/40">{{ fechaHora(p.entrada) }} – {{ p.salida ? fechaHora(p.salida) : 'sigue adentro' }}<span v-if="p.salidaEsperada"> · sale {{ diaCorto(p.salidaEsperada) }}</span></p>
                     <p v-if="p.comidaCantidad" class="text-[10px]" :class="p.comidaNoAlcanza || p.comidaPorAcabarse ? 'text-red-500' : 'text-slate-400 dark:text-white/40'">
                       🍖 Trajo {{ p.comidaCantidad }} {{ p.comidaUnidad === 'GRAMOS' ? 'g' : 'porciones' }}<span v-if="p.comidaPorDia">, come {{ p.comidaPorDia }}/día</span><span v-if="p.diasComida != null && !p.salida"> · alcanza {{ p.diasComida }} días más</span>

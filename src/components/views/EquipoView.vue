@@ -242,7 +242,7 @@
                 <template v-if="!p.formato?.conFoto">{{ p.especie === 'GATO' ? '🐈' : '🐕' }} </template>{{ p.perro }}
                 <span class="ml-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full align-middle"
                   :class="{ HOTEL: 'bg-purple-500/20 text-purple-300', BANO: 'bg-cyan-500/20 text-cyan-300', DIA: 'bg-blue-500/20 text-blue-300' }[p.tipo]">
-                  {{ { HOTEL: 'Hotel', BANO: 'Baño', DIA: 'Día' }[p.tipo] }}
+                  {{ { HOTEL: 'Hotel', BANO: 'Baño', DIA: 'Pasa día' }[p.tipo] }}
                 </span>
               </p>
               <p v-if="p.formato?.medicamentos || p.formato?.tratamiento" class="text-[10px] font-bold text-amber-300">💊 Toma medicamentos</p>

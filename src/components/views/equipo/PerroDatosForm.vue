@@ -58,7 +58,7 @@
 </template>
 
 <script>
-const TIPO = { DIA: 'Día', HOTEL: 'Hotel', BANO: 'Baño' }
+const TIPO = { DIA: 'Pasa día', HOTEL: 'Hotel', BANO: 'Baño' }
 const fecha = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) : 'sin fecha'
 const comida = d => d.comidaCantidad === '' || d.comidaCantidad == null ? 'sin anotar'
   : `${d.comidaCantidad} ${d.comidaUnidad === 'GRAMOS' ? 'g' : 'porciones'}, ${d.comidaPorDia || '?'} al día`
@@ -89,7 +89,7 @@ const props = defineProps({
 })
 
 const ESPECIES = [{ id: 'PERRO', label: '🐕 Perro' }, { id: 'GATO', label: '🐈 Gato' }]
-const TIPOS = [{ id: 'DIA', label: '☀️ Guardería' }, { id: 'HOTEL', label: '🌙 Hotel' }, { id: 'BANO', label: '🛁 Baño' }]
+const TIPOS = [{ id: 'DIA', label: '☀️ Pasa día' }, { id: 'HOTEL', label: '🌙 Hotel' }, { id: 'BANO', label: '🛁 Baño' }]
 const UNIDADES = [{ id: 'PORCIONES', label: 'Porciones' }, { id: 'GRAMOS', label: 'Gramos' }]
 
 const unidad = computed(() => props.modelValue.comidaUnidad || 'PORCIONES')

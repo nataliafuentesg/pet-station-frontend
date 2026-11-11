@@ -53,7 +53,7 @@
               <span v-for="m in mascotasHora" :key="m.hora" class="absolute text-center text-[10px] font-semibold tabular-nums"
                 :class="m.total ? 'text-[#152C77] dark:text-blue-300' : 'text-slate-300 dark:text-white/20'"
                 :style="{ left: pos(m.hora * 60) + '%', width: (pos((m.hora + 1) * 60) - pos(m.hora * 60)) + '%' }"
-                :title="`${m.perrosDia} de día · ${m.perrosHotel} de hotel`">
+                :title="`${m.perrosDia} pasa día · ${m.perrosHotel} de hotel`">
                 {{ m.total }}
               </span>
             </div>
