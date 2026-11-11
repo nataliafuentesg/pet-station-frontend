@@ -25,6 +25,7 @@ const CLINICOS = [
 const formularios = ref([])
 const cargando = ref(true)
 const filtroTipo = ref('')
+const periodo = ref('HOY') // HOY | TODOS
 const busqueda = ref('')
 const seleccionado = ref(null)
 const modalRevision = ref(null)
@@ -84,18 +85,43 @@ onMounted(cargar)
 async function cargar() {
   cargando.value = true
   try {
-    const params = filtroTipo.value ? { tipo: filtroTipo.value } : {}
-    const { data } = await api.get('/admin/formularios', { params })
+    // Se traen todos y se filtra aquí: los chips cambian al instante y muestran cuántos hay de cada área
+    const { data } = await api.get('/admin/formularios')
     formularios.value = data
   } finally {
     cargando.value = false
   }
 }
 
+const AREAS = [
+  { valor: 'PELUQUERIA', nombre: '✂️ Peluquería' },
+  { valor: 'GUARDERIA', nombre: '🏡 Guardería' },
+  { valor: 'VACUNACION', nombre: '💉 Vacunación' },
+  { valor: 'HOSPITALIZACION', nombre: '🏥 Hospitalización' },
+  { valor: 'MEDICACION', nombre: '💊 Medicación' },
+  { valor: 'CONSENTIMIENTO', nombre: '🩺 Cirugía' },
+  { valor: 'EUTANASIA', nombre: '🕊️ Eutanasia' },
+  { valor: 'DECLINACION', nombre: '🚫 Declinación' },
+]
+
+// Día en Colombia; un formato clínico cuenta el día que lo firmó el tutor, o el día que se creó el link si aún no firma
+const diaBogota = ts => new Date(ts).toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
+const delPeriodo = computed(() => {
+  if (periodo.value === 'TODOS') return formularios.value
+  const hoy = diaBogota(Date.now())
+  return formularios.value.filter(f => diaBogota(f.firmadoEn || f.timestamp) === hoy)
+})
+const cuantos = computed(() => {
+  const c = {}
+  for (const f of delPeriodo.value) c[f.tipo] = (c[f.tipo] || 0) + 1
+  return c
+})
+
 const lista = computed(() => {
   const q = busqueda.value.toLowerCase()
-  if (!q) return formularios.value
-  return formularios.value.filter(f =>
+  const delArea = filtroTipo.value ? delPeriodo.value.filter(f => f.tipo === filtroTipo.value) : delPeriodo.value
+  if (!q) return delArea
+  return delArea.filter(f =>
     f.radicado?.toLowerCase().includes(q) ||
     f.nombreCliente?.toLowerCase().includes(q) ||
     f.cedula?.includes(q) ||
@@ -314,36 +340,31 @@ async function guardarRevision() {
     </div>
 
     <!-- Filtros -->
-    <div class="flex flex-col sm:flex-row gap-3">
-      <input v-model="busqueda" type="text" placeholder="Buscar por radicado, nombre, cédula o mascota..."
-        class="flex-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#152C77] dark:text-white" />
-      <select v-model="filtroTipo" @change="cargar"
-        class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#152C77] dark:text-white">
-        <option value="">Todos los tipos</option>
-        <option value="PELUQUERIA">Peluquería</option>
-        <option value="GUARDERIA">Guardería</option>
-        <option value="VACUNACION">Vacunación</option>
-        <option value="HOSPITALIZACION">Hospitalización</option>
-        <option value="MEDICACION">Medicación</option>
-        <option value="CONSENTIMIENTO">Cirugía y procedimientos</option>
-        <option value="EUTANASIA">Eutanasia</option>
-        <option value="DECLINACION">Declinación</option>
-      </select>
-    </div>
-
-    <!-- Stats -->
-    <div class="grid grid-cols-3 gap-3">
-      <div class="bg-white dark:bg-white/5 rounded-2xl p-4 text-center border border-slate-100 dark:border-white/10">
-        <p class="text-2xl font-[1000]">{{ formularios.length }}</p>
-        <p class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Total</p>
+    <div class="space-y-3">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <div class="flex p-1 bg-slate-100 dark:bg-white/5 rounded-xl shrink-0">
+          <button v-for="p in [{ valor: 'HOY', nombre: 'Hoy' }, { valor: 'TODOS', nombre: 'Historial completo' }]" :key="p.valor"
+            @click="periodo = p.valor"
+            :class="['flex-1 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors',
+              periodo === p.valor ? 'bg-white dark:bg-white/15 text-[#152C77] dark:text-white shadow-sm' : 'text-slate-400']">
+            {{ p.nombre }}
+          </button>
+        </div>
+        <input v-model="busqueda" type="text" placeholder="Buscar por radicado, nombre, cédula o mascota..."
+          class="flex-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#152C77] dark:text-white" />
       </div>
-      <div class="bg-white dark:bg-white/5 rounded-2xl p-4 text-center border border-slate-100 dark:border-white/10">
-        <p class="text-2xl font-[1000]">{{ formularios.filter(f => f.tipo === 'PELUQUERIA').length }}</p>
-        <p class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Peluquería</p>
-      </div>
-      <div class="bg-white dark:bg-white/5 rounded-2xl p-4 text-center border border-slate-100 dark:border-white/10">
-        <p class="text-2xl font-[1000]">{{ formularios.filter(f => f.tipo === 'GUARDERIA').length }}</p>
-        <p class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Guardería</p>
+      <div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+        <button @click="filtroTipo = ''"
+          :class="['shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold border transition-colors',
+            !filtroTipo ? 'bg-[#152C77] border-[#152C77] text-white' : 'border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-300']">
+          Todas · {{ delPeriodo.length }}
+        </button>
+        <button v-for="a in AREAS" :key="a.valor" @click="filtroTipo = filtroTipo === a.valor ? '' : a.valor"
+          :class="['shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold border transition-colors whitespace-nowrap',
+            filtroTipo === a.valor ? 'bg-[#152C77] border-[#152C77] text-white'
+              : cuantos[a.valor] ? 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-200' : 'border-slate-100 dark:border-white/5 text-slate-300 dark:text-slate-500']">
+          {{ a.nombre }} · {{ cuantos[a.valor] || 0 }}
+        </button>
       </div>
     </div>
 
@@ -354,7 +375,10 @@ async function guardarRevision() {
 
     <div v-else-if="lista.length === 0" class="text-center py-12 text-slate-400">
       <p class="text-4xl mb-3">📋</p>
-      <p class="font-bold text-sm uppercase tracking-widest">Sin formularios</p>
+      <p class="font-bold text-sm uppercase tracking-widest">{{ periodo === 'HOY' ? 'Hoy no hay formularios' : 'Sin formularios' }}</p>
+      <button v-if="periodo === 'HOY'" @click="periodo = 'TODOS'" class="mt-3 text-xs font-bold text-[#152C77] dark:text-blue-300 underline">
+        Ver historial completo
+      </button>
     </div>
 
     <div v-else class="space-y-3">
