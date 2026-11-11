@@ -37,8 +37,11 @@ const revisionVacia = () => ({
 })
 const revision = reactive(revisionVacia())
 const empleadoRevision = ref('')
+// En vacunación solo se anota peso, valor y quién recibe: el examen lo lleva el portal de la clínica
+const revisionSimple = computed(() => modalRevision.value?.tipo === 'VACUNACION')
 const revisionCompleta = computed(() =>
-  ['ojos', 'orejas', 'boca', 'piel', 'pulpejos', 'zonaPerianal', 'desenrede', 'ectoparasitos'].every(c => revision[c]) &&
+  (revisionSimple.value ||
+    ['ojos', 'orejas', 'boca', 'piel', 'pulpejos', 'zonaPerianal', 'desenrede', 'ectoparasitos'].every(c => revision[c])) &&
   !!empleadoRevision.value.trim()
 )
 
@@ -551,7 +554,7 @@ async function guardarRevision() {
           </div>
 
           <!-- Estado físico -->
-          <div>
+          <div v-if="!revisionSimple">
             <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">Estado físico al ingreso</p>
             <div class="space-y-2">
               <div v-for="(label, campo) in { ojos: 'Ojos', orejas: 'Orejas', boca: 'Boca y dientes', piel: 'Piel y pelaje', pulpejos: 'Pulpejos', zonaPerianal: 'Zona perianal' }"
@@ -571,7 +574,7 @@ async function guardarRevision() {
             </div>
           </div>
 
-          <div class="space-y-2">
+          <div v-if="!revisionSimple" class="space-y-2">
             <div v-for="(label, campo) in { desenrede: 'Desenrede', ectoparasitos: 'Ectoparásitos' }"
               :key="campo" class="flex items-center justify-between gap-3">
               <span class="text-sm font-medium text-slate-700 dark:text-slate-200 w-28 shrink-0">{{ label }}</span>
@@ -589,13 +592,13 @@ async function guardarRevision() {
           </div>
 
           <div>
-            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Valor del servicio desde</label>
+            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">{{ revisionSimple ? 'Valor' : 'Valor del servicio desde' }}</label>
             <input v-model="revision.valorServicio" type="text" placeholder="Ej: $60.000"
               class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]" />
           </div>
 
           <!-- Observaciones -->
-          <div>
+          <div v-if="!revisionSimple">
             <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Observaciones del ingreso</label>
             <textarea v-model="revision.observacionesIngreso" rows="3" placeholder="Estado general, comportamiento, notas de quien recibe..."
               class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]"></textarea>
@@ -608,7 +611,7 @@ async function guardarRevision() {
               class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]" />
           </div>
 
-          <p v-if="!revisionCompleta" class="text-xs text-center text-slate-500">Marca cada punto y escribe quién recibe para guardar.</p>
+          <p v-if="!revisionCompleta" class="text-xs text-center text-slate-500">{{ revisionSimple ? 'Escribe quién recibe para guardar.' : 'Marca cada punto y escribe quién recibe para guardar.' }}</p>
 
           <button @click="guardarRevision" :disabled="enviandoRevision || !revisionCompleta"
             class="w-full py-3.5 bg-[#152C77] text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-[#DE1F27] transition-colors disabled:opacity-50">
