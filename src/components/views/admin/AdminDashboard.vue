@@ -5,7 +5,7 @@ import {
     LayoutDashboard, ShoppingBag, CalendarDays, Pill, Package, PawPrint, Contact, Users, BellRing,
     MessagesSquare, Radar, Megaphone, ChartColumn, Stethoscope, Timer, FilePen, Activity, KeyRound,
     ShieldCheck, MessageCircle, Send, Instagram, PanelLeftClose, PanelLeftOpen, Menu, X, LogOut,
-    Search, Bell, BellOff, Sun, Moon
+    Search, Bell, BellOff, Sun, Moon, ClipboardList
 } from 'lucide-vue-next';
 import api from '@/api/axios';
 import AdminStats from './AdminStats.vue';
@@ -17,6 +17,7 @@ import AdminInventory from './AdminInventory.vue';
 import AdminFormulas from './AdminFormulas.vue';
 import AdminClientes from './AdminClientes.vue';
 import AdminRecordatorios from './AdminRecordatorios.vue';
+import AdminFichas from './AdminFichas.vue';
 import AdminLeads from './AdminLeads.vue';
 import AdminMarketing from './AdminMarketing.vue';
 import AdminWaAnalytics from './AdminWaAnalytics.vue';
@@ -66,6 +67,7 @@ const todasLasTabs = [
     { id: 'formulas', label: 'Fórmulas', icon: Pill, grupo: 'Día a día' },
     { id: 'inventario', label: 'Inventario', icon: Package, grupo: 'Día a día' },
     { id: 'mascotas', label: 'Pacientes', icon: PawPrint, grupo: 'Clientes' },
+    { id: 'fichas', label: 'Fichas mascotas', icon: ClipboardList, grupo: 'Clientes' },
     { id: 'clientes', label: 'Base Clientes', icon: Contact, grupo: 'Clientes' },
     { id: 'usuarios', label: 'Usuarios', icon: Users, grupo: 'Clientes' },
     { id: 'recordatorios', label: 'Recordatorios', icon: BellRing, grupo: 'Clientes' },
@@ -359,6 +361,7 @@ const doLogout = async () => {
                             <AdminFormulas v-if="currentTab === 'formulas'" :formulas="data.formulas" @refresh="fetchData" />
                             <AdminClientes v-if="currentTab === 'clientes'" />
                             <AdminRecordatorios v-if="currentTab === 'recordatorios'" />
+                            <AdminFichas v-if="currentTab === 'fichas'" />
                             <AdminLeads v-if="currentTab === 'leads'" :data="data.leads" />
                             <AdminMarketing v-if="currentTab === 'marketing'" />
                             <AdminVeterinarios v-if="currentTab === 'veterinarios'" />
