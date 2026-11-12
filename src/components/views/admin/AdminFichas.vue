@@ -179,17 +179,20 @@
 
           <!-- Agregar vacuna -->
           <div class="rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 p-4 space-y-3">
-            <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Anotar vacuna (mirando el carnet)</p>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <label class="block">
-                <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Vacuna</span>
-                <select v-model="nueva.vacuna" class="mt-1 w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[12px] font-bold dark:text-white">
-                  <option value="" disabled>Elige...</option>
-                  <option v-for="o in opcionesVacuna" :key="o" :value="o">{{ o }}</option>
-                </select>
-                <input v-if="nueva.vacuna === 'Otra'" v-model="nueva.otra" placeholder="¿Cuál?" maxlength="60"
-                  class="mt-2 w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[12px] font-bold dark:text-white" />
-              </label>
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Anotar vacunas (mirando el carnet)</p>
+            <div>
+              <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">¿Cuáles se aplicaron? (opcional)</p>
+              <div class="flex flex-wrap gap-2">
+                <label v-for="o in opcionesVacuna" :key="o"
+                  class="flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-[11px] font-bold cursor-pointer select-none"
+                  :class="nueva.cuales.includes(o) ? 'border-[#152C77] bg-[#152C77]/5 text-[#152C77] dark:text-blue-300' : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300'">
+                  <input type="checkbox" :value="o" v-model="nueva.cuales" class="accent-[#152C77]" /> {{ o }}
+                </label>
+              </div>
+              <input v-model="nueva.otra" placeholder="Otra (opcional)" maxlength="60"
+                class="mt-2 w-full sm:w-1/2 px-3 py-2.5 rounded-xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-[#050505] text-[12px] font-bold dark:text-white" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label class="block">
                 <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Aplicada (opcional)</span>
                 <input v-model="nueva.aplicada" type="date" :max="hoy"
@@ -203,9 +206,9 @@
             </div>
             <button v-if="nueva.aplicada && !nueva.vence" @click="unAnio" type="button"
               class="text-[10px] font-black text-[#152C77] dark:text-blue-300 underline">Poner vencimiento a un año de la aplicación</button>
-            <button @click="guardarVacuna" :disabled="ocupado || !vacunaElegida || !nueva.vence"
+            <button @click="guardarVacuna" :disabled="ocupado || !nueva.vence"
               class="w-full py-3 rounded-xl bg-[#152C77] text-white text-[10px] font-black uppercase tracking-widest disabled:opacity-40">
-              Guardar vacuna
+              Guardar vacunas
             </button>
           </div>
         </div>
@@ -333,7 +336,7 @@ async function abrirFicha(id) {
   try {
     const { data } = await api.get(`/admin/fichas/${id}`);
     ficha.value = data;
-    Object.assign(nueva, { vacuna: '', otra: '', aplicada: '', vence: '' });
+    Object.assign(nueva, { cuales: [], otra: '', aplicada: '', vence: '' });
   } catch (e) {
     alert(mensajeError(e));
   }
@@ -386,14 +389,15 @@ async function cambiarRecordatorios() {
 }
 
 // ── Vacunas ──
-const nueva = reactive({ vacuna: '', otra: '', aplicada: '', vence: '' });
+const nueva = reactive({ cuales: [], otra: '', aplicada: '', vence: '' });
 const opcionesVacuna = computed(() => {
   const esGato = /gat|felin/i.test(ficha.value?.especie || '');
   return esGato
-    ? ['Rabia', 'Triple felina', 'Leucemia felina', 'Otra']
-    : ['Rabia', 'Múltiple (polivalente)', 'Tos de las perreras (Bordetella)', 'Leptospirosis', 'Otra'];
+    ? ['Rabia', 'Triple felina', 'Leucemia felina']
+    : ['Rabia', 'Múltiple (polivalente)', 'Tos de las perreras (Bordetella)', 'Leptospirosis'];
 });
-const vacunaElegida = computed(() => (nueva.vacuna === 'Otra' ? nueva.otra.trim() : nueva.vacuna));
+// Normalmente se aplican todas juntas: se guardan en un solo registro con una fecha de vencimiento
+const vacunaElegida = computed(() => [...nueva.cuales, nueva.otra.trim()].filter(Boolean).join(', ') || 'Vacunas');
 
 function unAnio() {
   const d = new Date(nueva.aplicada + 'T12:00:00');
@@ -404,7 +408,7 @@ function unAnio() {
 async function guardarVacuna() {
   const f = ficha.value;
   const resumen = `${vacunaElegida.value}\n${nueva.aplicada ? 'Aplicada: ' + fechaBonita(nueva.aplicada) + '\n' : ''}Vence: ${fechaBonita(nueva.vence)}`;
-  if (!confirm(`¿Seguro que quieres guardar esta vacuna de ${f.mascota}?\n\n${resumen}`)) return;
+  if (!confirm(`¿Seguro que quieres guardar las vacunas de ${f.mascota}?\n\n${resumen}`)) return;
   ocupado.value = true;
   try {
     await api.post(`/admin/fichas/${f.id}/vacunas`, {
