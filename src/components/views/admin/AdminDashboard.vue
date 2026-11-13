@@ -2,15 +2,14 @@
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
-    LayoutDashboard, ShoppingBag, CalendarDays, Pill, Package, PawPrint, Contact, Users,
-    MessagesSquare, Radar, Megaphone, ChartColumn, Stethoscope, Timer, FilePen, Activity, KeyRound,
+    LayoutDashboard, ShoppingBag, CalendarDays, Pill, Package, Contact, Users,
+    MessagesSquare, Radar, ChartColumn, Stethoscope, Timer, FilePen, Activity, KeyRound,
     ShieldCheck, MessageCircle, Send, Instagram, PanelLeftClose, PanelLeftOpen, Menu, X, LogOut,
     Search, Bell, BellOff, Sun, Moon, ClipboardList
 } from 'lucide-vue-next';
 import api from '@/api/axios';
 import AdminStats from './AdminStats.vue';
 import AdminOrders from './AdminOrders.vue';
-import AdminPets from './AdminPets.vue';
 import AdminCitas from './AdminCitas.vue';
 import AdminUsers from './AdminUsers.vue';
 import AdminInventory from './AdminInventory.vue';
@@ -18,7 +17,6 @@ import AdminFormulas from './AdminFormulas.vue';
 import AdminClientes from './AdminClientes.vue';
 import AdminFichas from './AdminFichas.vue';
 import AdminLeads from './AdminLeads.vue';
-import AdminMarketing from './AdminMarketing.vue';
 import AdminWaAnalytics from './AdminWaAnalytics.vue';
 import AdminVeterinarios from './AdminVeterinarios.vue';
 import AdminHealth from './AdminHealth.vue';
@@ -65,13 +63,11 @@ const todasLasTabs = [
     { id: 'citas', label: 'Agenda', icon: CalendarDays, grupo: 'Día a día' },
     { id: 'formulas', label: 'Fórmulas', icon: Pill, grupo: 'Día a día' },
     { id: 'inventario', label: 'Inventario', icon: Package, grupo: 'Día a día' },
-    { id: 'mascotas', label: 'Pacientes', icon: PawPrint, grupo: 'Clientes' },
     { id: 'fichas', label: 'Fichas mascotas', icon: ClipboardList, grupo: 'Clientes' },
     { id: 'clientes', label: 'Base Clientes', icon: Contact, grupo: 'Clientes' },
     { id: 'usuarios', label: 'Usuarios', icon: Users, grupo: 'Clientes' },
     { id: 'chat-web', label: 'Chat Web', icon: MessagesSquare, grupo: 'Clientes' },
-    { id: 'leads', label: 'Leads', icon: Radar, grupo: 'Crecimiento' },
-    { id: 'marketing', label: 'Marketing', icon: Megaphone, grupo: 'Crecimiento' },
+    { id: 'leads', label: 'Productos pedidos', icon: Radar, grupo: 'Crecimiento' },
     { id: 'wa-analytics', label: 'WA Analytics', icon: ChartColumn, grupo: 'Crecimiento' },
     { id: 'veterinarios', label: 'Veterinarios', icon: Stethoscope, grupo: 'Equipo' },
     { id: 'jornada', label: 'Productividad', icon: Timer, grupo: 'Equipo' },
@@ -352,7 +348,6 @@ const doLogout = async () => {
                         <div :key="currentTab">
                             <AdminStats v-if="currentTab === 'stats'" :stats="data.stats" />
                             <AdminOrders v-if="currentTab === 'pedidos'" :orders="data.pedidos" :productos="data.productos" :searchQuery="searchQuery" @refresh="fetchData" />
-                            <AdminPets v-if="currentTab === 'mascotas'" :mascotas="data.mascotas" :searchQuery="searchQuery" />
                             <AdminCitas v-if="currentTab === 'citas'" :citas="data.citas" :searchQuery="searchQuery" />
                             <AdminUsers v-if="currentTab === 'usuarios'" :usuarios="data.usuarios" :searchQuery="searchQuery" />
                             <AdminInventory v-if="currentTab === 'inventario'" :productos="data.productos" :searchQuery="searchQuery" @refresh="fetchData" />
@@ -360,7 +355,6 @@ const doLogout = async () => {
                             <AdminClientes v-if="currentTab === 'clientes'" />
                             <AdminFichas v-if="currentTab === 'fichas'" />
                             <AdminLeads v-if="currentTab === 'leads'" :data="data.leads" />
-                            <AdminMarketing v-if="currentTab === 'marketing'" />
                             <AdminVeterinarios v-if="currentTab === 'veterinarios'" />
                             <AdminWaAnalytics v-if="currentTab === 'wa-analytics'" />
                             <AdminJornada v-if="currentTab === 'jornada'" :solo-lectura="!accesos?.completo" />

@@ -3,17 +3,26 @@ import { computed } from 'vue';
 
 const props = defineProps({ data: { type: Object, default: null } });
 
+// Clics en la página de cada producto de la tienda. Los del chatbot viejo ya no existen y no se muestran.
 const TIPO_META = {
-    WHATSAPP_PRODUCTO:  { label: 'WhatsApp Producto',   color: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400',  icon: '💬' },
-    AGOTADO_CONSULTAR:  { label: 'Consultar Agotado',   color: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',          icon: '😔' },
-    CHATBOT_ABIERTO:    { label: 'Chatbot abierto',     color: 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300',      icon: '🤖' },
-    CHATBOT_OPCION:     { label: 'Opción chatbot',      color: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',      icon: '📋' },
-    CHATBOT_VIAJE:      { label: 'Consulta viaje',      color: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400', icon: '✈️' },
-    CHATBOT_TIENDA:     { label: 'Búsqueda tienda',     color: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',  icon: '🔍' },
+    WHATSAPP_PRODUCTO:  { label: 'Pidió por WhatsApp',     color: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400',  icon: '💬' },
+    AGOTADO_CONSULTAR:  { label: 'Preguntó por agotado',   color: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',          icon: '😔' },
 };
 
 const resumen = computed(() => props.data?.resumen ?? {});
-const leads   = computed(() => props.data?.leads ?? []);
+const leads   = computed(() => (props.data?.leads ?? []).filter(l => TIPO_META[l.tipo]));
+
+// Productos que más piden, con cuántas veces los pidieron y cuántas preguntaron estando agotados
+const masPedidos = computed(() => {
+    const porProducto = {};
+    for (const l of leads.value) {
+        const nombre = parseDatos(l.datos).nombre;
+        if (!nombre) continue;
+        const p = (porProducto[nombre] ??= { nombre, pedidos: 0, agotado: 0 });
+        if (l.tipo === 'AGOTADO_CONSULTAR') p.agotado++; else p.pedidos++;
+    }
+    return Object.values(porProducto).sort((a, b) => (b.pedidos + b.agotado) - (a.pedidos + a.agotado)).slice(0, 10);
+});
 
 const summaryCards = computed(() =>
     Object.entries(TIPO_META).map(([tipo, meta]) => ({
@@ -40,10 +49,6 @@ function datosLabel(tipo, datos) {
     if (tipo === 'WHATSAPP_PRODUCTO' || tipo === 'AGOTADO_CONSULTAR') {
         return datos.nombre ? `${datos.nombre}` + (datos.precio ? ` · $${Number(datos.precio).toLocaleString('es-CO')}` : '') : '';
     }
-    if (tipo === 'CHATBOT_OPCION') return datos.opcion ?? '';
-    if (tipo === 'CHATBOT_VIAJE') return [datos.destino, datos.especie, datos.edad, datos.fecha].filter(Boolean).join(' · ');
-    if (tipo === 'CHATBOT_TIENDA') return datos.producto ?? '';
-    if (tipo === 'CHATBOT_ABIERTO') return datos.pagina ?? '';
     return JSON.stringify(datos);
 }
 </script>
@@ -52,17 +57,33 @@ function datosLabel(tipo, datos) {
     <div class="space-y-8">
         <!-- Summary cards -->
         <div v-if="!data" class="text-center py-20 text-slate-400 font-black uppercase text-[10px] tracking-widest">
-            Cargando datos de leads…
+            Cargando…
         </div>
 
         <template v-else>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 -mb-4">Clics en "Pedir por WhatsApp" y "Consultar agotado" en la página de cada producto de la tienda.</p>
+            <div class="grid grid-cols-2 gap-4">
                 <div v-for="card in summaryCards" :key="card.tipo"
                     class="bg-white dark:bg-white/5 rounded-2xl p-5 border border-slate-100 dark:border-white/10 flex items-center gap-4">
                     <span class="text-3xl">{{ card.icon }}</span>
                     <div>
                         <p class="text-3xl font-[1000] text-[#152C77] dark:text-white leading-none">{{ card.count }}</p>
                         <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-1">{{ card.label }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Más pedidos -->
+            <div v-if="masPedidos.length" class="bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center gap-3">
+                    <span class="text-lg">🏆</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Los más pedidos</span>
+                </div>
+                <div class="divide-y divide-slate-100 dark:divide-white/5">
+                    <div v-for="p in masPedidos" :key="p.nombre" class="px-6 py-3 flex items-center gap-4 text-[11px]">
+                        <span class="flex-1 min-w-0 font-bold text-slate-700 dark:text-slate-200 truncate">{{ p.nombre }}</span>
+                        <span v-if="p.pedidos" class="font-black text-green-600 shrink-0">💬 {{ p.pedidos }}</span>
+                        <span v-if="p.agotado" class="font-black text-[#DE1F27] shrink-0">😔 {{ p.agotado }} agotado</span>
                     </div>
                 </div>
             </div>

@@ -95,7 +95,8 @@
       </div>
 
       <button v-for="f in fichas" :key="f.id" @click="abrirFicha(f.id)"
-        class="w-full text-left bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2rem] p-4 hover:border-[#152C77]/40 transition-colors">
+        class="w-full text-left bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2rem] p-4 hover:border-[#152C77]/40 transition-colors"
+        :class="f.fallecida ? 'opacity-60' : ''">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 rounded-2xl bg-[#152C77]/10 dark:bg-white/10 flex items-center justify-center text-lg shrink-0">
             {{ emojiEspecie(f.especie) }}
@@ -103,7 +104,9 @@
           <div class="flex-1 min-w-0">
             <div class="flex flex-wrap items-center gap-2">
               <span class="text-sm font-[1000] uppercase italic dark:text-white">{{ f.mascota }}</span>
-              <span v-if="!f.recibeRecordatorios" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500">🔕 Sin recordatorios</span>
+              <span v-if="f.fallecida" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">🌈 Fallecida</span>
+              <span v-else-if="!f.recibeRecordatorios" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500">🔕 Sin recordatorios</span>
+              <span v-if="f.cuentaWeb" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">🌐 Cuenta web</span>
               <span v-if="f.proximaVacuna" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-green-100 text-green-700">💉 {{ fechaBonita(f.proximaVacuna) }}</span>
             </div>
             <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
@@ -124,10 +127,14 @@
       <div class="bg-white dark:bg-[#0A0A0A] w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-[2rem] sm:rounded-[2rem] p-6 space-y-6">
 
         <div class="flex items-start justify-between gap-4">
-          <div>
+          <div class="flex items-center gap-4 min-w-0">
+          <img v-if="ficha.foto" :src="ficha.foto" alt="" class="w-16 h-16 rounded-2xl object-cover shrink-0" />
+          <div class="min-w-0">
             <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">{{ emojiEspecie(ficha.especie) }} {{ ficha.especie || 'Mascota' }}<span v-if="ficha.raza"> · {{ ficha.raza }}</span></p>
             <p class="text-2xl font-[1000] uppercase italic dark:text-white">{{ ficha.mascota }}</p>
             <p class="text-[12px] font-bold text-slate-500 dark:text-slate-400">{{ ficha.tutor }} · {{ telefonoBonito(ficha.telefono) }}</p>
+            <p v-if="ficha.cuentaWeb" class="text-[10px] font-black text-blue-600 dark:text-blue-300">🌐 Tiene cuenta en la página</p>
+          </div>
           </div>
           <button @click="ficha = null" class="text-3xl text-slate-400 leading-none">×</button>
         </div>
@@ -141,8 +148,20 @@
         </div>
         <p class="text-[10px] font-bold text-slate-400 -mt-3">Los datos se actualizan solos con el formato más nuevo que llene el tutor.</p>
 
+        <!-- Fallecida -->
+        <div v-if="ficha.fallecida" class="flex items-center justify-between gap-4 rounded-2xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20 p-4">
+          <div>
+            <p class="text-[12px] font-black text-violet-700 dark:text-violet-300">🌈 Fallecida</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400">{{ ficha.fallecidaPor }} · {{ fechaHora(ficha.fallecidaEn) }}</p>
+          </div>
+          <button @click="cambiarFallecida" :disabled="ocupado"
+            class="px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-white dark:bg-white/10 text-slate-600 dark:text-slate-300 disabled:opacity-40">
+            Fue un error
+          </button>
+        </div>
+
         <!-- Recordatorios sí / no -->
-        <div class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 dark:border-white/10 p-4">
+        <div v-if="!ficha.fallecida" class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 dark:border-white/10 p-4">
           <div>
             <p class="text-[12px] font-black dark:text-white">{{ ficha.recibeRecordatorios ? '🔔 Recibe recordatorios' : '🔕 No recibe recordatorios' }}</p>
             <p v-if="!ficha.recibeRecordatorios && ficha.sinRecordatoriosPor" class="text-[10px] font-bold text-slate-400">{{ ficha.sinRecordatoriosPor }} · {{ fechaHora(ficha.sinRecordatoriosEn) }}</p>
@@ -224,6 +243,11 @@
             </span>
           </div>
         </div>
+
+        <button v-if="!ficha.fallecida" @click="cambiarFallecida" :disabled="ocupado"
+          class="w-full py-3 rounded-xl border border-slate-200 dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-violet-600 disabled:opacity-40">
+          🌈 Marcar como fallecida
+        </button>
 
         <!-- Recordatorios enviados -->
         <div v-if="ficha.recordatorios.length" class="space-y-2">
@@ -351,6 +375,8 @@ const datosFicha = computed(() => {
     { label: 'Color', valor: f.color },
     { label: 'Correo', valor: f.email },
     { label: 'Comida', valor: f.alimentacion },
+    { label: 'Peso (cuenta web)', valor: f.pesoWeb ? `${f.pesoWeb} kg` : null },
+    { label: 'Última vacuna (la anotó el tutor)', valor: f.ultimaVacunaWeb ? fechaBonita(f.ultimaVacunaWeb) : null },
   ].filter(d => d.valor);
 });
 
@@ -379,6 +405,25 @@ async function cambiarRecordatorios() {
   ocupado.value = true;
   try {
     await api.patch(`/admin/fichas/${f.id}/recordatorios`, { recibe, quien: quien() });
+    await abrirFicha(f.id);
+    recargar();
+  } catch (e) {
+    alert(mensajeError(e));
+  } finally {
+    ocupado.value = false;
+  }
+}
+
+async function cambiarFallecida() {
+  const f = ficha.value;
+  const fallecida = !f.fallecida;
+  const pregunta = fallecida
+    ? `¿Marcar a ${f.mascota} como fallecida?\n\nNo se le enviarán más recordatorios${f.cuentaWeb ? ' y también queda así en la cuenta web del tutor' : ''}.`
+    : `¿Quitar la marca de fallecida de ${f.mascota}?`;
+  if (!confirm(pregunta)) return;
+  ocupado.value = true;
+  try {
+    await api.patch(`/admin/fichas/${f.id}/fallecida`, { fallecida, quien: quien() });
     await abrirFicha(f.id);
     recargar();
   } catch (e) {
