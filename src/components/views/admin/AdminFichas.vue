@@ -160,8 +160,14 @@
           </button>
         </div>
 
+        <!-- Sin celular: no hay a dónde mandar recordatorios -->
+        <div v-if="!ficha.fallecida && !ficha.telefono" class="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-4">
+          <p class="text-[12px] font-black text-amber-700 dark:text-amber-300">📵 Sin celular del tutor</p>
+          <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400">Se registró en la página sin celular, así que no le llegan recordatorios. Si lo agrega en su cuenta, la ficha lo toma sola.</p>
+        </div>
+
         <!-- Recordatorios sí / no -->
-        <div v-if="!ficha.fallecida" class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 dark:border-white/10 p-4">
+        <div v-if="!ficha.fallecida && ficha.telefono" class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 dark:border-white/10 p-4">
           <div>
             <p class="text-[12px] font-black dark:text-white">{{ ficha.recibeRecordatorios ? '🔔 Recibe recordatorios' : '🔕 No recibe recordatorios' }}</p>
             <p v-if="!ficha.recibeRecordatorios && ficha.sinRecordatoriosPor" class="text-[10px] font-bold text-slate-400">{{ ficha.sinRecordatoriosPor }} · {{ fechaHora(ficha.sinRecordatoriosEn) }}</p>
@@ -288,7 +294,8 @@ const quien = () => {
 };
 const mensajeError = e => e?.response?.data?.message || 'No se pudo completar. Inténtalo de nuevo.';
 
-const telefonoBonito = t => (t && t.length === 10 ? `${t.slice(0, 3)} ${t.slice(3, 6)} ${t.slice(6)}` : t || '');
+// Las mascotas de tutores que se registraron en la página sin celular tienen ficha con teléfono vacío
+const telefonoBonito = t => (t && t.length === 10 ? `${t.slice(0, 3)} ${t.slice(3, 6)} ${t.slice(6)}` : t || '📵 Sin celular');
 const fechaBonita = d => {
   if (!d) return '';
   const [y, m, dd] = String(d).slice(0, 10).split('-');
