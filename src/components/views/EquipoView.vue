@@ -217,6 +217,9 @@
             <p class="text-[10px] font-black uppercase tracking-widest text-white/40">📋 Por llegar · {{ esperados.length }}</p>
             <div v-for="f in esperados" :key="f.formularioId" class="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-3 space-y-3">
               <FichaFormato :formato="f" />
+              <p v-if="f.revisado" class="text-[11px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-2">
+                ✅ Ya revisado en el panel — solo falta tocar «Llegó» cuando entre
+              </p>
               <p v-if="f.fechaIngreso && f.fechaIngreso > hoyLocal" class="text-[10px] font-bold text-blue-300">📅 Viene el {{ fechaCorta(f.fechaIngreso) }}</p>
               <p v-else-if="f.fechaIngreso && f.fechaIngreso < hoyLocal" class="text-[10px] font-bold text-amber-300">⏳ Debía llegar el {{ fechaCorta(f.fechaIngreso) }}</p>
               <div class="flex gap-2">
