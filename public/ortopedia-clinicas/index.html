@@ -641,8 +641,15 @@ h2{font-size:clamp(32px,4.6vw,56px)}
       es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { rootMargin:'0px 0px -8% 0px', threshold:0.05 });
     rv.forEach(function(el){ io.observe(el); });
-    // por si algo no se dispara, nada queda escondido
-    setTimeout(function(){ rv.forEach(function(el){ if (el.getBoundingClientRect().top < innerHeight) el.classList.add('in'); }); }, 1500);
+    // respaldo: si el observador tarda (celulares lentos, saltos con enlaces), al hacer
+    // scroll se muestra todo lo que ya esté en pantalla o por encima; nada queda escondido
+    var pendiente = false;
+    function revisar(){
+      pendiente = false;
+      rv.forEach(function(el){ if (!el.classList.contains('in') && el.getBoundingClientRect().top < innerHeight) el.classList.add('in'); });
+    }
+    addEventListener('scroll', function(){ if (!pendiente) { pendiente = true; requestAnimationFrame(revisar); } }, { passive:true });
+    setTimeout(revisar, 1200);
   } else {
     rv.forEach(function(el){ el.classList.add('in'); });
   }
