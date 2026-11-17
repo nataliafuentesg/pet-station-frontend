@@ -1,2 +1,6 @@
+# Versiones viejas del catálogo de ortopedia
+/ortopedia-clinicas/escritorio /ortopedia-clinicas/ 301
+/ortopedia-clinicas/movil /ortopedia-clinicas/ 301
+
 # SPA fallback — debe ir SIEMPRE AL FINAL
 /* /index.html 200
