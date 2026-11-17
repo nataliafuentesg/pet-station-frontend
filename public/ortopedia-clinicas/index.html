@@ -22,7 +22,8 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overflow-x:clip}
-body{margin:0;font-family:'Figtree',system-ui,-apple-system,sans-serif;color:var(--texto);background:var(--blanco);line-height:1.5;overflow-x:hidden}
+body{margin:0;font-family:'Figtree',system-ui,-apple-system,sans-serif;color:var(--texto);background:var(--blanco);line-height:1.5}
+section[id]{scroll-margin-top:72px}
 img{max-width:100%;display:block}
 a{color:inherit}
 .wrap{max-width:1200px;margin:0 auto;padding:0 20px}
@@ -42,9 +43,19 @@ h2{font-size:clamp(32px,4.6vw,56px)}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
 .top img{height:58px;width:auto;margin:-4px 0 -4px -8px}
 .top nav{display:flex;gap:26px;font-weight:600;font-size:15px}
-.top nav a{text-decoration:none;color:var(--gris)}.top nav a:hover{color:var(--rojo)}
+.top nav a{position:relative;text-decoration:none;color:var(--gris);padding:6px 0;transition:color .2s;white-space:nowrap}
+.top nav a:hover{color:var(--rojo)}
+.top nav a:after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:3px;border-radius:2px;background:var(--rojo);transform:scaleX(0);transition:transform .25s}
+.top nav a.on{color:var(--azul)}
+.top nav a.on:after{transform:scaleX(1)}
 .top .btn{height:42px;padding:0 20px;font-size:15px}
-@media (max-width:900px){.top nav{display:none}}
+@media (max-width:900px){
+  .top .wrap{flex-wrap:wrap;height:auto;padding-top:6px;row-gap:0}
+  .top img{height:46px}
+  .top nav{order:3;width:calc(100% + 40px);margin:0 -20px;padding:2px 20px 10px;gap:22px;font-size:14px;overflow-x:auto;scrollbar-width:none}
+  .top nav::-webkit-scrollbar{display:none}
+  section[id]{scroll-margin-top:104px}
+}
 
 /* Portada */
 .hero{padding:56px 0 72px;position:relative;overflow:hidden}
@@ -633,6 +644,27 @@ h2{font-size:clamp(32px,4.6vw,56px)}
   });
   lupa.addEventListener('click', function(){ lupa.classList.remove('on'); });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') { lupa.classList.remove('on'); if (actual) cerrar(); } });
+
+  // ── Menú fijo: marca la sección en la que está ────────────
+  var nav = document.querySelector('.top nav'), links = [].slice.call(nav.querySelectorAll('a')),
+      secs = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }), activo = null;
+  function marcar(){
+    var alto = document.querySelector('.top').offsetHeight + 40, cual = null;
+    secs.forEach(function(s, i){ if (s.getBoundingClientRect().top <= alto) cual = i; });
+    if (cual === activo) return;
+    activo = cual;
+    links.forEach(function(a, i){ a.classList.toggle('on', i === cual); if (i === cual) a.setAttribute('aria-current','true'); else a.removeAttribute('aria-current'); });
+    if (cual !== null && nav.scrollWidth > nav.clientWidth) {
+      var a = links[cual]; nav.scrollTo({ left: a.offsetLeft - nav.offsetLeft - 20, behavior:'smooth' });
+    }
+  }
+  var ultimoNav = 0;
+  addEventListener('scroll', function(){
+    var t = Date.now(); if (t - ultimoNav < 100) return; ultimoNav = t;
+    marcar(); setTimeout(marcar, 120);
+  }, { passive:true });
+  addEventListener('resize', marcar);
+  marcar();
 
   // ── Aparición al hacer scroll (una sola vez) ──────────────
   var rv = document.querySelectorAll('.rv');
