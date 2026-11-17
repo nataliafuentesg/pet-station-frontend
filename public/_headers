@@ -1,0 +1,5 @@
+# Catálogo de ortopedia para clínicas: se comparte por QR, no debe salir en Google
+/ortopedia-clinicas
+  X-Robots-Tag: noindex, nofollow, noarchive
+/ortopedia-clinicas/*
+  X-Robots-Tag: noindex, nofollow, noarchive
