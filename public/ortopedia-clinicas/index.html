@@ -49,13 +49,30 @@ h2{font-size:clamp(32px,4.6vw,56px)}
 .top nav a.on{color:var(--azul)}
 .top nav a.on:after{transform:scaleX(1)}
 .top .btn{height:42px;padding:0 20px;font-size:15px}
+/* Celular: un botón con la sección actual que abre el menú */
+.secbtn,.menu-movil{display:none}
 @media (max-width:900px){
-  .top .wrap{flex-wrap:wrap;height:auto;padding-top:6px;row-gap:0}
-  .top img{height:46px}
-  .top nav{order:3;width:calc(100% + 40px);margin:0 -20px;padding:2px 20px 10px;gap:22px;font-size:14px;overflow-x:auto;scrollbar-width:none}
-  .top nav::-webkit-scrollbar{display:none}
-  section[id]{scroll-margin-top:104px}
+  .top nav{display:none}
+  .top img{height:50px}
+  .secbtn{display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 6px 0 16px;margin-left:auto;border-radius:22px;border:2px solid var(--linea);background:#fff;color:var(--azul);font:700 15px 'Figtree',sans-serif;cursor:pointer;max-width:64vw}
+  .secbtn .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .secbtn .dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--rojo);transition:transform .2s}
+  .secbtn.sin .dot{display:none}
+  .secbtn .ico{flex:none;width:32px;height:32px;border-radius:50%;background:var(--azul);color:#fff;display:flex;align-items:center;justify-content:center}
+  .secbtn .ico svg{width:16px;height:16px}
+  .secbtn .x{display:none}
+  .secbtn[aria-expanded="true"]{border-color:var(--azul)}
+  .secbtn[aria-expanded="true"] .x{display:block}
+  .secbtn[aria-expanded="true"] .h{display:none}
+  .menu-movil{border-top:1px solid var(--linea);background:#fff;padding:8px 12px 14px;box-shadow:0 22px 30px rgba(19,39,122,.14)}
+  .menu-movil.on{display:block;animation:baja .22s ease}
+  .menu-movil a{display:flex;align-items:center;gap:14px;padding:15px 14px;border-radius:14px;text-decoration:none;font-weight:700;font-size:17px;color:var(--gris)}
+  .menu-movil a:before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--linea)}
+  .menu-movil a.on{background:var(--fondo);color:var(--azul)}
+  .menu-movil a.on:before{background:var(--rojo);box-shadow:0 0 0 4px rgba(232,51,46,.18)}
+  .menu-movil a.on:after{content:"Está aquí";margin-left:auto;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--rojo)}
 }
+@keyframes baja{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 
 /* Portada */
 .hero{padding:56px 0 72px;position:relative;overflow:hidden}
@@ -250,7 +267,15 @@ h2{font-size:clamp(32px,4.6vw,56px)}
       <a href="#proceso">Cómo derivar</a>
     </nav>
     <a class="btn btn-rojo" data-wa href="#">Derivar un caso</a>
+    <button class="secbtn sin" id="secbtn" type="button" aria-expanded="false" aria-controls="menuMovil">
+      <span class="dot" aria-hidden="true"></span><span class="txt" id="secTxt">Menú</span>
+      <span class="ico" aria-hidden="true">
+        <svg class="h" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </span>
+    </button>
   </div>
+  <div class="menu-movil" id="menuMovil" role="navigation" aria-label="Secciones"></div>
 </header>
 
 <main>
@@ -643,20 +668,35 @@ h2{font-size:clamp(32px,4.6vw,56px)}
     img.addEventListener('click', function(){ lupaImg.src = img.src; lupaImg.alt = img.alt; lupa.classList.add('on'); });
   });
   lupa.addEventListener('click', function(){ lupa.classList.remove('on'); });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') { lupa.classList.remove('on'); if (actual) cerrar(); } });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') { lupa.classList.remove('on'); if (actual && !document.querySelector('.menu-movil.on')) cerrar(); } });
 
   // ── Menú fijo: marca la sección en la que está ────────────
   var nav = document.querySelector('.top nav'), links = [].slice.call(nav.querySelectorAll('a')),
-      secs = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }), activo = null;
+      secs = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }), activo = null,
+      menu = document.getElementById('menuMovil'), secbtn = document.getElementById('secbtn'), secTxt = document.getElementById('secTxt');
+  // el menú del celular usa las mismas secciones que el de computador
+  var linksMovil = links.map(function(a){
+    var m = document.createElement('a'); m.href = a.getAttribute('href'); m.textContent = a.textContent;
+    m.onclick = function(){ abrirMenu(false); };
+    menu.appendChild(m); return m;
+  });
+  function abrirMenu(si){
+    secbtn.setAttribute('aria-expanded', si);
+    menu.classList.toggle('on', si);
+  }
+  secbtn.onclick = function(e){ e.stopPropagation(); abrirMenu(secbtn.getAttribute('aria-expanded') !== 'true'); };
+  document.addEventListener('click', function(e){ if (!menu.contains(e.target)) abrirMenu(false); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') abrirMenu(false); });
   function marcar(){
-    var alto = document.querySelector('.top').offsetHeight + 40, cual = null;
+    var alto = document.querySelector('.top .wrap').offsetHeight + 40, cual = null;
     secs.forEach(function(s, i){ if (s.getBoundingClientRect().top <= alto) cual = i; });
     if (cual === activo) return;
     activo = cual;
-    links.forEach(function(a, i){ a.classList.toggle('on', i === cual); if (i === cual) a.setAttribute('aria-current','true'); else a.removeAttribute('aria-current'); });
-    if (cual !== null && nav.scrollWidth > nav.clientWidth) {
-      var a = links[cual]; nav.scrollTo({ left: a.offsetLeft - nav.offsetLeft - 20, behavior:'smooth' });
-    }
+    [links, linksMovil].forEach(function(lista){
+      lista.forEach(function(a, i){ a.classList.toggle('on', i === cual); if (i === cual) a.setAttribute('aria-current','true'); else a.removeAttribute('aria-current'); });
+    });
+    secTxt.textContent = cual === null ? 'Menú' : links[cual].textContent;
+    secbtn.classList.toggle('sin', cual === null);
   }
   var ultimoNav = 0;
   addEventListener('scroll', function(){
