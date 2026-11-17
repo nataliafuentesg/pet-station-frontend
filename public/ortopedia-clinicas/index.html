@@ -643,12 +643,15 @@ h2{font-size:clamp(32px,4.6vw,56px)}
     rv.forEach(function(el){ io.observe(el); });
     // respaldo: si el observador tarda (celulares lentos, saltos con enlaces), al hacer
     // scroll se muestra todo lo que ya esté en pantalla o por encima; nada queda escondido
-    var pendiente = false;
+    // (sin requestAnimationFrame: se pausa cuando la pestaña no está al frente)
+    var ultimo = 0;
     function revisar(){
-      pendiente = false;
       rv.forEach(function(el){ if (!el.classList.contains('in') && el.getBoundingClientRect().top < innerHeight) el.classList.add('in'); });
     }
-    addEventListener('scroll', function(){ if (!pendiente) { pendiente = true; requestAnimationFrame(revisar); } }, { passive:true });
+    addEventListener('scroll', function(){
+      var t = Date.now(); if (t - ultimo < 120) return; ultimo = t;
+      revisar(); setTimeout(revisar, 150);
+    }, { passive:true });
     setTimeout(revisar, 1200);
   } else {
     rv.forEach(function(el){ el.classList.add('in'); });
