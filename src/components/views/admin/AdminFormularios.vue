@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, reactive } from 'vue'
+import { ref, onMounted, computed, reactive, watch } from 'vue'
 import QRCode from 'qrcode'
 import api from '@/api/axios'
 import FirmaCanvas from '@/components/views/formularios/FirmaCanvas.vue'
@@ -68,6 +68,18 @@ const nuevo = reactive(nuevoVacio())
 const creando = ref(false)
 const errorNuevo = ref('')
 const linkGenerado = ref(null)
+const existenteServidor = ref(null)
+const ultimos10 = t => (t || '').replace(/\D/g, '').slice(-10)
+// Para no mandarle varios links del mismo formato a la misma persona
+watch(() => [nuevo.tipo, ultimos10(nuevo.telefono)], () => { existenteServidor.value = null })
+const linkAbiertoIgual = computed(() => {
+  if (existenteServidor.value) return existenteServidor.value
+  const cel = ultimos10(nuevo.telefono)
+  if (cel.length < 10) return null
+  const f = formularios.value.find(f => f.tipo === nuevo.tipo && f.estado === 'PENDIENTE_TUTOR' &&
+    !linkVencido(f) && ultimos10(f.telefono) === cel)
+  return f && { id: f.id, nombreCliente: f.nombreCliente, nombreMascota: f.nombreMascota, creado: f.timestamp, expira: f.tokenExpira, abierto: f.linkAbiertoEn, telefono: f.telefono }
+})
 const nuevoValido = computed(() =>
   nuevo.telefono.replace(/\D/g, '').length >= 10 &&
   (nuevo.tipo !== 'DECLINACION' || nuevo.tratamientoRechazado.trim()) &&
@@ -130,7 +142,8 @@ const lista = computed(() => {
     f.radicado?.toLowerCase().includes(q) ||
     f.nombreCliente?.toLowerCase().includes(q) ||
     f.cedula?.includes(q) ||
-    f.nombreMascota?.toLowerCase().includes(q)
+    f.nombreMascota?.toLowerCase().includes(q) ||
+    f.telefono?.replace(/\D/g, '').includes(q.replace(/\D/g, '') || '-')
   )
 })
 
@@ -173,6 +186,7 @@ const evidencias = ref({})
 
 const NOMBRE_EVENTO = {
   LINK_CREADO: 'Link creado',
+  LINK_ABIERTO: 'El tutor abrió el link',
   CODIGO_VERIFICADO: 'Código verificado',
   TERMINOS_ACEPTADOS: 'Términos aceptados',
   CORREO_CONFIRMADO: 'Correo confirmado en pantalla',
@@ -200,6 +214,7 @@ async function alternarEvidencia(f) {
 function abrirNuevo() {
   Object.assign(nuevo, nuevoVacio())
   errorNuevo.value = ''
+  existenteServidor.value = null
   modalNuevo.value = true
 }
 
@@ -215,23 +230,44 @@ async function mostrarLink(data, f) {
   }
 }
 
-async function crearFormato() {
+async function crearFormato(forzar = false) {
   creando.value = true
   errorNuevo.value = ''
   try {
     const detalle = Object.fromEntries((DETALLE[nuevo.tipo] || []).map(d => [d.clave, nuevo.detalle[d.clave] || '']))
-    const { data } = await api.post('/admin/formularios/clinicos', { ...nuevo, detalle })
+    const { data } = await api.post('/admin/formularios/clinicos', { ...nuevo, detalle }, { params: forzar ? { forzar: true } : undefined })
     modalNuevo.value = false
     await mostrarLink(data, nuevo)
     await cargar()
   } catch (e) {
+    if (e.response?.status === 409 && e.response.data?.existente) {
+      existenteServidor.value = { ...e.response.data.existente, telefono: nuevo.telefono }
+      return
+    }
     errorNuevo.value = e.response?.data?.message || e.response?.data?.error || 'No se pudo crear el formato'
   } finally {
     creando.value = false
   }
 }
 
-async function generarOtroLink(f) {
+async function verLink(f) {
+  try {
+    const { data } = await api.post(`/admin/formularios/${f.id}/link`)
+    modalNuevo.value = false
+    await mostrarLink(data, f)
+  } catch (e) {
+    if (e.response?.status === 409) {
+      if (confirm('Este link se creó antes de que el panel los guardara, así que no se puede volver a ver. ¿Generar uno nuevo? El anterior dejará de servir.')) {
+        await generarOtroLink(f, true)
+      }
+      return
+    }
+    alert(e.response?.data?.error || 'No se pudo abrir el link')
+  }
+}
+
+async function generarOtroLink(f, confirmado = false) {
+  if (!confirmado && !linkVencido(f) && !confirm('El link que ya se mandó dejará de servir. ¿Generar uno nuevo?')) return
   try {
     const { data } = await api.post(`/admin/formularios/${f.id}/nuevo-link`)
     await mostrarLink(data, f)
@@ -419,8 +455,9 @@ async function guardarRevision() {
           </div>
           <div class="text-right shrink-0">
             <p class="text-[9px] text-slate-400">{{ formatFecha(f.timestamp) }}</p>
-            <span v-if="f.estado === 'PENDIENTE_TUTOR'" class="text-[8px] text-amber-600 font-bold block">
-              {{ linkVencido(f) ? 'Link vencido' : 'Falta firma del tutor' }}
+            <span v-if="f.estado === 'PENDIENTE_TUTOR'" class="text-[8px] font-bold block"
+              :class="linkVencido(f) ? 'text-slate-500' : 'text-amber-600'">
+              {{ linkVencido(f) ? 'Link vencido sin firmar' : f.linkAbiertoEn ? `👀 Lo abrió ${formatFecha(f.linkAbiertoEn)}, sin firmar` : '📩 Link sin abrir' }}
             </span>
             <span v-else-if="f.estado === 'PENDIENTE_VETERINARIO'" class="text-[8px] text-amber-600 font-bold block">Falta firma del veterinario</span>
             <span v-else-if="!f.estado && f.noVinoEn && !f.revisionCompletada" class="text-[8px] text-slate-500 font-bold block">🚫 No vino</span>
@@ -491,9 +528,14 @@ async function guardarRevision() {
           </div>
 
           <div v-if="f.estado" class="flex gap-2">
-            <button v-if="f.estado === 'PENDIENTE_TUTOR'" @click.stop="generarOtroLink(f)"
+            <button v-if="f.estado === 'PENDIENTE_TUTOR' && !linkVencido(f)" @click.stop="verLink(f)"
               class="flex-1 py-2 bg-amber-500 text-white font-black uppercase text-[9px] tracking-widest rounded-xl hover:bg-amber-600 transition-colors">
-              🔗 Generar link nuevo
+              🔗 Ver link
+            </button>
+            <button v-if="f.estado === 'PENDIENTE_TUTOR'" @click.stop="generarOtroLink(f)"
+              :class="['flex-1 py-2 font-black uppercase text-[9px] tracking-widest rounded-xl transition-colors',
+                linkVencido(f) ? 'bg-amber-500 text-white hover:bg-amber-600' : 'border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300']">
+              🔄 Generar link nuevo
             </button>
             <button v-if="f.estado === 'PENDIENTE_VETERINARIO'" @click.stop="abrirFirmaVeterinario(f)"
               class="flex-1 py-2 bg-amber-500 text-white font-black uppercase text-[9px] tracking-widest rounded-xl hover:bg-amber-600 transition-colors">
@@ -694,17 +736,30 @@ async function guardarRevision() {
             <textarea v-model="nuevo.tratamientoRechazado" rows="2"
               class="w-full border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-white/5 dark:text-white focus:outline-none focus:border-[#152C77]"></textarea>
           </div>
+          <div v-if="linkAbiertoIgual" class="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 p-4 space-y-3">
+            <p class="text-xs font-bold text-amber-800 dark:text-amber-200">
+              Ya hay un link de {{ CLINICOS.find(t => t.valor === nuevo.tipo)?.nombre.split(' (')[0].toLowerCase() }} sin firmar para este celular<template v-if="linkAbiertoIgual.nombreCliente"> ({{ linkAbiertoIgual.nombreCliente }}<template v-if="linkAbiertoIgual.nombreMascota"> · 🐾 {{ linkAbiertoIgual.nombreMascota }}</template>)</template>.
+            </p>
+            <p class="text-[11px] text-amber-700 dark:text-amber-300">
+              Creado {{ formatFecha(linkAbiertoIgual.creado) }} · {{ linkAbiertoIgual.abierto ? `lo abrió ${formatFecha(linkAbiertoIgual.abierto)}` : 'todavía no lo abre' }} · vence {{ formatFecha(linkAbiertoIgual.expira) }}
+            </p>
+            <button @click="verLink(linkAbiertoIgual)"
+              class="w-full py-3 bg-amber-500 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-amber-600 transition-colors">
+              🔗 Usar ese link
+            </button>
+          </div>
           <p v-if="errorNuevo" class="text-red-500 text-sm">{{ errorNuevo }}</p>
-          <button @click="crearFormato" :disabled="creando || !nuevoValido"
-            class="w-full py-3.5 bg-[#152C77] text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-[#DE1F27] transition-colors disabled:opacity-50">
-            {{ creando ? 'Creando...' : 'Crear y generar link' }}
+          <button @click="crearFormato(!!linkAbiertoIgual)" :disabled="creando || !nuevoValido"
+            :class="['w-full py-3.5 font-black uppercase text-[10px] tracking-widest rounded-2xl transition-colors disabled:opacity-50',
+              linkAbiertoIgual ? 'border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300' : 'bg-[#152C77] text-white hover:bg-[#DE1F27]']">
+            {{ creando ? 'Creando...' : linkAbiertoIgual ? 'Es otra mascota: crear otro link' : 'Crear y generar link' }}
           </button>
         </div>
       </div>
     </div>
   </Teleport>
 
-  <!-- Modal link generado: el link no se puede volver a ver, solo generar uno nuevo -->
+  <!-- Modal del link: recién creado o vuelto a abrir desde la lista -->
   <Teleport to="body">
     <div v-if="linkGenerado" class="fixed inset-0 z-[9000] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="absolute inset-0 bg-black/50" @click="linkGenerado = null"></div>
